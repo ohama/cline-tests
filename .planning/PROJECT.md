@@ -56,6 +56,7 @@ Cline 은 컨텍스트 한도를 넘겨도 에러를 내지 않고 그냥 잘못
 - **다른 모델 동시 기동** — Flash-Next 104 GiB. 한 번에 한 모델만 올라간다
 - **인터넷 노출 / 공개 URL** — Tailscale 과 LAN 까지만. Discord·WhatsApp 웹훅은 안 쓴다
 - **Cline 업스트림 버그 수정 PR** — 폴백 버그는 우회하고 기록만 한다. 고쳐서 보내지 않는다
+- **기존 Tailscale Funnel 정리** — `:8443 → 127.0.0.1:3000` Funnel 이 켜져 있으나 이 프로젝트에서 건드리지 않기로 했다(사용자 결정 2026-08-29). 아래 제약 참조
 - **cline-bench 전 과제 완주** — 과제당 타임아웃 2400s. 32K TTFT 64s 인 기계에서 비현실적
 - **deep mode(drafter 제거) 전환** — 현재 fast mode 유지. 재기동 20~45초가 상시 서버와 안 맞는다
 
@@ -112,7 +113,8 @@ Cline 의 `openai-compatible` 프로바이더는 모델 정보를 못 찾으면 
 | `cline@3.0.53` | 전역 설치됨 (`/opt/homebrew/bin/cline`) |
 | Node | v25.9.0 (요구 22+ 충족) |
 | 포트 3484 | 비어 있음 |
-| Tailscale | 가동 중. **iPad 2대 등록됨** — `ipad165`, `ipad-mini-6th-gen-wifi` |
+| Tailscale | 가동 중. 이 Mac 은 `ohama-2` / `100.118.140.2`, 테일넷 `tail318f12.ts.net` |
+| 등록된 모바일 기기 | iPad `ipad165`, iPad `ipad-mini-6th-gen-wifi`, iPhone `iphone171` |
 | Docker · uv | 설치됨 (cline-bench 실행 가능). Python 은 3.14.6, cline-bench 는 3.13 요구 → uv 로 해결 |
 
 ### 집 규칙 (따를 것)
@@ -133,7 +135,10 @@ Cline 의 `openai-compatible` 프로바이더는 모델 정보를 못 찾으면 
   `thinking_budget` 은 drafter 부착 상태에서 사용 불가
 - **경유**: `:8000` 직결 금지. `:4000` 을 거쳐야 role 제약이 흡수된다
 - **Cline 버전**: 3.0.53. 128k 폴백 버그 영향권 추정 — 우회로 해결한다
-- **보안**: Tailscale 무인증, LAN 은 토큰 요구. 인터넷 노출 없음
+- **보안**: Tailscale 무인증, LAN 은 토큰 요구. 이 프로젝트가 만드는 것은 인터넷에 노출하지 않는다
+- 🔴 **포트 3000 금지**: `https://ohama-2.tail318f12.ts.net:8443` Funnel 이 `127.0.0.1:3000` 으로
+  프록시된다. Funnel 은 테일넷이 아니라 **공개 인터넷**이다. 지금은 3000 에 아무것도 안 떠 있어
+  실노출이 없지만, 규칙은 살아 있다. **이 프로젝트의 어떤 컴포넌트도 3000 에 바인딩하면 안 된다**
 - **작업 범위**: 샌드박스 작업공간 + 허용 저장소 화이트리스트 밖으로 못 나간다
 - **외부 의존**: Telegram 봇 토큰은 사람이 BotFather 에서 받아야 한다 (자동화 불가)
 
@@ -154,6 +159,7 @@ Cline 의 `openai-compatible` 프로바이더는 모델 정보를 못 찾으면 
 | Compact Prompt 켬 | 32K 에서 전체 시스템 프롬프트는 작업 공간을 다 먹는다. MCP·Focus Chain 포기가 대가 | — Pending |
 | 새 서비스를 `~/local-llm-settings` 에 등록 | 집 규칙. 나중에 이 기계 상태를 볼 때 누락이 없어야 한다 | — Pending |
 | 매뉴얼은 사용법만 | 운영 런북은 성격이 다른 문서다. 섞으면 둘 다 읽기 나빠진다 | — Pending |
+| 기존 Funnel(:8443→3000) 은 그대로 둔다 | 사용자 결정. 이 프로젝트 범위 밖이고 되돌리기 어려운 변경이다. 대신 3000 바인딩을 금지해 우회한다 | ✓ Good |
 
 ---
-*Last updated: 2026-08-29 after initialization*
+*Last updated: 2026-08-29 after initialization + Funnel 결정 반영*
