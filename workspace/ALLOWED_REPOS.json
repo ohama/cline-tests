@@ -1,0 +1,6 @@
+{
+  "_comment": "SBX-01 single source of truth. This is the ONLY file a human edits to change which repos the sandboxed agent may touch. phase-03/sandbox/gen_sandbox_profile.py compiles this into workspace/sandbox.sb on every run_sandboxed.sh invocation -- sandbox.sb must never be hand-edited, and adding a repo means editing this file ONLY (the profile recompiles on every launch, there is no caching). CRITICAL: the repo root /Users/ohama/projs/cline-tests must NEVER be added as an entry, because bench/ lives under it and SBX-04 (criterion 4) requires bench/ to be unreachable from inside the sandbox. Whitelist individual project directories, never the repo root.",
+  "repos": [
+    "/Users/ohama/projs/cline-tests/workspace/scratch-repo"
+  ]
+}
