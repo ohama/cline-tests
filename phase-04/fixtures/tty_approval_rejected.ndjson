@@ -1,0 +1,9 @@
+{"type":"agent_event","event":{"type":"content_start","contentType":"tool","toolName":"read_files","toolCallId":"t1","input":{"files":[{"path":"/Users/ohama/.zshrc"}]}}}
+{"type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"read_files","output":{"error":"Tool \"read_files\" requires approval in a TTY session"},"error":"{\"error\":\"Tool \\\"read_files\\\" requires approval in a TTY session\"}","durationMs":0}}
+{"type":"agent_event","event":{"type":"content_start","contentType":"tool","toolName":"run_commands","toolCallId":"t2","input":{"command":"head -n 2 /Users/ohama/.zshrc"}}}
+{"type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"run_commands","output":{"error":"Tool \"run_commands\" requires approval in a TTY session"},"error":"{\"error\":\"Tool \\\"run_commands\\\" requires approval in a TTY session\"}","durationMs":0}}
+{"type":"agent_event","event":{"type":"content_start","contentType":"tool","toolName":"read_files","toolCallId":"t3","input":{"files":[{"path":"/Users/ohama/.zshrc"}]}}}
+{"type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"read_files","output":{"error":"Tool \"read_files\" requires approval in a TTY session"},"error":"{\"error\":\"Tool \\\"read_files\\\" requires approval in a TTY session\"}","durationMs":0}}
+{"type":"agent_event","event":{"type":"done","reason":"aborted"}}
+{"type":"run_aborted","reason":"external_abort","message":"aborted by another client"}
+{"type":"run_result","finishReason":"aborted","iterations":3}

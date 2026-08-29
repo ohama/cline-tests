@@ -1,0 +1,3 @@
+{"type":"hook_event","hookEventName":"agent_start","agentId":"agent_crash_1","taskId":"conv_crash_1","parentAgentId":null}
+{"type":"agent_event","event":{"type":"usage","inputTokens":4200,"outputTokens":30,"totalInputTokens":4200,"totalOutputTokens":30,"totalCost":0}}
+{"type":"agent_event","event":{"type":"content_start","contentType":"tool","toolName":"read_files","toolCallId":"crash1","input":{"files":[{"path":"/Users/ohama/projs

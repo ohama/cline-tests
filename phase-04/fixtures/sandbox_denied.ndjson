@@ -1,0 +1,7 @@
+{"type":"agent_event","event":{"type":"content_start","contentType":"tool","toolName":"read_files","toolCallId":"c1","input":{"files":[{"path":"/Users/ohama/.zshrc"}]}}}
+{"type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"read_files","output":[{"query":"/Users/ohama/.zshrc:1-2","result":"","error":"Error reading file: EPERM: operation not permitted, stat '/Users/ohama/.zshrc'","success":false}]}}
+{"type":"agent_event","event":{"type":"content_start","contentType":"tool","toolName":"run_commands","toolCallId":"c2","input":{"command":"head -n 2 /Users/ohama/.zshrc"}}}
+{"type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"run_commands","output":[{"query":"head -n 2 /Users/ohama/.zshrc","result":"[Command exited with code 1]\n\n[stderr]\nhead: /Users/ohama/.zshrc: Operation not permitted\n","error":"Command exited with code 1","success":false}]}}
+{"type":"agent_event","event":{"type":"content_start","contentType":"tool","toolName":"read_files","toolCallId":"c3","input":{"files":[{"path":"SANDBOX_INSIDE_CANARY.txt"}]}}}
+{"type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"read_files","output":[{"query":"SANDBOX_INSIDE_CANARY.txt:1-1","result":"INSIDE-SANDBOX-READABLE-OK\n","error":null,"success":true}]}}
+{"type":"run_result","finishReason":"completed","iterations":3}
