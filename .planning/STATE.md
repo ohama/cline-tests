@@ -5,42 +5,44 @@
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
-**Current focus:** Phase 2 (인프라 보정) 진행 중 — flashnext 동시성 상한 라이브 적용 완료, 02-03(litellm) 대기
+**Current focus:** Phase 2 (인프라 보정) 진행 중 — flashnext 동시성 상한 + litellm 루프백 바인딩 라이브 적용 완료, 02-04(미러 sync) 대기
 
 ## Current Position
 
 Phase: 2 of 8 (인프라 보정)
-Plan: 02 of 4 in current phase — 완료
+Plan: 03 of 4 in current phase — 완료
 Status: In progress
-Last activity: 2026-08-30 — 02-02-PLAN.md 완료 (flashnext 플리스트에 `--max-num-seqs 1` 라이브 적용,
-비동기 bootout 레이스 진단/수정 후 재시작 성공, INF-01 큐잉 증거 확보: max_overlap 2→1,
-queued_count 0→1). 사용자 체크포인트 승인: `proceed-1` — 이 승인이 02-03 의 litellm 재시작도 커버함.
+Last activity: 2026-08-30 — 02-03-PLAN.md 완료 (litellm 플리스트에 `--host 127.0.0.1` 라이브 적용,
+02-02 의 `proceed-1` 승인을 재질문 없이 재사용해 재시작 → 첫 시도 성공(teardown 2초), INF-02 증거
+확보: lsof `*:4000`→`127.0.0.1:4000`, LAN IP(192.168.75.108) curl 거부(rc=7), loopback IP/hostname
+둘 다 200).
 
-Progress: [███▒▒▒▒▒▒▒] 31% (Phase 2 of 8, Plan 2/4)
+Progress: [████▒▒▒▒▒▒] 38% (Phase 2 of 8, Plan 3/4)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: ~16.5 min
-- Total execution time: ~2.2 hours
+- Total plans completed: 9
+- Average duration: ~15.8 min
+- Total execution time: ~2.4 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 | 6/6 | ~112 min | ~19 min |
-| 2 | 2/4 | ~33 min | ~16.5 min |
+| 2 | 3/4 | ~43 min | ~14.3 min |
 
 **Recent Trend:**
-- Last 8 plans: 02-02 (~24 min incl. 2 failed restart attempts + fix + re-attempt), 02-01 (~9 min),
-  01-06 (~50 min), 01-04 (~35 min), 01-05 (~6 min), 01-02 (~5 min), 01-03 (~5 min), 01-01 (~11 min)
+- Last 9 plans: 02-03 (~10 min, restart succeeded first try), 02-02 (~24 min incl. 2 failed restart
+  attempts + fix + re-attempt), 02-01 (~9 min), 01-06 (~50 min), 01-04 (~35 min), 01-05 (~6 min),
+  01-02 (~5 min), 01-03 (~5 min), 01-01 (~11 min)
 - Trend: 02-01 ran fast (zero live mutations). 02-02 was the project's first live launchd restart and
   hit a real bug: `launchctl bootout` is asynchronous, so `restart_service.sh` raced flashnext's
   104 GiB teardown and failed twice with an opaque I/O error before the async-teardown-wait fix
-  landed; the restart then succeeded on the first attempt after the fix. Future plans/phases that
-  restart launchd services (02-03, Phase 5) inherit the fix for free and should not need this
-  overhead again.
+  landed; the restart then succeeded on the first attempt after the fix. 02-03 confirmed the fix
+  generalizes for free: litellm's restart (no model to unload) succeeded on the first attempt with
+  a 2s teardown, no new workaround needed. Phase 5 inherits the same helper unchanged.
 - 01-06 ran long for two reasons found live, not scope creep: (1) this session's `cline`
   binary self-triggers a background auto-update on essentially every invocation regardless of
   `CLINE_NO_AUTO_UPDATE=1`, requiring a tight reinstall-then-immediately-launch pattern to get a
@@ -177,6 +179,14 @@ Recent decisions affecting current work:
   INF-01 큐잉 증거 실측: `max_overlap=1`(cap=1 이하), `queued_count=1`(>= concurrency-cap=1),
   1차 시도(수정 적용 후)에서 바로 성공(teardown 2초, 총 재시작 28초). 언캡트 베이스라인
   (`phase-02/results/20260829T183540Z/`, max_overlap=2/queued_count=0) 대비 명확한 대조 확보.
+- 02-03: litellm 플리스트에 `--host 127.0.0.1` 라이브 적용(`apply_litellm_bind.sh`, `config.yaml`
+  및 `master_key` 는 손대지 않음 — 4개 소비처가 모두 `dummy` 키에 `localhost:4000` 을 이미 쓰고
+  있어 바인딩만으로 무회귀 해결). 02-02 의 `CHECKPOINT_ANSWER: proceed-1` 을 grep 으로 재사용,
+  재질문 없이 재시작 → 첫 시도 성공(teardown 2초). INF-02 증거: `lsof` `*:4000`→`127.0.0.1:4000`,
+  LAN IP(192.168.75.108) curl 거부(rc=7), loopback IP/hostname 둘 다 200 (IPv6 `::1` 스트랜딩
+  없음 확인). pid 76864→48525. `verify_lan_bind.sh` 자체 검증 문구가 자기 검증용 grep 패턴
+  (`*:4000`)과 우연히 매칭되는 버그를 실행 중 발견/수정(로그 문구만 변경, 로직 무변경). 미러
+  sync 는 02-04 로 이월(의도적 drift, `MIRROR_DRIFT` 경고로 확인됨).
 
 ### Pending Todos
 
@@ -202,18 +212,21 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **02-02-PLAN.md 완료 (Phase 2, 2/4 플랜).** flashnext 플리스트에 `--max-num-seqs 1`
-라이브 적용 → 사용자 체크포인트 승인(`proceed-1`) → 재시작. 첫 두 라이브 시도는
-`launchctl bootout` 비동기 특성으로 인한 teardown 레이스로 동일하게 실패(`Bootstrap failed: 5:
-Input/output error`, 매번 ROLLBACK 후 healthy 확인됨) — `restart_service.sh` 에 teardown 확인
-폴링(Step 3b)을 추가해 수정(commit `0ca2645`), 이후 3차 시도는 첫 시도에 성공(teardown 2초,
-총 28초). 최종 상태: flashnext pid=46573(구 44774), `--max-num-seqs 1` 로드 확인(launchctl +
-ps 두 오라클), INF-01 큐잉 증거 `QUEUEING: PASS`(max_overlap=1, queued_count=1, 언캡트
-베이스라인 max_overlap=2/queued_count=0 대비). role-shim/litellm 은 이 플랜에서 미변경.
-증거 디렉터리: `phase-02/results/20260829T185628Z-inf01/`(성공), `phase-02/results/
-20260829T184656Z-inf01/`(실패 2회, 진단 근거로 보존), `phase-02/results/20260829T185843Z/`
-(post-inf01 preflight PASS).
-**02-03 은 이 플랜의 `CHECKPOINT_ANSWER: proceed-1` 로 litellm 재시작 동의를 이미 확보했으므로
-재질문 금지** — `.planning/phases/02-infra-hardening/02-02-SUMMARY.md` 를 grep 해서 소비할 것.
-다음 세션은 02-03-PLAN.md(litellm 바인딩 변경 + 재시작)부터 시작.
+Stopped at: **02-03-PLAN.md 완료 (Phase 2, 3/4 플랜).** litellm 플리스트에 `--host 127.0.0.1`
+라이브 적용(`apply_litellm_bind.sh`, backup-first + plutil-lint-gated, idempotence 확인) →
+02-02 의 `CHECKPOINT_ANSWER: proceed-1` 을 grep 으로 재사용(재질문 없음) → `restart_service.sh`
+로 재시작, 첫 시도 성공(teardown 2초, litellm 은 모델 로드가 없어 flashnext 보다 훨씬 빠름).
+최종 상태: litellm pid=48525(구 76864), `--host 127.0.0.1` 로드 확인(launchctl print).
+INF-02 증거(`verify_lan_bind.sh`, `INF02: PASS`): lsof `127.0.0.1:4000`(더 이상 `*:4000` 아님),
+LAN IP(192.168.75.108) curl 거부(rc=7), loopback IP 200(`flashnext` 포함), loopback hostname
+(`localhost`) 도 200 — IPv6 `::1` 스트랜딩 위험 없음 확인. `:8000`/`:8011` 무변경. `config.yaml`
+미변경, `master_key` 미도입. 실행 중 자체 발견/수정한 버그 1건: `verify_lan_bind.sh` 의 PASS
+로그 문구가 자신의 검증 grep 패턴(`*:4000`)과 우연히 매칭되어 evidence 파일 검사가 거짓 양성
+났던 것을 로그 문구 변경만으로 수정(로직 무변경). 증거 디렉터리:
+`phase-02/results/20260829T190346Z-inf02/`(apply/restart/loaded-arguments/verdict),
+`phase-02/results/20260829T190317Z/`(pre-inf02 preflight), `phase-02/results/20260829T190552Z/`
+(post-inf02 preflight, bind-marker 대조 `*:4000`→`127.0.0.1:4000`).
+**미러 sync 는 의도적으로 미실행** — `~/local-llm-settings/launchagents/com.ohama.litellm.plist`
+는 아직 구버전(`MIRROR_DRIFT` 경고로 확인됨), 02-04(`sync.sh`)의 몫.
+다음 세션은 02-04-PLAN.md(미러 sync, 이미 작성됨)부터 시작.
 Resume file: None
