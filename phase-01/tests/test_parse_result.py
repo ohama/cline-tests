@@ -85,6 +85,24 @@ class TestParseNdjsonAndClassify(unittest.TestCase):
         self.assertIsNotNone(verdict.server_error)
         self.assertIn("MAX_KV_SIZE", verdict.server_error)
 
+    def test_outcome2_nested_real_schema_server_400_no_compaction(self):
+        """LOAD-BEARING: cline 3.0.53's REAL live NDJSON error shape nests the
+        message one level deeper than outcome2_server400.ndjson's hand-written
+        fixture: {"type":"error","error":{"message": ...}} rather than
+        {"type":"error","message": ...}. Live-discovered during Plan 06 run 2
+        (2026-08-29): without tolerating this shape, classify() silently fell
+        through to "other"/"unexpected" on a genuine MAX_KV_SIZE 400, which is
+        exactly the case this classifier exists to catch (VER-02/VER-03)."""
+        import parse_result
+
+        events = parse_result.parse_ndjson(
+            load_ndjson("outcome2_server400_nested_real.ndjson")
+        )
+        verdict = parse_result.classify(events, [])
+        self.assertEqual(verdict.outcome, "server_400_no_compaction")
+        self.assertIsNotNone(verdict.server_error)
+        self.assertIn("MAX_KV_SIZE", verdict.server_error)
+
     def test_outcome3_below_trigger_is_other(self):
         import parse_result
 

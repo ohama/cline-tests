@@ -155,6 +155,35 @@ def _is_server_context_error(message):
     return False
 
 
+def _error_event_message(event):
+    """Extract the error text from an agent_event error, tolerant of two
+    real, both-observed NDJSON shapes:
+
+      - flat:   {"type": "error", "message": "..."}
+                (the RESEARCH.md-predicted shape; still used by this repo's
+                own hand-written fixtures)
+      - nested: {"type": "error", "error": {"name": ..., "message": "..."}}
+                (the ACTUAL shape emitted by cline 3.0.53 in a live run,
+                confirmed 2026-08-29: the litellm.BadRequestError text -
+                which DOES contain "MAX_KV_SIZE" - lives one level deeper,
+                under event["error"]["message"], not event["message"].
+                Without this fallback, classify() silently falls through to
+                "other"/"unexpected" on every real MAX_KV_SIZE 400, which is
+                exactly the outcome-② case this classifier exists to catch.
+                See phase-01/results/<ts>/ndjson.log from Plan 06 run 2 for
+                the raw evidence this was discovered from.)
+    """
+    if not isinstance(event, dict):
+        return None
+    flat = event.get("message")
+    if flat:
+        return flat
+    nested = event.get("error")
+    if isinstance(nested, dict):
+        return nested.get("message")
+    return None
+
+
 def classify(ndjson_events, server_log_lines, predicted_trigger=PREDICTED_TRIGGER_TOKENS,
              max_kv=MAX_KV_SIZE):
     """Pure classification. No file I/O, no clock.
@@ -203,7 +232,7 @@ def classify(ndjson_events, server_log_lines, predicted_trigger=PREDICTED_TRIGGE
         if e.get("type") == "agent_event"
         and isinstance(e.get("event"), dict)
         and e["event"].get("type") == "error"
-        and _is_server_context_error(e["event"].get("message"))
+        and _is_server_context_error(_error_event_message(e["event"]))
     ]
 
     run_result = None
@@ -257,7 +286,7 @@ def classify(ndjson_events, server_log_lines, predicted_trigger=PREDICTED_TRIGGE
         )
     elif server_error_events:
         outcome = "server_400_no_compaction"
-        server_error = server_error_events[0].get("message")
+        server_error = _error_event_message(server_error_events[0])
         reason = (
             "No auto-compact* notice fired; the server rejected the request as a context "
             "overflow (MAX_KV_SIZE). Cline does not self-heal from this error - its "

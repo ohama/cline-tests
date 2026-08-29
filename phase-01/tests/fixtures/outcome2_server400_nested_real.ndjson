@@ -1,0 +1,4 @@
+{"type":"agent_event","event":{"type":"usage","inputTokens":5602,"outputTokens":10,"totalInputTokens":5602}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":30505,"outputTokens":56,"totalInputTokens":328530}}
+{"type":"agent_event","event":{"type":"error","error":{"name":"Error","message":"litellm.BadRequestError: OpenAIException - Error code: 400 - {'detail': 'Request needs 33998 context tokens (31950 prompt + 2048 max generation), but MAX_KV_SIZE is 32768.'}. Received Model Group=flashnext\nAvailable Model Group Fallbacks=None"},"errorClass":"unknown","recoverable":false,"iteration":19}}
+{"type":"run_result","finishReason":"error","iterations":19}
