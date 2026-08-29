@@ -5,16 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
-**Current focus:** Phase 3 (샌드박스 + 저장소 화이트리스트) 진행 중 — wave 1 두 플랜(03-01
-생성기+래퍼, 03-02 fixtures/probe/assert_denied)과 wave 2(03-03 verify_sandbox.sh 상시 게이트)
-모두 완료. wave 3(03-04, cline 스모크 테스트 1회 + 문서화 + phase-close)만 남음.
+**Current focus:** **Phase 3 (샌드박스 + 저장소 화이트리스트) 종료.** wave 1(03-01 생성기+래퍼,
+03-02 fixtures/probe/assert_denied), wave 2(03-03 verify_sandbox.sh 상시 게이트), wave 3(03-04
+cline 스모크 테스트 1회 + docs/sandbox-whitelist.md + phase-close 재검증) 4개 플랜 모두 완료.
+다음 세션은 Phase 4(헤드리스 CLI 래퍼)부터 시작.
 
 ## Current Position
 
-Phase: 3 of 8 (샌드박스 + 저장소 화이트리스트) — 진행 중
-Plan: 03 of 4 in current phase — 완료 (wave 1+2 세 플랜 모두 완료, wave 3(03-04)만 미착수)
-Status: In progress — 03-01/03-02/03-03 각각 전 태스크 커밋 완료, 세 SUMMARY 모두 작성 완료
-Verified: [03-01] `pytest phase-03/tests/ -q` 11/11 통과, 생성된 프로파일을 `sandbox-exec`가 실제로
+Phase: 3 of 8 (샌드박스 + 저장소 화이트리스트) — **완료**, Phase 4 착수 대기
+Plan: 04 of 4 in current phase — 완료 (4개 플랜 전부 완료, 네 SUMMARY 모두 작성 완료)
+Status: Phase 3 complete — 03-01/03-02/03-03/03-04 각각 전 태스크 커밋 완료, phase-close
+재검증에서 ROADMAP 네 성공 기준(SBX-01..04) 동시 PASS 확인
+Verified: [03-04] 실제 `cline` 바이너리를 샌드박스 아래서 정확히 1회 호출(재설치-체이닝 패턴,
+`run_sandboxed.sh -- "$CLINE_BIN" --version`) — 판정 (C) BLOCKED-NEEDS-HUMAN(경계 미확장,
+`EXTRA_ALLOW_PATHS` 변경 없음). `docs/sandbox-whitelist.md` 작성(8절, 한계 절이 자체 섹션,
+Phase 4 인터페이스 계약 포함). phase-close 6개 게이트 전부 동시 PASS(`verify_sandbox.sh` 4/4
+CRITERION, `pytest phase-03/tests/` 11/11, `verify_config.sh`, `verify_no_regression.sh`
+INF03:PASS, launchctl pid 3종 불변, git status 클린). [03-01] `pytest phase-03/tests/ -q` 11/11 통과, 생성된 프로파일을 `sandbox-exec`가 실제로
 수락(`/bin/echo` 성공), `run_sandboxed.sh -- /bin/cat bench/runs/CANARY.txt` 가
 `Operation not permitted`로 거부(SBX-04 첫 신호), `ALLOWED_REPOS_JSON` 부재 시 fail-closed
 확인, 두 파일(`config.env`/`run_sandboxed.sh`) 모두 SCOPE LIMITATION 문구 포함, launchd 서비스
@@ -41,14 +48,14 @@ Last activity: 2026-08-30 — 03-03-PLAN.md 완료 (`verify_sandbox.sh`: 프로�
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [█████▒▒▒▒▒] 54% (Phase 3/8 진행 중, Plan 13/24 누적 추정)
+Progress: [██████▒▒▒▒] 58% (Phase 3/8 완료, Plan 14/24 누적 추정)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
-- Average duration: ~15.1 min
-- Total execution time: ~3.3 hours
+- Total plans completed: 14
+- Average duration: ~15.0 min
+- Total execution time: ~3.5 hours
 
 **By Phase:**
 
@@ -56,9 +63,20 @@ Progress: [█████▒▒▒▒▒] 54% (Phase 3/8 진행 중, Plan 13/24
 |-------|-------|-------|----------|
 | 1 | 6/6 | ~112 min | ~19 min |
 | 2 | 4/4 | ~55 min | ~13.8 min |
-| 3 | 3/4 | ~36 min | ~12 min |
+| 3 | 4/4 | ~48 min | ~12 min |
 
 **Recent Trend:**
+- 03-04 (~12 min, wave 3 — Phase 3's final plan. The one budgeted real `cline` invocation under
+  the sandbox: first attempt crashed with SIGABRT inside Node's own process bootstrap before any
+  cline/Bun code ran (same root cause as 03-03's F8 finding, fixed the same way — capture to an
+  in-whitelist path instead of an unpunched one — and not counted toward the invocation budget);
+  the corrected second attempt reached the real Bun binary and produced a generic, path-less
+  runtime error ("An unknown error occurred (Unexpected)"), confirmed via zero-cost `strings`
+  inspection to be Bun's own catch-all, not a bounded-candidate permission message — verdict (C)
+  BLOCKED-NEEDS-HUMAN, no sandbox widening, handed to Phase 4 as a documented open item. Wrote
+  `docs/sandbox-whitelist.md` (Korean, 8 sections, scope-limitation as its own section, Phase 4
+  interface contract). Phase-close: all six gates green simultaneously, flashnext/litellm/
+  role-shim pids unchanged from the phase's start (46573/48525/75548) — **Phase 3 closed.**)
 - 03-03 (~16 min, wave 2 — wired 03-01/03-02's artifacts into verify_sandbox.sh, the standing
   Phase 3 gate; found and fixed one live-reproduced blocker: F8's sandboxed Node invocation
   crashed with SIGABRT (redirecting output to a file under an unpunched path) and then
@@ -306,6 +324,29 @@ Recent decisions affecting current work:
   아래서 F6 이 예상대로 실패) 모두 사양대로 동작 실증, README 로 각각의 의미 문서화. 실제
   화이트리스트 대상 2회 독립 실행 모두 exit 0/CRITERION 4개 PASS 동일, `launchctl print`
   pid(46573) 불변, `cline` 호출 0회, `phase-02/`·plist 무변경.
+- 03-04: **Phase 3 종료.** 03-RESEARCH.md Open Question 1(실제 `cline` 바이너리가 샌드박스
+  아래서 추가 punch-through 가 필요한가)에 이 phase 유일의 budgeted 실제 `cline` 호출로 답함 —
+  재설치-체이닝 패턴으로 `run_sandboxed.sh -- "$CLINE_BIN" --version` 실행, 결과: exit 1,
+  stderr `error: An unknown error occurred (Unexpected)`(경로/errno 를 전혀 명시하지 않는 일반
+  오류). 설치된 `.cline` 바이너리를 `strings -a` 로 직접 확인(추가 호출 0회)해 이 문구가 Bun
+  런타임 자체의 startup catch-all 오류 계열임을 확정 — 플랜이 정의한 (B) BOUNDED-FIX 요건(사전
+  선언된 후보 디렉터리 하나를 명시하는 permission 오류)을 만족하지 못해 **판정 (C)
+  BLOCKED-NEEDS-HUMAN**, `EXTRA_ALLOW_PATHS` 무변경(경계 확장 없음), Phase 4 로 문서화된
+  미해결 항목으로 이월. **자체 발견/수정 이슈 1건(Rule 3)**: 플랜이 문자 그대로 지시한 호출
+  형태(출력을 `phase-03/results/` 로 직접 리다이렉트)가 Node 자체 프로세스 부트스트랩 중
+  SIGABRT 로 크래시(cline/Bun 코드는 한 줄도 실행 전) — 03-03 의 F8 과 동일한 근본 원인(미펀치
+  경로로의 stdio 리다이렉트). `workspace/scratch-repo/`(화이트리스트 안)로 캡처 대상을 바꾼 뒤
+  결과 디렉터리로 복사하는 방식으로 수정, 이 크래시 시도는 "정확히 1회" 예산에 포함하지 않음
+  (cline/Bun 코드가 전혀 실행되지 않았으므로). `docs/sandbox-whitelist.md` 작성 완료(한글, 8절,
+  `docs/infra-hardening.md` 하우스 스타일, 한계 절이 각주가 아닌 독립 섹션, Phase 4 인터페이스
+  계약(`run_sandboxed.sh`/`verify_sandbox.sh`/`EXTRA_ALLOW_PATHS`) 포함, criterion-1 서술이
+  `verify_sandbox.sh` 실제 구현 방향과 일치 확인). phase-close 재검증 6개 게이트 전부 동시
+  PASS(`verify_sandbox.sh` 4/4 CRITERION·16/16 케이스·CRASHED 0, `pytest phase-03/tests/` 11/11,
+  `phase-01/config/verify_config.sh`, `phase-02/infra/verify_no_regression.sh` INF03:PASS,
+  launchctl pid 3종 불변, git status 클린) — flashnext(46573)/role-shim(75548)/litellm(48525) 이
+  phase 시작 시점부터 종료까지 불변, 서비스 재시작 0회. `cline` 호출로 인한 providers.json
+  드리프트(01-04 가 예측한 대로 `check_versions.sh` 자체의 내부 `cline config --json` 호출로 한
+  번 더 발생)는 `apply_provider_config.sh` 로 2회 모두 치유, 최종 `verify_config.sh` PASS.
 
 ### Pending Todos
 
@@ -330,19 +371,29 @@ Recent decisions affecting current work:
 - (환경 노트, 블로커 아님) Phase 2 가 남긴 상시 게이트 `phase-02/infra/verify_no_regression.sh`
   는 읽기 전용·재실행 가능 — Phase 5(Kanban+Telegram 동시 기동)와 Phase 6(네트워크 노출)은 새
   서비스를 올리기 전/후 이 스크립트를 그대로 호출해 회귀를 잡을 것.
+- **(Phase 4 미해결 항목, 블로커 아님)** 실제 `cline` 바이너리를 `phase-03/sandbox/
+  run_sandboxed.sh` 아래서 그대로 돌리면 일반적인 Bun 런타임 오류("An unknown error occurred
+  (Unexpected)", 경로/errno 미명시)로 실패한다(판정 (C), 03-04). Phase 4 는 이 샌드박스로 실제
+  `cline` 을 감싸기 전에 `dtruss`/`fs_usage`(관리자 권한 필요, 03-04 에서는 시도하지 않음) 등
+  정밀 도구로 어떤 경로가 거부되는지 재현한 뒤, `phase-03/sandbox/config.env` 의
+  `EXTRA_ALLOW_PATHS`(사전 선언된 후보: `$HOME/.npm`, `$HOME/.cache`, `$HOME/.config/cline`,
+  `$HOME/Library/Caches/cline`) 를 좁게 넓힐지 판단할 시간을 예산에 넣어야 한다. ROADMAP 기준
+  2/3 은 `/bin/cat`/`/bin/sh`/`node` 로 커널 수준까지 이미 증명되어 있어 이 항목이 Phase 4
+  착수 자체를 막지는 않는다. 전체 증거: `docs/sandbox-whitelist.md` §7,
+  `phase-03/results/20260829T202633Z-cline-smoke/verdict.txt`.
 
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **03-03-PLAN.md 완료 — Phase 3 wave 1+2 세 플랜(03-01, 03-02, 03-03) 모두 종료,
-wave 3(03-04)만 남음.** 03-03 은 `phase-03/sandbox/verify_sandbox.sh`(상시 게이트)를 완성해 네
-ROADMAP 성공기준을 실제 화이트리스트 대상 2회 연속 실행으로 동시에 PASS 시켰고(exit 0, 16/16
-케이스, CRASHED 0, 카나리 문자열 무유출), 3종 음성 대조군으로 게이트 자체가 fail-open 샌드박스를
-잡아낼 수 있음도 실증했다(`phase-03/results/20260829T201927Z-negative-control/`). 자체 발견/수정
-이슈 1건: 플랜이 문자 그대로 지시한 F8 의 라이브 샌드박스 Node 호출이 이 환경에서 SIGABRT 로
-크래시 후 MODULE_NOT_FOUND 로 실패 — 파이프 캡처 + 펀치스루된 임시 사본 +
-`--preserve-symlinks-main` 조합으로 해결(판정 로직 자체는 무변경). `cline` 호출 0회,
-`launchctl print` pid 불변, `phase-02/`·plist 무변경 확인.
-다음 세션은 Phase 3 wave 3(03-04: `cline` 스모크 테스트 1회(예산) + `docs/sandbox-whitelist.md` +
-phase-close 재검증 — 이 phase 의 유일한 budgeted `cline` 호출이 여기서 일어남)부터 시작.
+Stopped at: **03-04-PLAN.md 완료 — Phase 3 전체(03-01~03-04) 종료.** 03-04 는 이 phase 유일의
+budgeted 실제 `cline` 호출을 샌드박스 아래서 실행해 03-RESEARCH.md Open Question 1 에 답했다
+(판정 (C) BLOCKED-NEEDS-HUMAN — 일반적인 Bun startup 오류, 사전 선언된 후보 디렉터리를 명시하지
+않아 경계를 넓히지 않고 Phase 4 로 이월). 첫 시도(플랜 문자 그대로의 리다이렉트 형태)는 03-03 의
+F8 과 동일한 근본 원인으로 Node 부트스트랩 중 SIGABRT 크래시했으나 cline/Bun 코드가 전혀
+실행되지 않아 예산에 포함하지 않았고, 화이트리스트 안 경로로 캡처 대상을 바꿔 재시도한 결과가
+카운트된 유일한 호출이다. `docs/sandbox-whitelist.md` 작성 완료(한계 절이 독립 섹션, Phase 4
+인터페이스 계약 포함). phase-close 6개 게이트 전부 동시 PASS, 서비스 pid 3종(flashnext=46573,
+role-shim=75548, litellm=48525) phase 시작부터 종료까지 불변, 재시작 0회.
+다음 세션은 **Phase 4(헤드리스 CLI 래퍼)** 부터 시작 — `docs/sandbox-whitelist.md` 의 §5(Phase 4
+인터페이스 계약)와 §7(cline 스모크 테스트 미해결 항목)을 먼저 읽을 것.
 Resume file: None
