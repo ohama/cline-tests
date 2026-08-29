@@ -72,6 +72,12 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+# Captured BEFORE step 5's `cd "$SANDBOX_WORKDIR"` so a relative DRY_FIXTURE
+# (as every caller in this plan passes it, e.g. "phase-04/fixtures/x.ndjson"
+# run from the repo root) resolves against the invocation cwd, not against
+# the sandbox working directory we cd into later.
+ORIG_PWD="$PWD"
+
 # shellcheck source=config.env
 source "$PROJECT_ROOT/phase-04/config.env"
 # shellcheck source=/dev/null
@@ -200,12 +206,20 @@ echo "OK: cwd $PWD is inside the whitelist ($ALLOWED_REPOS_JSON)." >&2
 # ---- step 6: the run ----------------------------------------------------------
 if [ "${HEADLESS_DRY:-0}" = "1" ]; then
   DRY_FIXTURE="${DRY_FIXTURE:-$PROJECT_ROOT/phase-04/fixtures/success_no_tools.ndjson}"
+  case "$DRY_FIXTURE" in
+    /*) : ;;                                    # already absolute
+    *) DRY_FIXTURE="$ORIG_PWD/$DRY_FIXTURE" ;;   # resolve against invocation cwd, not post-cd PWD
+  esac
   echo "=== DRY RUN: copying $DRY_FIXTURE instead of invoking cline ===" >&2
   cp "$DRY_FIXTURE" "$RESULTS_DIR/ndjson.log"
   echo "DRY_RUN" > "$RESULTS_DIR/cline_exit.txt"
   : > "$RESULTS_DIR/stderr.log"
   CLINE_EXIT="DRY_RUN"
-  cat "$RESULTS_DIR/ndjson.log"
+  # Deliberately NOT echoed to stdout: the classify pipeline (step 8) reads
+  # ndjson.log from disk, not from stdout, so dry-run stdout stays empty —
+  # correctly vacuous under the "stdout is NDJSON-only" contract even for
+  # fixtures (e.g. crashed_truncated.ndjson) whose last line is deliberately
+  # not valid JSON.
 else
   echo "=== LIVE RUN: reinstall-chain then invoke cline under the sandbox (exactly ONE invocation per budget) ===" >&2
   npm install -g "cline@${CLINE_PINNED_VERSION}" >"$RESULTS_DIR/npm_pin.txt" 2>&1
