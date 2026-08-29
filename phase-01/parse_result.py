@@ -412,7 +412,7 @@ def _build_arg_parser():
                          help="Path to a flashnext.err slice bracketing the run")
     parser.add_argument("--predicted-trigger", type=int, default=None,
                          help=f"Trigger token threshold to compare against "
-                              f"(default: {PREDICTED_TRIGGER_TOKENS}, the value at contextWindow=32768)")
+                              f"(default: {PREDICTED_TRIGGER_TOKENS}, the value at top-level contextWindow=29000)")
     parser.add_argument("--max-kv", type=int, default=MAX_KV_SIZE,
                          help=f"Server MAX_KV_SIZE (default: {MAX_KV_SIZE})")
     parser.add_argument("--out", required=True, help="Output directory for verdict.md")
