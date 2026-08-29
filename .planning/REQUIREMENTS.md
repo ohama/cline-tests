@@ -100,16 +100,52 @@
 
 ## Traceability
 
-로드맵 생성 시 채워진다.
+로드맵 생성 완료 — 아래 표는 .planning/ROADMAP.md 기준.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (pending roadmap) | | |
+| CFG-01 | Phase 1 | Pending |
+| CFG-02 | Phase 1 | Pending |
+| CFG-03 | Phase 1 | Pending |
+| CFG-04 | Phase 1 | Pending |
+| CFG-05 | Phase 1 | Pending |
+| CFG-06 | Phase 1 | Pending |
+| VER-01 | Phase 1 | Pending |
+| VER-02 | Phase 1 | Pending |
+| VER-03 | Phase 1 | Pending |
+| VER-04 | Phase 1 | Pending |
+| INF-01 | Phase 2 | Pending |
+| INF-02 | Phase 2 | Pending |
+| INF-03 | Phase 2 | Pending |
+| SBX-01 | Phase 3 | Pending |
+| SBX-02 | Phase 3 | Pending |
+| SBX-03 | Phase 3 | Pending |
+| SBX-04 | Phase 3 | Pending |
+| HLS-01 | Phase 4 | Pending |
+| HLS-02 | Phase 4 | Pending |
+| HLS-03 | Phase 4 | Pending |
+| SVC-01 | Phase 5 | Pending |
+| SVC-02 | Phase 5 | Pending |
+| SVC-03 | Phase 5 | Pending |
+| SVC-04 | Phase 5 | Pending |
+| SVC-05 | Phase 5 | Pending |
+| NET-01 | Phase 6 | Pending |
+| NET-02 | Phase 6 | Pending |
+| NET-03 | Phase 6 | Pending |
+| NET-04 | Phase 6 | Pending |
+| NET-05 | Phase 6 | Pending |
+| BCH-01 | Phase 7 | Pending |
+| BCH-02 | Phase 7 | Pending |
+| BCH-03 | Phase 7 | Pending |
+| DOC-01 | Phase 8 | Pending |
+| DOC-02 | Phase 8 | Pending |
+| DOC-03 | Phase 8 | Pending |
+| DOC-04 | Phase 8 | Pending |
 
 **Coverage:**
 - v1 requirements: 37 total
-- Mapped to phases: 0
-- Unmapped: 37 ⚠️
+- Mapped to phases: 37
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-08-29*
