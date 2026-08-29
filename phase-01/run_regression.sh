@@ -22,6 +22,9 @@
 #                           (default: phase-01/tests/fixtures/outcome3_below_trigger.ndjson)
 #   FILLER_COUNT=<int>   - how many wrapped_NN.txt filler files to list in the prompt (default 12)
 #   RUN_TIMEOUT=<secs>   - cline -t timeout (default 1800)
+#   RESULTS_ROOT=<path>  - parent directory for the timestamped results dir
+#                           (default: phase-01/results). The offline dry-run test points
+#                           this at phase-01/results/dryrun/ (already gitignored).
 #   OBSERVED_ENV_PATH    - where to read CLINE_OBSERVED_MAX_TOKENS from (default:
 #                           phase-01/config/observed.env, owned exclusively by Plan 05).
 #                           This script only ever READS this path — never creates,
@@ -158,7 +161,11 @@ else
   esac
 fi
 
-RESULTS_DIR="phase-01/results/$(date -u +%Y-%m-%dT%H%M%SZ)-$$"
+# RESULTS_ROOT lets the offline dry-run test (phase-01/tests/test_harness_dryrun.sh)
+# contain its throwaway results under the already-gitignored phase-01/results/dryrun/
+# instead of littering the real results directory. Defaults to the real location.
+RESULTS_ROOT="${RESULTS_ROOT:-phase-01/results}"
+RESULTS_DIR="$RESULTS_ROOT/$(date -u +%Y-%m-%dT%H%M%SZ)-$$"
 mkdir -p "$RESULTS_DIR"
 echo "=== Results directory: $RESULTS_DIR ==="
 
