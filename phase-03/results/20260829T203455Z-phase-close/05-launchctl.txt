@@ -1,0 +1,20 @@
+=== 5. launchctl pids ===
+-- flashnext --
+gui/501/com.ohama.flashnext = {
+	active count = 1
+	path = /Users/ohama/Library/LaunchAgents/com.ohama.flashnext.plist
+-- litellm --
+gui/501/com.ohama.litellm = {
+	active count = 1
+	path = /Users/ohama/Library/LaunchAgents/com.ohama.litellm.plist
+-- role-shim --
+gui/501/com.ohama.role-shim = {
+	active count = 1
+	path = /Users/ohama/Library/LaunchAgents/com.ohama.role-shim.plist
+-- launchctl list pids --
+48525	0	com.ohama.litellm
+-	0	com.ohama.vscode-tunnel-watchdog
+-	0	com.ohama.graphify-rebuild
+-	0	com.ohama.graphify-watch
+46573	0	com.ohama.flashnext
+75548	0	com.ohama.role-shim

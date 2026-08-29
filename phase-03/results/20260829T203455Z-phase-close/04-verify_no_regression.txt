@@ -1,0 +1,4 @@
+=== 4. verify_no_regression.sh ===
+INF03: PASS
+RESULTS_DIR=phase-03/results/20260829T203455Z-phase-close/inf03
+rc=0

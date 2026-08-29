@@ -1,0 +1,7 @@
+=== 6. git status --short ===
+?? .claude/
+?? cline-analysis.html
+?? cline-analysis.md
+?? phase-02/results/20260829T192019Z-inf03/
+?? phase-02/results/20260829T192030Z-inf02-verify/
+?? phase-03/results/20260829T203455Z-phase-close/
