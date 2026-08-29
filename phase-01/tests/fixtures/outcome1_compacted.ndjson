@@ -1,0 +1,14 @@
+{"type":"agent_event","event":{"type":"usage","inputTokens":5591,"outputTokens":12,"totalInputTokens":5591}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":7894,"outputTokens":8,"totalInputTokens":13485}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":10226,"outputTokens":9,"totalInputTokens":23711}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":12558,"outputTokens":7,"totalInputTokens":36269}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":14890,"outputTokens":8,"totalInputTokens":51159}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":17222,"outputTokens":9,"totalInputTokens":68381}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":19554,"outputTokens":7,"totalInputTokens":87935}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":21886,"outputTokens":8,"totalInputTokens":109821}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":24218,"outputTokens":9,"totalInputTokens":134039}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":26800,"outputTokens":7,"totalInputTokens":160839}}
+{"type":"agent_event","event":{"type":"notice","noticeType":"status","displayRole":"status","message":"auto-compacting","reason":"auto_compaction","metadata":{"kind":"auto_compaction","phase":"started","iteration":11,"triggerTokens":26542,"maxInputTokens":29491}}}
+{"type":"agent_event","event":{"type":"notice","noticeType":"status","displayRole":"status","message":"auto-compacted","reason":"auto_compaction","metadata":{"kind":"auto_compaction","phase":"completed","iteration":11,"tokensBefore":26800,"tokensAfter":14200,"messagesBefore":42,"messagesAfter":18,"maxInputTokens":29491}}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":14650,"outputTokens":6,"totalInputTokens":175489}}
+{"type":"run_result","finishReason":"completed","iterations":12}

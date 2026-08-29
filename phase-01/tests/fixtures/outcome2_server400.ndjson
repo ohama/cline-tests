@@ -1,0 +1,9 @@
+{"type":"agent_event","event":{"type":"usage","inputTokens":5602,"outputTokens":10,"totalInputTokens":5602}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":9871,"outputTokens":9,"totalInputTokens":15473}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":14203,"outputTokens":8,"totalInputTokens":29676}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":18535,"outputTokens":7,"totalInputTokens":48211}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":22867,"outputTokens":9,"totalInputTokens":71078}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":26999,"outputTokens":8,"totalInputTokens":98077}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":30531,"outputTokens":6,"totalInputTokens":128608}}
+{"type":"agent_event","event":{"type":"error","message":"Request needs 36367 context tokens (34319 prompt + 2048 max generation), but MAX_KV_SIZE is 32768."}}
+{"type":"run_result","finishReason":"error","iterations":7}

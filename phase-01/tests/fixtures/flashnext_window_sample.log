@@ -1,0 +1,14 @@
+2026-08-29 16:15:03,135 - INFO - Generation queued: request=111ade240 prompt_tokens=303 max_tokens=256 images=0 audio=0 videos=0
+2026-08-29 16:15:03,161 - INFO - Prefill started: request=111ade240 backend=continuous_batching prompt_tokens=303 images=0 audio=0 videos=0
+2026-08-29 16:15:05,630 - INFO - Prefill completed: request=111ade240 prompt_tokens=303 cached_tokens=0 elapsed=2.456s rate=123.4 tok/s
+2026-08-29 16:15:06,905 - INFO - Request completed: endpoint=/chat/completions model=mlx-community/Qwen3.8-Flash-Next-MLX-oQ4 stream=False backend=continuous_batching prompt_tokens=303 generated_tokens=54 elapsed=3.777s prefill=123.4 tok/s decode=43.0 tok/s finish_reason=tool_calls in_flight=0
+2026-08-29 16:20:11,220 - INFO - Generation queued: request=222bef351 prompt_tokens=10226 max_tokens=256 images=0 audio=0 videos=0
+2026-08-29 16:20:11,244 - INFO - Prefill started: request=222bef351 backend=continuous_batching prompt_tokens=10226 images=0 audio=0 videos=0
+2026-08-29 16:20:19,882 - INFO - Prefill completed: request=222bef351 prompt_tokens=10226 cached_tokens=0 elapsed=8.638s rate=1183.5 tok/s
+2026-08-29 16:20:20,401 - INFO - Request completed: endpoint=/chat/completions model=mlx-community/Qwen3.8-Flash-Next-MLX-oQ4 stream=False backend=continuous_batching prompt_tokens=10226 generated_tokens=9 elapsed=8.999s prefill=1183.5 tok/s decode=41.2 tok/s finish_reason=tool_calls in_flight=0
+2026-08-29 16:38:47,460 - INFO - Prefill started: request=82eb4b7110 backend=continuous_batching prompt_tokens=13 images=0 audio=0 videos=0
+2026-08-29 16:39:14,023 - INFO - Prefill completed: request=82eb4b7110 prompt_tokens=13 cached_tokens=0 elapsed=13.390s rate=1.0 tok/s
+2026-08-29 16:45:02,772 - INFO - Generation queued: request=333cfa462 prompt_tokens=26800 max_tokens=256 images=0 audio=0 videos=0
+2026-08-29 16:45:02,801 - INFO - Prefill started: request=333cfa462 backend=continuous_batching prompt_tokens=26800 images=0 audio=0 videos=0
+2026-08-29 16:45:24,109 - INFO - Prefill completed: request=333cfa462 prompt_tokens=26800 cached_tokens=0 elapsed=21.308s rate=1257.9 tok/s
+2026-08-29 16:45:24,955 - INFO - Request completed: endpoint=/chat/completions model=mlx-community/Qwen3.8-Flash-Next-MLX-oQ4 stream=False backend=continuous_batching prompt_tokens=26800 generated_tokens=7 elapsed=22.183s prefill=1257.9 tok/s decode=38.6 tok/s finish_reason=tool_calls in_flight=0

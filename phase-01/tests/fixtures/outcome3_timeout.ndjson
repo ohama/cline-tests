@@ -1,0 +1,3 @@
+{"type": "agent_event", "event": {"type": "usage", "inputTokens": 5610, "outputTokens": 10, "totalInputTokens": 5610}}
+{"type": "agent_event", "event": {"type": "usage", "inputTokens": 9942, "outputTokens": 9, "totalInputTokens": 15552}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":13
