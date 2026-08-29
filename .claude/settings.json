@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command // \"\"' | { read -r cmd; if echo \"$cmd\" | grep -qE 'LangBackend\\.Cli|\\.fun[[:space:]]+-o|make[[:space:]]+(funlex|funyacc|test|all)'; then echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"[LT Compiler] Binary: ../LangBackend/dist/LangBackend.Cli | Usage: LangBackend.Cli source.fun -o output | Makefile LBC already configured\"}}'; fi; }",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/gsd-check-update.js"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "printf '\\033[32m%s\\033[0m | %s\\n' \"${PWD##*/}\" \"$(cs --hide-pet | perl -CS -pe 's/[\\x{2000}-\\x{3300}\\x{FE0F}\\x{1F000}-\\x{1FAFF}\\x{1400}-\\x{167F}]//g' | tr -d '\\n')\""
+  }
+}

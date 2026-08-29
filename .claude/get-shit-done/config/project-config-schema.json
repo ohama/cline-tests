@@ -1,0 +1,94 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "gsd-project-config-schema",
+  "title": "GSD Project Configuration Schema",
+  "description": "Schema for .planning/config.json",
+  "type": "object",
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": ["interactive", "yolo"],
+      "default": "interactive",
+      "description": "Workflow mode - interactive confirms decisions, yolo auto-approves"
+    },
+    "depth": {
+      "type": "string",
+      "enum": ["quick", "standard", "comprehensive"],
+      "default": "standard",
+      "description": "Planning depth - affects number of phases and plans"
+    },
+    "model_profile": {
+      "type": "string",
+      "enum": ["quality", "balanced", "budget"],
+      "default": "balanced",
+      "description": "Model allocation profile for agents"
+    },
+    "parallelization": {
+      "type": "boolean",
+      "default": true,
+      "description": "Run independent plans in parallel"
+    },
+    "commit_docs": {
+      "type": "boolean",
+      "default": true,
+      "description": "Commit planning docs to git (false keeps .planning/ local-only)"
+    },
+    "workflow": {
+      "type": "object",
+      "description": "Toggle optional workflow agents",
+      "properties": {
+        "research": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run phase researcher before planning"
+        },
+        "plan_check": {
+          "type": "boolean",
+          "default": true,
+          "description": "Verify plans with plan checker"
+        },
+        "verifier": {
+          "type": "boolean",
+          "default": true,
+          "description": "Verify phase goals after execution"
+        }
+      },
+      "additionalProperties": false
+    },
+    "planning": {
+      "type": "object",
+      "description": "Planning document settings",
+      "properties": {
+        "commit_docs": {
+          "type": "boolean",
+          "default": true,
+          "description": "Commit planning docs to git"
+        },
+        "search_gitignored": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include gitignored files in searches (needed if .planning/ is gitignored)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "tdd": {
+      "type": "object",
+      "description": "Test-driven development settings",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable TDD for tasks marked tdd: true"
+        },
+        "test_first": {
+          "type": "boolean",
+          "default": true,
+          "description": "Always write tests before implementation"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

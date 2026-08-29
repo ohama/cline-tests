@@ -1,0 +1,101 @@
+{
+  "$schema": "./model-profiles.schema.json",
+  "$comment": "Single source of truth for GSD agent model assignments. Edit this file to change model allocations.",
+
+  "profiles": {
+    "quality": {
+      "$comment": "Maximum reasoning power - Opus for all decision-making agents",
+      "gsd-planner": "opus",
+      "gsd-roadmapper": "opus",
+      "gsd-executor": "opus",
+      "gsd-phase-researcher": "opus",
+      "gsd-project-researcher": "opus",
+      "gsd-research-synthesizer": "sonnet",
+      "gsd-debugger": "opus",
+      "gsd-codebase-mapper": "sonnet",
+      "gsd-verifier": "sonnet",
+      "gsd-plan-checker": "sonnet",
+      "gsd-integration-checker": "sonnet"
+    },
+    "balanced": {
+      "$comment": "Smart allocation - Opus for planning, Sonnet for execution (default)",
+      "gsd-planner": "opus",
+      "gsd-roadmapper": "sonnet",
+      "gsd-executor": "sonnet",
+      "gsd-phase-researcher": "sonnet",
+      "gsd-project-researcher": "sonnet",
+      "gsd-research-synthesizer": "sonnet",
+      "gsd-debugger": "sonnet",
+      "gsd-codebase-mapper": "haiku",
+      "gsd-verifier": "sonnet",
+      "gsd-plan-checker": "sonnet",
+      "gsd-integration-checker": "sonnet"
+    },
+    "budget": {
+      "$comment": "Minimal Opus usage - Sonnet for writing, Haiku for research/verification",
+      "gsd-planner": "sonnet",
+      "gsd-roadmapper": "sonnet",
+      "gsd-executor": "sonnet",
+      "gsd-phase-researcher": "haiku",
+      "gsd-project-researcher": "haiku",
+      "gsd-research-synthesizer": "haiku",
+      "gsd-debugger": "sonnet",
+      "gsd-codebase-mapper": "haiku",
+      "gsd-verifier": "haiku",
+      "gsd-plan-checker": "haiku",
+      "gsd-integration-checker": "haiku"
+    }
+  },
+
+  "defaults": {
+    "profile": "balanced",
+    "fallback_model": "sonnet"
+  },
+
+  "agents": {
+    "gsd-planner": {
+      "description": "Creates detailed execution plans (PLAN.md)",
+      "why_opus": "Planning involves architecture decisions, goal decomposition, and task design"
+    },
+    "gsd-executor": {
+      "description": "Executes plans and writes code",
+      "why_sonnet": "Follows explicit PLAN.md instructions; plan contains the reasoning"
+    },
+    "gsd-debugger": {
+      "description": "Systematic bug investigation",
+      "why_sonnet": "Scientific method requires reasoning but less than architecture design"
+    },
+    "gsd-verifier": {
+      "description": "Verifies phase goals achieved",
+      "why_sonnet": "Goal-backward reasoning needs more than pattern matching"
+    },
+    "gsd-phase-researcher": {
+      "description": "Researches how to implement a phase",
+      "why_variable": "Research depth varies by domain complexity"
+    },
+    "gsd-project-researcher": {
+      "description": "Researches project domain ecosystem",
+      "why_variable": "Parallel agents benefit from faster models"
+    },
+    "gsd-research-synthesizer": {
+      "description": "Combines research outputs",
+      "why_sonnet": "Synthesis is structured aggregation"
+    },
+    "gsd-roadmapper": {
+      "description": "Creates project roadmap from requirements",
+      "why_variable": "Phase decomposition benefits from stronger reasoning"
+    },
+    "gsd-codebase-mapper": {
+      "description": "Analyzes existing codebase structure",
+      "why_haiku": "Read-only exploration, structured output extraction"
+    },
+    "gsd-plan-checker": {
+      "description": "Verifies plans will achieve goals",
+      "why_sonnet": "Goal-backward analysis requires reasoning"
+    },
+    "gsd-integration-checker": {
+      "description": "Checks cross-phase integration",
+      "why_sonnet": "E2E flow verification needs context understanding"
+    }
+  }
+}

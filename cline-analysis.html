@@ -1,0 +1,1057 @@
+<title>Cline 로컬 운용 노트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+
+<style>
+:root {
+  --paper:      #EDF0EC;
+  --surface:    #F7F9F6;
+  --surface-2:  #E3E8E1;
+  --ink:        #121714;
+  --ink-2:      #3A443E;
+  --muted:      #626E67;
+  --rule:       #CDD5CB;
+  --rule-soft:  #DDE3DB;
+  --accent:     #0B6B57;
+  --accent-2:   #0E8A6F;
+  --accent-soft:#D3E5DE;
+  --warn:       #9E4A16;
+  --warn-soft:  #F0E0D0;
+  --crit:       #97292B;
+  --crit-soft:  #F0D9D8;
+
+  --display: "Bricolage Grotesque", "IBM Plex Sans KR", ui-sans-serif, system-ui, sans-serif;
+  --body: "IBM Plex Sans KR", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --measure: 68ch;
+  --s1: 0.375rem; --s2: 0.75rem; --s3: 1.125rem; --s4: 1.75rem;
+  --s5: 2.75rem; --s6: 4rem; --s7: 6rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:      #0E1311;
+    --surface:    #151C19;
+    --surface-2:  #1E2723;
+    --ink:        #E6EBE6;
+    --ink-2:      #BDC7C1;
+    --muted:      #8B9A92;
+    --rule:       #2A342E;
+    --rule-soft:  #202924;
+    --accent:     #4ECBA5;
+    --accent-2:   #6FDDBB;
+    --accent-soft:#123329;
+    --warn:       #E6A063;
+    --warn-soft:  #37271A;
+    --crit:       #E8797A;
+    --crit-soft:  #391F20;
+  }
+}
+:root[data-theme="dark"] {
+  --paper:      #0E1311;
+  --surface:    #151C19;
+  --surface-2:  #1E2723;
+  --ink:        #E6EBE6;
+  --ink-2:      #BDC7C1;
+  --muted:      #8B9A92;
+  --rule:       #2A342E;
+  --rule-soft:  #202924;
+  --accent:     #4ECBA5;
+  --accent-2:   #6FDDBB;
+  --accent-soft:#123329;
+  --warn:       #E6A063;
+  --warn-soft:  #37271A;
+  --crit:       #E8797A;
+  --crit-soft:  #391F20;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.72;
+  -webkit-font-smoothing: antialiased;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 var(--s4) var(--s7);
+}
+
+/* ---------- masthead ---------- */
+
+.masthead {
+  border-bottom: 1.5px solid var(--ink);
+  padding: var(--s5) 0 var(--s3);
+  margin-bottom: var(--s5);
+}
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--s2);
+  align-items: baseline;
+}
+.eyebrow .sep { color: var(--rule); }
+.eyebrow .dim { color: var(--muted); }
+
+h1 {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(2.6rem, 7vw, 4.4rem);
+  line-height: 0.98;
+  letter-spacing: -0.025em;
+  margin: var(--s3) 0 var(--s2);
+  text-wrap: balance;
+}
+.dek {
+  font-size: clamp(1.02rem, 2vw, 1.18rem);
+  color: var(--ink-2);
+  max-width: 60ch;
+  margin: 0 0 var(--s4);
+  line-height: 1.6;
+}
+
+.factstrip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: var(--s3);
+  border-top: 1px solid var(--rule);
+  padding-top: var(--s3);
+}
+.fact .k {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: block;
+}
+.fact .v {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.fact .v small {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+/* ---------- layout ---------- */
+
+.shell { display: block; }
+@media (min-width: 1020px) {
+  .shell {
+    display: grid;
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: var(--s6);
+    align-items: start;
+  }
+  .rail { position: sticky; top: var(--s4); display: block; }
+}
+.rail { display: none; }
+.rail ol {
+  list-style: none;
+  margin: 0; padding: 0;
+  display: flex; flex-direction: column;
+  border-left: 1px solid var(--rule);
+}
+.rail a {
+  display: block;
+  padding: var(--s2) 0 var(--s2) var(--s2);
+  margin-left: -1px;
+  border-left: 2px solid transparent;
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  color: var(--muted);
+  text-decoration: none;
+}
+.rail a:hover, .rail a:focus-visible {
+  color: var(--accent);
+  border-left-color: var(--accent);
+}
+.rail .num { display: block; font-size: 0.62rem; letter-spacing: 0.14em; opacity: 0.7; }
+
+main { min-width: 0; }
+
+/* ---------- sections ---------- */
+
+section { margin-bottom: var(--s7); scroll-margin-top: var(--s3); }
+
+.sec-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  border-top: 1.5px solid var(--ink);
+  padding-top: var(--s2);
+  margin-bottom: var(--s4);
+}
+.sec-num {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  padding-top: 0.45em;
+  white-space: nowrap;
+}
+h2 {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(1.65rem, 3.6vw, 2.3rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0;
+  text-wrap: balance;
+}
+h3 {
+  font-family: var(--body);
+  font-weight: 700;
+  font-size: 1.14rem;
+  letter-spacing: -0.005em;
+  margin: var(--s5) 0 var(--s2);
+  color: var(--ink);
+}
+h3:first-child { margin-top: 0; }
+h4 {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: var(--s4) 0 var(--s2);
+}
+
+p { margin: 0 0 var(--s3); max-width: var(--measure); }
+main ul, main ol { margin: 0 0 var(--s3); padding-left: 1.15rem; max-width: var(--measure); }
+main li { margin-bottom: var(--s1); }
+main li::marker { color: var(--accent); }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+strong { font-weight: 700; }
+code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  background: var(--surface-2);
+  padding: 0.1em 0.34em;
+  border-radius: 3px;
+}
+.path { color: var(--accent); }
+
+/* ---------- meters ---------- */
+
+.meters {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  padding: var(--s4);
+  margin: 0 0 var(--s4);
+}
+.meters .cap {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: var(--s3);
+}
+.meter { margin-bottom: var(--s3); }
+.meter:last-child { margin-bottom: 0; }
+.meter .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s2);
+  font-size: 0.86rem;
+  margin-bottom: 0.3rem;
+}
+.meter .label { color: var(--ink-2); }
+.meter .val {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.track {
+  height: 10px;
+  background: var(--surface-2);
+  position: relative;
+  overflow: hidden;
+}
+.fill { position: absolute; inset: 0 auto 0 0; }
+.fill.ok   { background: var(--accent); }
+.fill.warn { background: var(--warn); }
+.fill.crit { background: var(--crit); }
+.meter .note {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+}
+
+/* ---------- callouts ---------- */
+
+.call {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  padding: var(--s3);
+  margin: 0 0 var(--s4);
+  max-width: var(--measure);
+}
+.call.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+.call.crit { border-left-color: var(--crit); background: var(--crit-soft); }
+.call .t {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  font-weight: 600;
+  display: block;
+  margin-bottom: var(--s1);
+  color: var(--accent);
+}
+.call.warn .t { color: var(--warn); }
+.call.crit .t { color: var(--crit); }
+.call p:last-child, .call ul:last-child { margin-bottom: 0; }
+
+/* ---------- code ---------- */
+
+.codewrap {
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  margin: 0 0 var(--s4);
+}
+pre {
+  font-family: var(--mono);
+  font-size: 0.795rem;
+  line-height: 1.62;
+  margin: 0;
+  padding: var(--s3);
+  white-space: pre;
+  color: var(--ink-2);
+}
+pre .c { color: var(--muted); }
+pre .k { color: var(--accent); font-weight: 500; }
+.codewrap .filename {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: var(--s2) var(--s3);
+  border-bottom: 1px solid var(--rule-soft);
+  background: var(--surface-2);
+}
+
+/* ---------- tables ---------- */
+
+.tablewrap { overflow-x: auto; margin: 0 0 var(--s4); border: 1px solid var(--rule); }
+table { border-collapse: collapse; width: 100%; font-size: 0.855rem; min-width: 520px; }
+th, td {
+  text-align: left;
+  padding: 0.62rem 0.85rem;
+  border-bottom: 1px solid var(--rule-soft);
+  vertical-align: top;
+}
+thead th {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+tbody tr:last-child td { border-bottom: none; }
+td.num, th.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td .sub { display: block; font-size: 0.78em; color: var(--muted); }
+
+/* ---------- issue cards ---------- */
+
+.issues { display: grid; gap: var(--s2); margin-bottom: var(--s4); }
+.issue {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--s1) var(--s3);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule);
+  padding: var(--s3);
+}
+.issue.open { border-left-color: var(--warn); }
+.issue.closed { border-left-color: var(--muted); }
+.issue.root { border-left-color: var(--crit); }
+.issue .id {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.issue .body { grid-column: 2; }
+.issue .ti { font-weight: 600; font-size: 0.93rem; display: block; margin-bottom: 0.15rem; line-height: 1.45; }
+.issue .meta {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+  margin-bottom: var(--s1);
+}
+.issue p { font-size: 0.875rem; margin: 0; color: var(--ink-2); max-width: none; }
+.pill {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 0.14em 0.45em;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  vertical-align: 0.12em;
+}
+.pill.open { color: var(--warn); }
+.pill.closed { color: var(--muted); }
+.pill.notplanned { color: var(--crit); }
+
+/* ---------- routes ---------- */
+
+.routes { display: grid; gap: var(--s2); margin-bottom: var(--s4); }
+.route {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  padding: var(--s3) var(--s4);
+}
+.route .top {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s2);
+  margin-bottom: var(--s2);
+}
+.route .rank {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: var(--accent);
+  line-height: 1;
+}
+.route h3 { margin: 0; font-size: 1.05rem; }
+.route .tag {
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-left: auto;
+  white-space: nowrap;
+}
+.route p, .route ul { font-size: 0.9rem; }
+.route > :last-child { margin-bottom: 0; }
+
+/* ---------- verdict ---------- */
+
+.verdict {
+  border: 1.5px solid var(--ink);
+  padding: var(--s4);
+  margin-bottom: var(--s4);
+  background: var(--surface);
+}
+.verdict .t {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  display: block;
+  margin-bottom: var(--s2);
+}
+.verdict p { font-size: 1.02rem; margin-bottom: 0; max-width: var(--measure); }
+
+/* ---------- footer ---------- */
+
+footer {
+  border-top: 1.5px solid var(--ink);
+  padding-top: var(--s3);
+  margin-top: var(--s6);
+}
+footer h4 { margin-top: 0; }
+.srcs {
+  columns: 2;
+  column-gap: var(--s5);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+@media (max-width: 640px) { .srcs { columns: 1; } }
+.srcs li { break-inside: avoid; margin-bottom: var(--s1); }
+.stamp {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  margin-top: var(--s4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <div class="eyebrow">
+    <span>필드 리포트</span><span class="sep">/</span>
+    <span class="dim">2026-08-29</span><span class="sep">/</span>
+    <span class="dim">cline/cline @ main</span>
+  </div>
+  <h1>Cline 로컬 운용 노트</h1>
+  <p class="dek">저장소 구조, Qwen3.8-Flash-Next 로컬 연결, iPhone·iPad 원격 운용, 그리고 32k 컨텍스트에서의 정밀도·시간에 대해 GitHub에 실제로 존재하는 근거를 정리했다.</p>
+
+  <div class="factstrip">
+    <div class="fact"><span class="k">Stars</span><span class="v">67,096</span></div>
+    <div class="fact"><span class="k">Forks</span><span class="v">7,243</span></div>
+    <div class="fact"><span class="k">Open issues</span><span class="v">1,139</span></div>
+    <div class="fact"><span class="k">License</span><span class="v">Apache-2.0</span></div>
+    <div class="fact"><span class="k">Language</span><span class="v">TypeScript</span></div>
+    <div class="fact"><span class="k">Created</span><span class="v">2024-07-06</span></div>
+  </div>
+</header>
+
+<div class="shell">
+
+<nav class="rail" aria-label="목차">
+  <ol>
+    <li><a href="#s1"><span class="num">§1</span>저장소 해부</a></li>
+    <li><a href="#s2"><span class="num">§2</span>로컬 LLM 연결</a></li>
+    <li><a href="#s3"><span class="num">§3</span>iPhone / iPad</a></li>
+    <li><a href="#s4"><span class="num">§4</span>32k 컨텍스트 조사</a></li>
+    <li><a href="#s5"><span class="num">§5</span>실행 체크리스트</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ===================== 1 ===================== -->
+<section id="s1">
+  <div class="sec-head">
+    <span class="sec-num">§1</span>
+    <h2>저장소 해부 — 확장 프로그램에서 에이전트 플랫폼으로</h2>
+  </div>
+
+  <p>2024년의 Cline은 VS Code 사이드바에 붙는 코딩 확장이었다. 지금 저장소 설명은 <em>“Autonomous coding agent as an SDK, IDE extension, or CLI assistant”</em> 로 바뀌었고, 이 문장이 아키텍처를 그대로 요약한다. 하나의 에이전트 코어를 세 개의 표면이 공유한다.</p>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>경로</th><th>역할</th><th>비고</th></tr></thead>
+      <tbody>
+        <tr><td class="num">sdk/packages/core</td><td>에이전트 루프, 도구, 컨텍스트 압축</td><td>세 표면의 공통 심장</td></tr>
+        <tr><td class="num">sdk/packages/llms</td><td>프로바이더 스펙 · 모델 카탈로그 · 라우팅</td><td>§4의 버그가 전부 여기서 나온다</td></tr>
+        <tr><td class="num">apps/vscode</td><td>VS Code 확장 + webview UI</td><td>가장 기능이 완전한 표면</td></tr>
+        <tr><td class="num">apps/cli</td><td>터미널 TUI · 헤드리스 · Kanban · 커넥터</td><td><code>npm i -g cline</code>, Node 22+</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>실제로 중요한 기능</h3>
+  <ul>
+    <li><strong>Plan / Act 모드</strong> — 탐색·설계 단계와 실행 단계를 분리. 로컬 모델에서는 Plan을 큰 모델로, Act를 작은 모델로 나누는 운용이 가능하다.</li>
+    <li><strong>Checkpoints + diff 리뷰</strong> — 파일 변경마다 스냅숏. 되돌리기가 git 커밋과 독립적이다.</li>
+    <li><strong>Auto-compact</strong> — 컨텍스트가 차면 잘라내는 대신 요약본으로 대체한다. 임계값은 <code>autoCondenseThreshold</code>, 축소 목표는 <code>maxAllowedSize = max(ctx − 40000, ctx × 0.8)</code>.</li>
+    <li><strong>MCP · .clinerules · Skills</strong> — 외부 도구와 프로젝트 규약 주입.</li>
+    <li><strong>Kanban</strong> — <code>cline --kanban</code> → <code>localhost:3484</code>. 카드마다 git worktree를 따로 파고, 의존 카드가 끝나면 다음 카드가 자동 시작된다.</li>
+    <li><strong>커넥터</strong> — Telegram / Slack / Discord / Google Chat / WhatsApp / Linear. §3의 핵심.</li>
+  </ul>
+
+  <h3>모델 프로바이더</h3>
+  <p>Anthropic · OpenAI · Gemini · OpenRouter · Bedrock · Vertex · Cerebras · Groq, 그리고 로컬 쪽으로 <strong>Ollama(11434) · LM Studio(1234) · Atomic Chat(1337) · 임의의 OpenAI-compatible 엔드포인트</strong>. BYOK가 1급 시민이라 벤더 락인이 없다.</p>
+
+  <h3>냉정한 평가</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>강점</th><th>약점</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Apache-2.0 전면 오픈소스. 에이전트 루프를 직접 읽고 고칠 수 있다.</td>
+          <td>토큰을 많이 쓴다. 전체 시스템 프롬프트가 무겁고, Compact Prompt를 켜면 MCP·Focus Chain·MTP가 꺼진다.</td>
+        </tr>
+        <tr>
+          <td>세 표면(IDE / CLI / SDK)이 같은 코어를 쓰므로 동작이 일관된다.</td>
+          <td>로컬 프로바이더의 컨텍스트 창 회계가 여전히 어긋난다 — §4 참조.</td>
+        </tr>
+        <tr>
+          <td>diff 편집 성공률을 실사용 텔레메트리로 관리한다 (Sonnet 4.5 96.2%, GLM-4.6 94.9%).</td>
+          <td>미해결 이슈 1,139건. 기능 추가 속도가 버그 정리 속도를 앞선다.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===================== 2 ===================== -->
+<section id="s2">
+  <div class="sec-head">
+    <span class="sec-num">§2</span>
+    <h2>Qwen3.8-Flash-Next 로컬 연결</h2>
+  </div>
+
+  <p>2026년 8월 26일 공개된 <strong>Qwen3.8-Flash-Next</strong>는 Qwen4 아키텍처의 프리뷰다. 본체 125B MoE에 51B N-gram 임베딩이 붙고, 토큰당 활성 파라미터는 6B. 4개 층 중 3개는 Gated DeltaNet으로 과거 컨텍스트를 고정 크기 순환 상태로 압축하고, 나머지 1개 층이 Qwen Sparse Attention으로 전체 컨텍스트를 정밀 조회한다. 네이티브 컨텍스트는 <strong>262,144 토큰</strong>, YaRN으로 1M까지 확장된다.</p>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>벤치마크</th><th class="num">Qwen3.8-Flash-Next</th><th class="num">Claude Opus 4.6 Max</th></tr></thead>
+      <tbody>
+        <tr><td>SWE-bench Pro</td><td class="num">62.5</td><td class="num">53.4</td></tr>
+        <tr><td>CoWorkBench</td><td class="num">73.9</td><td class="num">68.2</td></tr>
+        <tr><td>JobBench</td><td class="num">55.7</td><td class="num">36.6</td></tr>
+        <tr><td>SWE-bench Multilingual</td><td class="num">81.0</td><td class="num">—</td></tr>
+        <tr><td>LiveCodeBench v6</td><td class="num">91.9</td><td class="num">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>먼저 확인할 것: 메모리</h3>
+  <p>MoE라도 <strong>가중치 전체가 메모리에 올라가야 한다</strong>. 활성 6B는 속도 이야기지 용량 이야기가 아니다.</p>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>양자화</th><th class="num">파일 크기</th><th class="num">필요 RAM</th><th class="num">Top-1% 정확도</th><th>판단</th></tr></thead>
+      <tbody>
+        <tr><td class="num">BF16</td><td class="num">355 GB</td><td class="num">—</td><td class="num">100%</td><td>서버 전용</td></tr>
+        <tr><td class="num">UD-Q4_K_XL</td><td class="num">111.3 GB</td><td class="num">112 GB</td><td class="num">93.5%</td><td>128GB 통합메모리 Mac</td></tr>
+        <tr><td class="num">UD-IQ3_XXS</td><td class="num">82 GB</td><td class="num">79 GB</td><td class="num">87.6%</td><td>96GB에서 균형점</td></tr>
+        <tr><td class="num">UD-IQ1_S</td><td class="num">72.5 GB</td><td class="num">75 GB</td><td class="num">80.2%</td><td>최소 구동선</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="call warn">
+    <span class="t">현실 점검</span>
+    <p>Qwen3.8-Flash-Next를 Cline 에이전트 루프에 물리려면 <strong>96GB 이상 통합 메모리</strong>가 사실상 전제다. 그 아래라면 Qwen3-Coder 30B-A3B(Flash) 4-bit가 32GB에서, 8-bit가 64GB에서 실제로 돌아가는 대안이다. Cline 측 테스트에서 <code>gpt-oss-20b</code>, <code>seed-oss-36b</code>, <code>deepseek-r1-0528-qwen3-8b</code> 급은 도구 호출이 깨져 에이전트로 쓸 수 없었다.</p>
+  </div>
+
+  <h3>경로 A — LM Studio (가장 쉬움)</h3>
+  <ol>
+    <li>LM Studio에서 <code>Qwen3.8-Flash-Next</code> GGUF를 받는다. Ollama·LM Studio 모두 자체 llama.cpp를 번들하므로, 새 아키텍처를 지원하는 버전으로 먼저 업데이트한다.</li>
+    <li>모델 로드 시 <strong>Context Length = 262144</strong>, <strong>KV Cache Quantization = 해제</strong>. KV 캐시 양자화를 켜두면 작업 간 컨텍스트가 남아 예측 불가능한 동작이 생긴다.</li>
+    <li>Developer 탭에서 서버 시작 → <code>http://127.0.0.1:1234</code>.</li>
+    <li>Cline Settings → Provider <strong>LM Studio</strong> → 모델 선택 → <strong>Context Window를 직접 262144로 입력</strong> → <strong>Use Compact Prompt 켜기</strong>.</li>
+  </ol>
+
+  <h3>경로 B — llama.cpp 직접 (제어권 최대)</h3>
+  <div class="codewrap">
+    <div class="filename">bash</div>
+<pre><span class="c"># 1) 가중치</span>
+hf download unsloth/Qwen3.8-Flash-Next-GGUF \
+    --local-dir qwen_models --include <span class="k">"*UD-IQ3_XXS*"</span>
+
+<span class="c"># 2) 서버 — 컨텍스트를 명시적으로 열어준다</span>
+./llama-server \
+    --model qwen_models/UD-IQ3_XXS/Qwen3.8-Flash-Next-UD-IQ3_XXS-00001-of-00003.gguf \
+    --ctx-size 262144 \
+    --jinja \
+    --temp 0.7 --top-p 0.80 --top-k 20 --min-p 0.0 --presence-penalty 1.5 \
+    --host 127.0.0.1 --port 8080
+
+<span class="c"># 3) Cline: Provider = OpenAI Compatible</span>
+<span class="c">#    Base URL  http://127.0.0.1:8080/v1</span>
+<span class="c">#    Model ID  서버가 보고하는 ID와 정확히 일치시킬 것</span>
+<span class="c">#    Context Window  262144  (수동 입력 — §4의 폴백을 덮어쓰기 위함)</span></pre>
+  </div>
+
+  <p><code>--jinja</code>는 모델 고유 함수 호출 포맷을 파싱하기 위해 필요하다. 사고 모드를 쓸 때는 <code>temp 1.0 / top-p 0.95 / top-k 20</code>, 깊이는 <code>reasoning_effort</code>를 <code>low · medium · xhigh</code>로 조절한다. 에이전트 루프에서는 <code>medium</code>이 시간 대비 합리적이다.</p>
+
+  <h3>경로 C — vLLM / SGLang (다중 세션·팀)</h3>
+  <div class="codewrap">
+    <div class="filename">bash</div>
+<pre>vllm serve Qwen/Qwen3.8-Flash-Next \
+    --max-model-len 262144 \
+    --enable-auto-tool-choice \
+    --tool-call-parser qwen3_coder
+<span class="c"># vllm >= 0.15.0 필요. Cline은 OpenAI Compatible로 붙인다.</span></pre>
+  </div>
+
+  <h3>Ollama를 쓸 경우 — 반드시 num_ctx를 박아야 한다</h3>
+  <p>Ollama 서버 기본값은 4096이고, 초과분은 <em>조용히 버려진다</em>. Cline은 자기 요청이 온전히 전달됐다고 믿고, 모델은 파편만 본다.</p>
+  <div class="codewrap">
+    <div class="filename">Modelfile</div>
+<pre>FROM qwen3.8-flash-next
+PARAMETER num_ctx 262144</pre>
+  </div>
+  <div class="codewrap">
+    <div class="filename">bash</div>
+<pre>ollama create qwen38-fn-256k -f Modelfile</pre>
+  </div>
+</section>
+
+<!-- ===================== 3 ===================== -->
+<section id="s3">
+  <div class="sec-head">
+    <span class="sec-num">§3</span>
+    <h2>iPhone · iPad에서 쓰기</h2>
+  </div>
+
+  <p>전제부터 분명히 하자. <strong>Cline의 네이티브 iOS 앱은 없고, iPad에서 에이전트나 모델을 직접 돌릴 수도 없다.</strong> 실제로 가능한 것은 “Mac이나 서버에서 도는 Cline을 아이폰에서 조종하기”이며, 이건 이제 공식 기능이다. 네 가지 경로를 실용성 순으로 정리한다.</p>
+
+  <div class="routes">
+
+    <div class="route">
+      <div class="top">
+        <span class="rank">A</span>
+        <h3>CLI 커넥터 — Telegram / Slack</h3>
+        <span class="tag">공식 · 권장</span>
+      </div>
+      <p>Cline CLI가 메신저 봇으로 붙는다. 메시지 하나가 에이전트 세션 하나를 만들거나 이어가고, 파일 변경 알림과 질문이 폰으로 온다. 아이폰에서 프롬프트를 던지고, 승인·거부하고, 결과를 받는다.</p>
+      <div class="codewrap">
+        <div class="filename">bash — 맥에서 한 번만</div>
+<pre><span class="c"># @BotFather 에게 /newbot → 토큰 획득</span>
+cline connect telegram -k <span class="k">&lt;BOT-TOKEN&gt;</span> --allowed-user-id <span class="k">&lt;내 텔레그램 ID&gt;</span>
+
+<span class="c"># Slack: socket 모드면 공개 URL이 필요 없다</span>
+cline connect slack --bot-token <span class="k">&lt;xoxb-…&gt;</span> --app-token <span class="k">&lt;xapp-…&gt;</span></pre>
+      </div>
+      <ul>
+        <li>Slack은 스레드 1개 = 세션 1개로 맥락이 유지된다.</li>
+        <li>Discord는 <code>/new</code>, <code>/tools</code>, <code>/yolo</code> 슬래시 커맨드를 제공한다.</li>
+        <li>커넥터는 여러 개를 동시에 띄울 수 있고 같은 허브를 공유한다.</li>
+        <li><strong>제약:</strong> 커넥터는 현재 Cline CLI 전용이다. VS Code 확장에는 없다.</li>
+      </ul>
+    </div>
+
+    <div class="route">
+      <div class="top">
+        <span class="rank">B</span>
+        <h3>Kanban 보드 + Tailscale → Safari</h3>
+        <span class="tag">iPad에 최적</span>
+      </div>
+      <p><code>cline --kanban</code> 이 <code>localhost:3484</code>에 웹 UI를 띄운다. Tailscale로 맥을 테일넷에 올리면 iPad Safari에서 그대로 열린다. 카드별 git worktree, 실시간 diff 리뷰, 인라인 코멘트가 터치로 된다 — 아이패드에서 “읽고 승인하는” 워크플로에 가장 잘 맞는다.</p>
+      <div class="codewrap">
+        <div class="filename">bash</div>
+<pre>tailscale up
+cline --kanban
+<span class="c"># iPad Safari → http://&lt;맥의-테일넷-이름&gt;:3484</span></pre>
+      </div>
+    </div>
+
+    <div class="route">
+      <div class="top">
+        <span class="rank">C</span>
+        <h3>SSH + tmux — Blink Shell / Termius</h3>
+        <span class="tag">가장 가벼움</span>
+      </div>
+      <p>Blink Shell로 맥에 SSH → <code>tmux</code> 안에서 <code>cline</code> TUI를 그대로 쓴다. 세션이 끊겨도 tmux가 붙잡아준다. 긴 작업은 <code>cline -z</code>(zen 모드)로 백그라운드에 던지고 터미널을 회수할 수 있다.</p>
+      <p>단점은 명확하다. diff를 좁은 화면의 터미널에서 읽어야 한다. 매직 키보드 없는 아이폰에서는 A 경로가 낫다.</p>
+    </div>
+
+    <div class="route">
+      <div class="top">
+        <span class="rank">D</span>
+        <h3>code-server / VS Code 터널</h3>
+        <span class="tag">기능 완전 · 무거움</span>
+      </div>
+      <p>맥이나 서버에 code-server를 올리고 Safari로 접속하면 <strong>Cline VS Code 확장 전체</strong>가 그대로 돌아간다. Plan/Act 토글, 체크포인트, MCP 패널까지 iPad에서 쓸 수 있는 유일한 경로다. Tailscale + Caddy 조합이 정석이며, 포트 포워딩보다 훨씬 안전하다.</p>
+    </div>
+
+  </div>
+
+  <div class="call crit">
+    <span class="t">보안</span>
+    <ul>
+      <li>Telegram 커넥터에 <code>--allowed-user-id</code>를 반드시 건다. 없으면 봇 토큰을 아는 누구나 당신의 셸이다.</li>
+      <li>더 세밀하게는 <code>--hook-command</code>로 검증 스크립트를 물려 <code>{"action":"allow"}</code> / <code>{"action":"deny"}</code>를 반환하게 한다.</li>
+      <li>메신저 브리지에 <code>--auto-approve</code>나 <code>/yolo</code>를 켜지 말 것. 폰에서는 무엇을 승인하는지 제대로 읽을 수 없다.</li>
+      <li>3484 포트를 인터넷에 직접 노출하지 말고 Tailscale을 쓴다.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== 4 ===================== -->
+<section id="s4">
+  <div class="sec-head">
+    <span class="sec-num">§4</span>
+    <h2>32k 컨텍스트에서의 정밀도와 시간 — GitHub 조사</h2>
+  </div>
+
+  <div class="verdict">
+    <span class="t">조사 결론</span>
+    <p><strong>“Cline을 32k 컨텍스트로 고정하고 정밀도와 소요 시간을 측정한” 공개 GitHub 벤치마크는 존재하지 않는다.</strong> 대신 세 갈래의 자료가 있고, 이것들을 합치면 실무 판단에는 충분하다 — ① Cline 자체 하니스(컨텍스트는 변수가 아님), ② 32k를 명시적 구간으로 두는 학술 벤치마크(에이전트가 아닌 모델 단위), ③ Cline 저장소에 쌓인 32k·128k 관련 <em>버그 리포트</em>. 그리고 이 버그들이야말로 32k 운용에서 실제로 사람을 무너뜨리는 요인이다.</p>
+  </div>
+
+  <h3>① Cline 자체 평가 하니스 — 컨텍스트 축이 없다</h3>
+  <p><a href="https://github.com/cline/cline-bench">cline/cline-bench</a>(36★)는 실사용 세션에서 뽑은 과제를 Harbor 포맷으로 담는다. 각 과제는 <code>instruction.md</code> · <code>task.toml</code> · <code>environment/Dockerfile</code>(깨진 초기 상태) · <code>solution/solve.sh</code> · <code>tests/</code> 로 구성되고, Daytona에서 실행된다. 별도로 Terminal-Bench 2.0 기반 89개 과제로 CLI 전체를 돌리는 평가가 있다.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>측정</th><th class="num">값</th><th>비고</th></tr></thead>
+      <tbody>
+        <tr><td>과제 수</td><td class="num">89</td><td>Terminal-Bench 2.0</td></tr>
+        <tr><td>과제당 타임아웃</td><td class="num">2,400 s</td><td>“시간”은 이 상한으로만 관리된다</td></tr>
+        <tr><td>전체 1회 실행</td><td class="num">40–50 분</td><td>Modal 병렬화 기준</td></tr>
+        <tr><td>기준선 6회</td><td class="num">.49 .43 .45 .44 .48 .46</td><td>중앙값 45.8% — 실행 간 편차가 크다</td></tr>
+        <tr><td>개선 후</td><td class="num">47% → 57%</td><td>스캐폴드 수정만으로</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>diff 편집 성공률은 실사용 텔레메트리로 따로 관리된다: Sonnet 4.5 <strong>96.2%</strong>, GLM-4.6 <strong>94.9%</strong>, Sonnet 4 95.8%. diff-apply 알고리즘 교체 때 Sonnet 3.5는 약 25%p, GPT-4.1은 21%p 이상 올랐다. <strong>어느 쪽에도 컨텍스트 창 크기는 실험 변수로 들어가 있지 않다.</strong></p>
+
+  <h3>② 32k를 명시 구간으로 두는 학술 벤치마크</h3>
+  <p><a href="https://arxiv.org/abs/2505.07897">LongCodeBench</a>는 실제 GitHub 이슈에서 QA·버그수정 과제를 만들고 32K / 64K / 128K / 256K / 512K / 1M 구간에서 평가한다. 결과가 직관과 반대다.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>과제</th><th class="num">32K</th><th class="num">128K</th><th class="num">256K+</th></tr></thead>
+      <tbody>
+        <tr><td>LongCodeQA (정확도 범위)</td><td class="num">61.9–75.2%</td><td class="num">67.4–78.3%</td><td class="num">Qwen2.5: 512K 70.2% → 1M 40%</td></tr>
+        <tr><td>LongSWE-Bench · Claude 3.5 Sonnet</td><td class="num">29%</td><td class="num">—</td><td class="num">256K에서 3%</td></tr>
+        <tr><td>LongSWE-Bench · Gemini 2.5 Pro</td><td class="num">23%</td><td class="num">—</td><td class="num">1M에서 7%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="call">
+    <span class="t">핵심 시사점</span>
+    <p>코드 <em>편집</em> 과제에서 성능은 64K–128K 부근에서 정점을 찍고 그 위로는 급락한다. <strong>32k는 “부족한 설정”이 아니라 정점에서 크게 벗어나지 않은 지점이다.</strong> 32k에서 Cline이 실패한다면 원인은 컨텍스트 창의 크기가 아니라, 그 32k 안에 무엇이 들어갔는가와 회계가 맞는가다.</p>
+  </div>
+  <p>비용·시간 감각도 이 논문에 있다: Claude 3.5 Sonnet의 LongCodeQA 1회 평가에 약 $100, Qwen2.5 자체 호스팅은 4×A100 64GB에서 35시간이 걸렸다. <a href="https://arxiv.org/abs/2602.08316">SWE Context Bench</a>(2026-02)도 컨텍스트 규모 대비 정확도와 비용을 다루지만 역시 에이전트 스캐폴드는 평가하지 않는다.</p>
+
+  <h3>③ 32k에서의 “시간”을 실제로 재는 도구</h3>
+  <p><a href="https://github.com/ivanfioravanti/llm_context_benchmarks">ivanfioravanti/llm_context_benchmarks</a>가 이 빈칸을 메운다. Ollama·MLX 백엔드로 0.5k~128k 구간을 훑으며 프롬프트 처리 TPS, 생성 TPS, <strong>TTFT</strong>, TPOT, KV 캐시 메모리, perplexity, 양자화 간 KL divergence를 기록한다. 다만 결과 테이블이 동봉된 게 아니라 프레임워크이며, 하드웨어별 결과는 PR로 모인다. Cline의 32k 왕복 지연을 직접 재려면 이 도구로 자기 장비의 곡선을 먼저 뽑는 게 맞다.</p>
+
+  <h3>④ 실제로 존재하는 32k 근거는 “벤치마크”가 아니라 “버그”다</h3>
+  <p>cline/cline 이슈 트래커를 훑으면 32.8k / 128k 라는 숫자가 반복해서 나온다. 전부 <strong>선언한 컨텍스트와 Cline이 실제로 쓰는 컨텍스트가 어긋나는</strong> 같은 계열의 문제다.</p>
+
+  <div class="issues">
+    <div class="issue closed">
+      <span class="id">#6494</span>
+      <div class="body">
+        <span class="ti">LM Studio에서 컨텍스트가 항상 32.8k로 고정된다 <span class="pill notplanned">not planned</span></span>
+        <div class="meta">Cline 3.32.0 · Qwen3 Next 80B · 설정값 262,144</div>
+        <p>설정 화면은 262,144를 보여주는데 작업 중 사용량 바는 32.8k. P2로 분류된 뒤 <em>not planned</em>로 닫혔다.</p>
+      </div>
+    </div>
+    <div class="issue open">
+      <span class="id">#10375</span>
+      <div class="body">
+        <span class="ti">컨텍스트 퍼센트 표시가 32.8k에서 잘린다 <span class="pill open">open · stale</span></span>
+        <div class="meta">Cline 3.80.0 · lmstudio / qwen3.6-35b-a3b · 설정값 262,144</div>
+        <p>실사용은 정상인데 표시 상한이 32.8k라 32.8k를 넘기면 퍼센트가 100%를 초과한다. 표시 버그로 분류.</p>
+      </div>
+    </div>
+    <div class="issue open">
+      <span class="id">#13457</span>
+      <div class="body">
+        <span class="ti">로컬 모델의 컨텍스트가 128k로 고정된다 <span class="pill open">open</span></span>
+        <div class="meta">2026-08-21 · Cline 4.1.11 · llama.cpp · Gemma 4 31B / Qwen 3.6 27B / <strong>Qwen 3.8 27B</strong></div>
+        <p>LM Studio에서 200k로 잡아도 채팅 창은 128k로 표시되고, <strong>실제로 128k 기준으로 압축이 돌아간다.</strong> 표시만의 문제가 아니다.</p>
+      </div>
+    </div>
+    <div class="issue open">
+      <span class="id">#12520</span>
+      <div class="body">
+        <span class="ti">openai-compatible이 models.json의 contextWindow를 무시한다 <span class="pill open">open</span></span>
+        <div class="meta">Cline CLI 3.0.46 · 선언 1,048,576</div>
+        <p><code>Context compacted · 115.3k → 62.2k</code>. 115.2k ≈ 128,000 × 0.9 — 폴백값이 쓰이고 있다는 결정적 증거다. 같은 원인으로 비용 표시도 $0.00에 멈춘다.</p>
+      </div>
+    </div>
+    <div class="issue closed">
+      <span class="id">#7772</span>
+      <div class="body">
+        <span class="ti">일부 llama-server 모델에서 auto-compact가 발동하지 않는다 <span class="pill closed">closed</span></span>
+        <div class="meta">llama-server</div>
+        <p>압축 없이 창을 넘겨 계속 진행하다가, 뒤늦게 수동 압축을 시도하면 토큰이 넘쳐 실패한다.</p>
+      </div>
+    </div>
+    <div class="issue open">
+      <span class="id">#9433 · #7383</span>
+      <div class="body">
+        <span class="ti">사용량 계측 자체가 어긋난다 <span class="pill open">open</span></span>
+        <div class="meta">OpenAI-compatible</div>
+        <p>#9433: 서버가 <code>usage: null</code>을 반환하면 바가 0%에 머문다. #7383: UI는 50%인데 API에는 100%가 간다(약 100K 차이).</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>소스 확인 — 32,768과 128,000은 어디서 오는가</h3>
+  <p>이슈만 읽으면 추측이므로 오늘자 <code>main</code>을 직접 열어 확인했다. 세 곳이다.</p>
+
+  <div class="codewrap">
+    <div class="filename">sdk/packages/llms/src/providers/builtins.ts:100</div>
+<pre><span class="c">/* 모델이나 사용자 설정 어느 쪽도 컨텍스트를 주지 않을 때 Ollama에 요청하는 값.
+   Ollama 서버 기본값 4096은 Cline의 에이전트 프롬프트를 담을 수 없어 의도적으로 크게 잡았다. */</span>
+export const OLLAMA_DEFAULT_CONTEXT_WINDOW = <span class="k">32768</span>;</pre>
+  </div>
+
+  <div class="codewrap">
+    <div class="filename">sdk/packages/llms/src/providers/builtins.ts — fallbackModelInfo()</div>
+<pre>if (spec?.family === <span class="k">"openai-compatible"</span>) {
+    info.contextWindow  = <span class="k">128_000</span>;
+    info.maxInputTokens = <span class="k">128_000</span>;
+}
+<span class="c">// LM Studio·llama.cpp 등은 openai-compatible 계열로 해석된다 → #13457</span></pre>
+  </div>
+
+  <div class="codewrap">
+    <div class="filename">sdk/packages/llms/src/providers/compat.ts:629</div>
+<pre>function resolveModelInfo(config: ProviderConfig): ModelInfo {
+    return (
+        config.modelInfo ??                                        <span class="c">// ① 폴백 객체가 여기서 먼저 잡히고</span>
+        (config.modelId ? config.knownModels?.[config.modelId] : undefined) ??  <span class="c">// ② 카탈로그는 영영 안 본다</span>
+        { id: config.modelId, name: config.modelId, capabilities: [<span class="k">"streaming"</span>] }
+    );
+}</pre>
+  </div>
+
+  <p><code>??</code>는 <code>null</code>/<code>undefined</code>일 때만 다음으로 넘어간다. 폴백이 이미 <em>비어 있지 않은 객체</em>를 만들어 두면 실제 모델 카탈로그의 <code>contextWindow</code>는 절대 도달하지 않는다. 이것이 #12520의 정확한 근인이며, 오늘자 main에도 그대로 있다.</p>
+
+  <h3>그래서 32k에서 실제로 무슨 일이 벌어지는가</h3>
+  <p>Cline의 압축 임계값은 <code>maxAllowedSize = max(ctx − 40000, ctx × 0.8)</code>이다. 여기에 숫자를 넣어보면 32k 운용의 성격이 드러난다.</p>
+
+  <div class="meters">
+    <div class="cap">선언값 대비 실효 컨텍스트 · 기준선 262,144</div>
+
+    <div class="meter">
+      <div class="row"><span class="label">Qwen3.8-Flash-Next 네이티브 선언</span><span class="val">262,144</span></div>
+      <div class="track"><div class="fill ok" style="width:100%"></div></div>
+      <div class="note">서버에서 열어둔 값</div>
+    </div>
+
+    <div class="meter">
+      <div class="row"><span class="label">Cline 실효값 — openai-compatible 폴백</span><span class="val">128,000</span></div>
+      <div class="track"><div class="fill warn" style="width:48.8%"></div></div>
+      <div class="note">#13457 · #12520 — 압축은 115,200에서 발동한다</div>
+    </div>
+
+    <div class="meter">
+      <div class="row"><span class="label">Cline 실효값 — Ollama 폴백</span><span class="val">32,768</span></div>
+      <div class="track"><div class="fill crit" style="width:12.5%"></div></div>
+      <div class="note">builtins.ts:100 — 이것이 문제의 “32k”다</div>
+    </div>
+
+    <div class="meter">
+      <div class="row"><span class="label">32,768 설정 시 실제 압축 시작점</span><span class="val">26,214</span></div>
+      <div class="track"><div class="fill crit" style="width:10.0%"></div></div>
+      <div class="note">max(32768 − 40000, 32768 × 0.8) → −40000 분기는 200k 미만에서 무의미</div>
+    </div>
+
+    <div class="meter">
+      <div class="row"><span class="label">남는 작업 공간 (전체 시스템 프롬프트 사용 시)</span><span class="val">≈ 13k</span></div>
+      <div class="track"><div class="fill crit" style="width:5.0%"></div></div>
+      <div class="note">Compact Prompt는 전체 프롬프트의 약 10% — 32k에서는 선택이 아니라 필수</div>
+    </div>
+  </div>
+
+  <div class="call warn">
+    <span class="t">32k 운용 수칙</span>
+    <ul>
+      <li>32k에서는 <strong>Compact Prompt를 반드시 켠다.</strong> 대신 MCP·Focus Chain·MTP를 포기한다.</li>
+      <li>압축은 26.2k에서 시작한다. 26k를 “작업 예산”으로 보고 과제를 잘게 쪼갠다.</li>
+      <li>Cline UI의 컨텍스트 바를 믿지 말 것. #10375·#9433·#7383이 모두 표시 신뢰성 문제다. 실제 사용량은 추론 서버 로그에서 확인한다.</li>
+      <li>Ollama라면 Modelfile의 <code>num_ctx</code>와 Cline의 Context Window 입력란 <strong>양쪽</strong>을 명시한다. 어느 한쪽만 하면 32,768 폴백이 조용히 이긴다.</li>
+      <li>압축이 아예 안 도는 정황(#7772)이 보이면 그 자리에서 새 태스크로 넘어간다. 넘긴 뒤의 수동 압축은 실패한다.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== 5 ===================== -->
+<section id="s5">
+  <div class="sec-head">
+    <span class="sec-num">§5</span>
+    <h2>실행 체크리스트</h2>
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>상황</th><th>선택</th><th>설정 요점</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>통합 메모리 128GB+</td>
+          <td>Qwen3.8-Flash-Next UD-Q4_K_XL<span class="sub">93.5% 정확도 유지</span></td>
+          <td>ctx 262144 · KV 양자화 off · Compact Prompt 선택</td>
+        </tr>
+        <tr>
+          <td>96GB</td>
+          <td>Qwen3.8-Flash-Next UD-IQ3_XXS<span class="sub">균형점</span></td>
+          <td>ctx 262144 · reasoning_effort medium</td>
+        </tr>
+        <tr>
+          <td>64GB</td>
+          <td>Qwen3-Coder 30B-A3B 8-bit</td>
+          <td>Cline 기능 전체 사용 가능</td>
+        </tr>
+        <tr>
+          <td>32GB</td>
+          <td>Qwen3-Coder 30B-A3B 4-bit @ 32K</td>
+          <td>Compact Prompt 필수 · 작업 예산 26k</td>
+        </tr>
+        <tr>
+          <td>아이폰에서 조종</td>
+          <td>Telegram 커넥터</td>
+          <td><code>--allowed-user-id</code> 필수 · auto-approve 금지</td>
+        </tr>
+        <tr>
+          <td>아이패드에서 리뷰</td>
+          <td>Kanban + Tailscale</td>
+          <td>Safari → 테일넷 이름:3484</td>
+        </tr>
+        <tr>
+          <td>아이패드에서 전체 기능</td>
+          <td>code-server</td>
+          <td>Tailscale + Caddy · 포트 직접 노출 금지</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="call">
+    <span class="t">한 문장 요약</span>
+    <p>Cline의 32k 문제는 모델의 한계가 아니라 <strong>회계의 문제</strong>다. 컨텍스트 창을 서버·Cline 양쪽에 명시적으로 못 박고 Compact Prompt를 켜면, 32k는 코드 편집 과제에서 충분히 쓸 만한 구간이다 — LongCodeBench가 보여주듯 오히려 성능 정점에 가깝다.</p>
+  </div>
+</section>
+
+<footer>
+  <h4>출처</h4>
+  <ul class="srcs">
+    <li><a href="https://github.com/cline/cline">github.com/cline/cline</a> — 저장소 메타데이터 및 소스 코드(<code>builtins.ts</code>, <code>compat.ts</code>) 직접 확인</li>
+    <li><a href="https://github.com/cline/cline/issues/6494">이슈 #6494</a> · <a href="https://github.com/cline/cline/issues/10375">#10375</a> · <a href="https://github.com/cline/cline/issues/13457">#13457</a> · <a href="https://github.com/cline/cline/issues/12520">#12520</a> · <a href="https://github.com/cline/cline/issues/7772">#7772</a></li>
+    <li><a href="https://github.com/cline/cline-bench">cline/cline-bench</a> — 실사용 기반 벤치마크 과제</li>
+    <li><a href="https://cline.bot/blog/a-practical-guide-to-hill-climbing">Cline — A Practical Guide to Hill Climbing</a> (Terminal-Bench 2.0, 89 tasks)</li>
+    <li><a href="https://cline.bot/blog/improving-diff-edits-by-10">Cline — Improving Diff Edits by 10%</a></li>
+    <li><a href="https://cline.bot/blog/local-models">Cline + LM Studio: Qwen3 Coder 30B</a> · <a href="https://cline.bot/blog/local-models-amd">AMD 로컬 모델 테스트</a></li>
+    <li><a href="https://docs.cline.bot/running-models-locally/read-me-first">Cline Docs — Running Models Locally</a> · <a href="https://docs.cline.bot/features/auto-compact">Auto Compact</a></li>
+    <li><a href="https://docs.cline.bot/cli/connectors">Cline Docs — Connectors</a> · <a href="https://cline.bot/cli">Cline CLI</a></li>
+    <li><a href="https://github.com/QwenLM/Qwen3.8-Flash-Next">QwenLM/Qwen3.8-Flash-Next</a> · <a href="https://unsloth.ai/docs/models/qwen3.8-next">Unsloth 로컬 실행 가이드</a></li>
+    <li><a href="https://arxiv.org/abs/2505.07897">LongCodeBench (arXiv 2505.07897)</a> · <a href="https://arxiv.org/abs/2602.08316">SWE Context Bench (arXiv 2602.08316)</a></li>
+    <li><a href="https://github.com/ivanfioravanti/llm_context_benchmarks">ivanfioravanti/llm_context_benchmarks</a></li>
+    <li><a href="https://tailscale.com/kb/1166/vscode-ipad">Tailscale — code-server on iPad</a> · <a href="https://coder.com/docs/code-server/ipad">code-server iPad 문서</a></li>
+  </ul>
+  <p class="stamp">조사 기준일 2026-08-29 · cline/cline main 브랜치(마지막 푸시 2026-08-29) 소스 대조</p>
+</footer>
+
+</main>
+</div>
+</div>

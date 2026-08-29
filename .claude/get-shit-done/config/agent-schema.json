@@ -1,0 +1,130 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "gsd-agent-schema",
+  "title": "GSD Agent Definition Schema",
+  "description": "Schema for GSD agent YAML frontmatter. Note: This schema applies to agents (.claude/agents/*.md), NOT hook utilities (.claude/hooks/*.js).",
+  "type": "object",
+  "required": ["name", "description", "tools"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^gsd-[a-z-]+$",
+      "description": "Agent identifier (e.g., gsd-planner, gsd-executor)"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 200,
+      "description": "Brief description of agent's purpose"
+    },
+    "tools": {
+      "type": "string",
+      "description": "Comma-separated list of tools the agent uses",
+      "examples": ["Read, Write, Edit, Bash, Grep, Glob"]
+    },
+    "color": {
+      "type": "string",
+      "enum": ["green", "yellow", "orange", "red", "blue", "purple", "cyan"],
+      "description": "UI color for agent identification"
+    },
+    "skills_integration": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(gsd|superpowers):[a-z-]+$"
+      },
+      "description": "List of skills this agent integrates with (gsd:* or superpowers:*)"
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/input"
+      },
+      "description": "Expected inputs for the agent"
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/output"
+      },
+      "description": "Files/artifacts the agent produces"
+    },
+    "model_requirements": {
+      "type": "object",
+      "properties": {
+        "min": {
+          "type": "string",
+          "enum": ["haiku", "sonnet", "opus"],
+          "description": "Minimum model capability required"
+        },
+        "recommended": {
+          "type": "string",
+          "enum": ["haiku", "sonnet", "opus"],
+          "description": "Recommended model for best results"
+        }
+      }
+    },
+    "context_budget": {
+      "type": "string",
+      "pattern": "^[0-9]+%$",
+      "description": "Target context usage (e.g., '50%')"
+    },
+    "spawned_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Commands/workflows that spawn this agent"
+    }
+  },
+  "$defs": {
+    "input": {
+      "type": "object",
+      "required": ["name", "type"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Input identifier"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["file", "directory", "string", "number", "boolean", "json"],
+          "description": "Input data type"
+        },
+        "required": {
+          "type": "boolean",
+          "default": true
+        },
+        "path_pattern": {
+          "type": "string",
+          "description": "Expected file path pattern (for file type)"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "required": ["name", "type"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Output identifier"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["file", "directory", "stdout"],
+          "description": "Output type"
+        },
+        "path_pattern": {
+          "type": "string",
+          "description": "Output file path pattern with placeholders"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
