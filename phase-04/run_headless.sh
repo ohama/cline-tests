@@ -229,10 +229,24 @@ else
   npm install -g "cline@${CLINE_PINNED_VERSION}" >"$RESULTS_DIR/npm_pin.txt" 2>&1
   echo "npm install -g cline@${CLINE_PINNED_VERSION} — see $RESULTS_DIR/npm_pin.txt" >&2
 
+  # stderr MUST NOT be redirected straight to a file under $RESULTS_DIR (an
+  # unpunched path, outside $SANDBOX_WORKDIR/~/.cline): the sandboxed
+  # process inherits that fd across exec, and Node's own bootstrap
+  # (node::InitializeOncePerProcessInternal) SIGABRTs before a single line
+  # of cline/Bun code runs the moment it touches a denied fd — the exact,
+  # previously-documented failure mode (03-03 F8 / 03-04's cline smoke
+  # test). stdout is already safe (it goes through a pipe, no filesystem
+  # path involved). For stderr, capture to a scratch file INSIDE the
+  # whitelist ($SANDBOX_WORKDIR), then copy the captured content into
+  # $RESULTS_DIR and delete the scratch copy — 03-04's validated fix,
+  # reused verbatim rather than re-derived.
+  SCRATCH_STDERR="$SANDBOX_WORKDIR/.headless-stderr-$$.log"
   CLINE_NO_AUTO_UPDATE=1 "$RUN_SANDBOXED" -- "$CLINE_BIN" $CLINE_COMMON_FLAGS \
     --json --auto-approve false -t "$WRAPPER_TIMEOUT" -c "$SANDBOX_WORKDIR" "$PROMPT" \
-    2>"$RESULTS_DIR/stderr.log" | tee "$RESULTS_DIR/ndjson.log"
+    2>"$SCRATCH_STDERR" | tee "$RESULTS_DIR/ndjson.log"
   CLINE_EXIT="${PIPESTATUS[0]}"
+  cp "$SCRATCH_STDERR" "$RESULTS_DIR/stderr.log" 2>/dev/null || : > "$RESULTS_DIR/stderr.log"
+  rm -f "$SCRATCH_STDERR"
   echo "$CLINE_EXIT" > "$RESULTS_DIR/cline_exit.txt"
   echo "NOTE: cline exited $CLINE_EXIT — this is DATA to be classified, not a wrapper failure." >&2
 fi
