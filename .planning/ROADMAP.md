@@ -95,10 +95,13 @@ Plans:
   1. 래퍼 스크립트에 프롬프트를 넣어 한 번 실행하면 NDJSON 형식의 결과가 반환된다
   2. 래퍼의 실행 커맨드/코드에 `--auto-approve false` 가 명시적으로 박혀 있다 (CLI 기본값 `true` 에 기대지 않음 — grep 으로 확인 가능)
   3. 샌드박스 밖 경로를 건드리려는 프롬프트로 실행하면 Phase 3 의 화이트리스트에 의해 거부된다
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 04-01: TBD
+- [ ] 04-01-PLAN.md — NDJSON 결과 분류기 + fixtures + 테스트 + phase-04/config.env (오프라인, cline 호출 0회)
+- [ ] 04-02-PLAN.md — 출하용 헤드리스 래퍼 `run_headless.sh` (`--auto-approve false` 고정) + 라이브 스모크 1회 (기준 1·2)
+- [ ] 04-03-PLAN.md — 기준 3 증명 게이트 `verify_sandbox_via_cline.sh` 작성 (TEST-ONLY `--auto-approve true`, 오프라인 자체검증)
+- [ ] 04-04-PLAN.md — 기준 3 라이브 1회 + `docs/headless-wrapper.md` + phase-close 게이트 스윕
 
 ### Phase 5: Kanban·Telegram 서비스화
 **Goal**: 두 표면이 launchd 상시 서비스로 뜨고, 죽으면 스스로 복구하며, flashnext 가 아직 뜨지
