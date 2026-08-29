@@ -5,19 +5,29 @@
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
-**Current focus:** **Phase 4 (헤드리스 CLI 래퍼) 진행 중.** wave 1의 04-01(오프라인 기반)에 이어
-wave 2의 두 플랜(04-02: 실제 라이브 래퍼, 04-03: criterion-3 증명 게이트)이 모두 완료.
-04-RESEARCH.md 가 실측으로 예측했던 Phase 3 인계 블로커의 cwd 픽스가 04-02 의 실제 라이브
-`cline` 호출로 **처음 확인**됨 — `run_headless.sh --timeout 180 "...PONG..."` 이 exit 0/
-`success`/`run_result` 를 실제로 만들어냄, `EXTRA_ALLOW_PATHS` 무변경. 남은 것은 04-04(phase-close,
-criterion-3 실제 1회 라이브 검증 포함) 뿐.
+**Current focus:** **Phase 4 (헤드리스 CLI 래퍼) 완료.** wave 1의 04-01(오프라인 기반), wave 2의
+두 플랜(04-02: 실제 라이브 래퍼, 04-03: criterion-3 증명 게이트), wave 3의 04-04(criterion-3
+실제 1회 라이브 확정 + `docs/headless-wrapper.md` + phase-close)까지 4개 플랜 전부 완료. ROADMAP
+Phase 4 세 성공기준(HLS-01/02/03) 모두 실측 증거로 동시 성립: HLS-01/02 는 04-02 의 shipped
+래퍼 라이브 스모크런(`success`), HLS-03 은 04-04 의 `verify_sandbox_via_cline.sh` 라이브 실행
+(`VERDICT: DENIED`, 커널 EPERM + in-whitelist canary 성공이 같은 tool-call 배치에 공존)으로
+증명됨. `EXTRA_ALLOW_PATHS` 는 phase 시작부터 종료까지 빈 값 그대로 — Phase 3 인계 블로커는
+경계 확장이 아니라 초대(invocation) 위생(cwd 픽스)으로 닫혔다. 다음은 **Phase 5**.
 
 ## Current Position
 
-Phase: 4 of 8 (헤드리스 CLI 래퍼) — 진행 중
-Plan: 03 of 4 in current phase — 완료 (SUMMARY 작성 완료). **04-02(wave 2, 실제 라이브 래퍼)도
-이번 갱신으로 완료 반영** — 두 wave 2 플랜 모두 종료, 남은 것은 04-04(phase-close) 뿐.
-Status: 04-01 완료 — config.env/classify_run.py/fixtures(5종)/pytest(13개) 전 태스크 개별 커밋,
+Phase: 4 of 8 (헤드리스 CLI 래퍼) — **완료**
+Plan: 04 of 4 in current phase — 완료 (SUMMARY 작성 완료). **Phase 4 전체 4개 플랜 종료.**
+Status: 04-04 완료 — criterion-3(HLS-03)를 `verify_sandbox_via_cline.sh` 실제 1회 라이브 실행으로
+확정(`VERDICT: DENIED`, 커널 EPERM + in-whitelist canary 성공 공존), `docs/headless-wrapper.md`
+작성(8절, 한계 절이 독립 섹션), `docs/sandbox-whitelist.md` §7 에 `해결됨 (Phase 4)` 노트 추가
+(원문 보존), phase-close 게이트 8종 전부 PASS. 자체 발견/수정 버그 1건(Rule 1) — 04-03 이 오프라인
+저작한 `verify_sandbox_via_cline.sh` 가 실제 라이브 실행에서 처음으로 stdio-리다이렉트 SIGABRT를
+드러냄(03-03 F8/03-04/04-02 와 동일 근본 원인), 라이브 실행 직전 수정. `cline` 호출: 이 플랜
+1회(phase 총 2회, 상한 4회) — 크래시 시도는 예산 미포함(선례 재확인, 3번째 사례). pid 3종
+(46573/75548/48525) 불변, `EXTRA_ALLOW_PATHS` 빈 값 그대로, `phase-03/`·`phase-02/` git diff
+없음. 아래 결정 로그/Session Continuity 참조.
+04-01 완료 — config.env/classify_run.py/fixtures(5종)/pytest(13개) 전 태스크 개별 커밋,
 `phase-04/fixtures/` 는 이제 frozen(wave 2 두 플랜이 read-only 로 소비). `cline` 호출 0회
 (phase 예산 2회 그대로 보존).
 04-03 완료 — `phase-04/verify_sandbox_via_cline.sh`(criterion-3/HLS-03 증명 게이트) 작성,
@@ -37,6 +47,27 @@ non-whitelisted cwd 음성 대조군은 exit 1 + `npm install` 0회. **라이브
 정확히 "PONG". `EXTRA_ALLOW_PATHS` 무변경, `phase-03/` git diff 없음, `phase-04/fixtures/`
 무변경. `cline` 호출: 1/2(폰 예산) 소비 — 첫 시도는 cline/Bun 코드 실행 전 SIGABRT(하네스
 버그, 아래 결정 로그 참조)로 예산에 미포함.
+Verified: [04-04] `bash phase-04/verify_sandbox_via_cline.sh --timeout 180` exit 0,
+`VERDICT: DENIED`; `outcome.json.outcome == "sandbox_denied"`; `ndjson.log` 안 EPERM/Operation not
+permitted grep count 79, in-whitelist canary(`INSIDE-SANDBOX-READABLE-OK`) grep count 136,
+`"type":"run_result"` grep count 1, `cline_exit.txt`=0(시그널 사망 아님). 같은 `content_end`
+tool-call 배치 안에 거부된 target(`/Users/ohama/.zshrc`, EPERM)과 성공한 canary
+(`./SANDBOX_INSIDE_CANARY.txt`)가 공존 — 별도 실행이 아니라 같은 run 안에서 부정/긍정 대조군
+동시 확보. TEST-ONLY invariant 3종(`TEST-ONLY` count=1, `--auto-approve true` count=4,
+`--auto-approve false` count=0) 라이브 실행 직후 및 phase-close 재검증 두 번 모두 통과. Phase-close
+8개 항목 전부 PASS: `verify_sandbox.sh`(4/4 CRITERION/16/16 CASES/CRASHED 0),
+`verify_no_regression.sh`(INF03:PASS), `verify_config.sh`(healing 불필요, 1차 통과),
+`pytest phase-04/tests/`(13/13), `EXTRA_ALLOW_PATHS` 빈 값(`[ -z ... ]` exit 0) +
+`git diff --stat phase-03/ phase-02/` 빈 결과 + `phase-04/` 안 `EXTRA_ALLOW_PATHS=` 대입 0건,
+ROADMAP 3개 기준 재확인(criterion1: run_result 1건, criterion2: false grep=1/true grep=0,
+criterion3: verdict.txt DENIED), `launchctl print gui/$(id -u)/com.ohama.*` pid 3종
+(46573/75548/48525) 불변, `git status --porcelain` 이 phase-04/docs/.planning 외에는 이 플랜과
+무관한 사전 존재 untracked 파일 2건(`.claude/`, `cline-analysis.*`, mtime 이 이 세션 시작 이전)
+뿐임을 확인. `docs/headless-wrapper.md` grep 검증: `inert`/`무력` count=2(4절 헤딩 바로 아래),
+`32k-compaction-policy` count=1, `verify_sandbox_via_cline.sh` count=4, `EXTRA_ALLOW_PATHS`
+count=2, 200줄(min_lines 80 이상). `docs/sandbox-whitelist.md` 안 `headless-wrapper.md` count=1,
+`해결됨 (Phase 4)` count=1(바레 `해결` grep 아님 — 그 grep 은 기존 `미해결` 2회 때문에 편집 전에도
+통과했을 함정임을 인지하고 회피).
 Verified: [04-02] 라이브 `ndjson.log`(10줄) 전체가 JSON 파싱 가능(`json.loads` 전체 통과), 정확히
 1개의 `"type":"run_result"` 이벤트 존재, `outcome.json`의 `outcome`이 `success`. 라이브 실행 후
 `verify_config.sh` PASS(중간에 1회 heal, 예상된 드리프트). `bash -c 'source phase-03/sandbox/
@@ -108,15 +139,15 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [██████▒▒▒▒] 71% (Phase 4/8 진행 중, Plan 17/24 누적 추정 — wave 2 두 플랜(04-02/04-03)
-모두 완료, 남은 것은 04-04 phase-close 뿐)
+Progress: [████████▒▒] 75% (Phase 4/8 **완료**, Plan 18/24 누적 추정 — Phase 4 4개 플랜 전부 종료,
+다음은 Phase 5)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 17
-- Average duration: ~14.4 min
-- Total execution time: ~4.08 hours
+- Total plans completed: 18
+- Average duration: ~14.1 min
+- Total execution time: ~4.23 hours
 
 **By Phase:**
 
@@ -125,9 +156,24 @@ Progress: [██████▒▒▒▒] 71% (Phase 4/8 진행 중, Plan 17/24
 | 1 | 6/6 | ~112 min | ~19 min |
 | 2 | 4/4 | ~55 min | ~13.8 min |
 | 3 | 4/4 | ~48 min | ~12 min |
-| 4 | 3/4 | ~33 min | ~11 min |
+| 4 | 4/4 | ~42 min | ~10.5 min |
 
 **Recent Trend:**
+- 04-04 (~9 min, wave 3 — Phase 4's final plan. Spent the phase's second and last live `cline`
+  invocation to prove criterion 3 (HLS-03): `bash phase-04/verify_sandbox_via_cline.sh --timeout
+  180` → exit 0, `VERDICT: DENIED` — a real out-of-whitelist read (`$HOME/.zshrc`) failed with
+  kernel `EPERM`, and the in-whitelist canary read succeeded in the same tool-call batch of the
+  same run. Found and fixed a real bug before the counted run: the criterion-3 script itself
+  (authored offline in 04-03, never previously exercised live) crashed with `Abort trap: 6` on its
+  first invocation — the same stdio-redirect-to-unpunched-path SIGABRT class already hit in 03-03
+  F8, 03-04, and 04-02 — fixed by reusing the validated in-whitelist-scratch-file pattern verbatim;
+  per established precedent this crashed attempt (no cline/Bun code executed) did not count toward
+  the budget, keeping the phase total at exactly 2 real invocations against a hard cap of 4. Wrote
+  `docs/headless-wrapper.md` (Korean, 8 sections, house style, the `--auto-approve false`
+  safe-but-inert limitation as its own heading with an explicit Phase 5 escalation requirement) and
+  resolved `docs/sandbox-whitelist.md` §7 with an appended `해결됨 (Phase 4)` note (history
+  preserved). Phase-close sweep: all 8 items PASS, `EXTRA_ALLOW_PATHS` empty, service pids
+  unchanged (46573/75548/48525) — **Phase 4 closed.**
 - 04-02 (~8 min, wave 2 — the shipped headless wrapper, `phase-04/run_headless.sh`. Offline dry-run
   testing against all five 04-01 fixtures immediately surfaced two real bugs (relative `DRY_FIXTURE`
   resolved against the wrong post-cd directory; same-UTC-second invocations silently clobbered each
@@ -494,6 +540,34 @@ Recent decisions affecting current work:
   상대경로를 그 기준으로 해석하도록 수정. (2) 초 단위 타임스탬프만 쓴 결과 디렉터리 이름이
   같은 UTC 초 안의 연속 호출(5-fixture 루프)끼리 충돌해 서로의 evidence 를 덮어썼던 것 —
   `$$`(PID)를 `-headless` 접미사 앞에 삽입해 해결(`*-headless` glob 매칭은 그대로 유지).
+- 04-04: **Phase 4 종료, criterion 3(HLS-03) 라이브로 확정.**
+  `phase-04/verify_sandbox_via_cline.sh --timeout 180` → exit 0, `VERDICT: DENIED` — 화이트리스트
+  밖 `$HOME/.zshrc` 읽기가 커널 `EPERM`(`Error reading file: EPERM: operation not permitted,
+  stat`)으로 거부됐고, 같은 tool-call 배치 안에서 화이트리스트 안쪽 canary
+  (`SANDBOX_INSIDE_CANARY.txt`) 읽기는 성공 — 8단 판정 사다리의 rung (g)(결정적 양성)로 판정.
+  증거: `phase-04/results/20260829T215236Z-verify-cline-criterion3/`(README.md 포함).
+  자체 발견/수정 버그 1건(Rule 1): 04-03 이 오프라인으로만 저작/자가검증한
+  `verify_sandbox_via_cline.sh` 가 이번이 처음으로 실제 라이브 실행을 받아봤는데, 라이브 실행 브랜치의
+  `2>"$OUT_DIR/stderr.log"`(미펀치 경로로의 직접 리다이렉트)가 03-03 F8/03-04/04-02 와 동일한
+  SIGABRT 계열을 재현(`Abort trap: 6`, exit 134, `ndjson.log` 비어 있음, 스택트레이스에
+  cline/Bun 프레임 0개). `SANDBOX_WORKDIR` 안 스크래치 파일 캡처 후 복사·삭제하는 검증된 패턴을
+  그대로 재사용해 수정, 이 크래시 시도는 예산 미포함(03-04/04-02 선례의 세 번째 확인 사례) — phase
+  전체 실제 `cline` 호출은 정확히 2회(04-02 1회 + 04-04 1회), 상한 4회 대비 절반. criterion-3
+  증거 디렉터리는 스크립트 기본 이름(`*-verify-cline`)에서 플랜 자체 검증 glob(`*-criterion3`)에
+  맞춰 사후 rename(재실행 없이) — `20260829T215236Z-verify-cline-criterion3`.
+  `docs/headless-wrapper.md` 작성 완료(한글, 8절, `docs/infra-hardening.md` 하우스 스타일):
+  4절이 독립 헤딩으로 `--auto-approve false` 가 3.0.53 헤드리스에서 도구 호출을 전부 거부하는
+  "안전하지만 무력(inert)" 한계를 명시하고, `--hook-command` 가 `cline connect <channel>` 에만
+  존재한다는 사실과 Phase 5 로의 명시적 에스컬레이션 요구(`--auto-approve true` 수용 여부는 사람이
+  결정, 조용히 바꾸지 않음)를 포함. 3절은 `docs/32k-compaction-policy.md` 의 운영 규칙을
+  verbatim 재인용(재도출 아님). `docs/sandbox-whitelist.md` §7 에 `해결됨 (Phase 4)` 노트를
+  append(원문 미해결 서술은 보존) — 실제 근본 원인(프로세스 cwd, punch-through 아님)과
+  `docs/headless-wrapper.md` 경로를 명시. Phase-close 8개 게이트 전부 동시 PASS(`verify_sandbox.sh`
+  4/4 CRITERION·16/16 CASES·CRASHED 0, `verify_no_regression.sh` INF03:PASS, `verify_config.sh`
+  1차 통과(heal 불필요), `pytest phase-04/tests/` 13/13, `EXTRA_ALLOW_PATHS` 빈 값 +
+  `git diff --stat phase-03/ phase-02/` 빈 결과, ROADMAP 3개 기준 재확인, launchctl pid 3종
+  불변, git status 클린) — flashnext(46573)/role-shim(75548)/litellm(48525) 이 phase 시작부터
+  종료까지 불변, 서비스 재시작 0회.
 
 ### Pending Todos
 
@@ -501,24 +575,34 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- **(RESOLVED — Phase 4 인계 항목, 04-02 가 라이브로 재확인 완료)** 03-04 에서 남긴 verdict C
-  (BLOCKED-NEEDS-HUMAN, `cline` 이 샌드박스 안에서 경로명 없는 일반 Bun 런타임 오류로 죽던 문제)의
-  근본 원인이 04-RESEARCH.md 에서 실측으로 확정된 뒤, **04-02 가 실제 shipped 래퍼
-  (`phase-04/run_headless.sh`)로 이를 라이브로 재확인했다**: 원인은 샌드박스 프로파일이 아니라
-  래퍼 자신의 프로세스 cwd — `sandbox-exec` 가 `$HOME` 자체에 대한 `file-read-metadata` 를
-  거부하는데, cwd 가 화이트리스트 밖(예: repo 루트)이면 Node/Bun 의 자체 startup 이 조상
-  디렉터리를 stat 하려다 이 deny 에 걸려 cline 코드가 실행되기도 전에 일반 오류를 낸다. 고침:
-  샌드박스 프로세스를 실행하기 *전에* 이미 `ALLOWED_REPOS.json` 안에 있는 경로로 실제 `cd`(cline
-  자신의 `-c/--cwd` 플래그는 별개이며 대체하지 않음) — `EXTRA_ALLOW_PATHS` 변경 없이,
-  `run_headless.sh --timeout 180 "...PONG..."` → exit 0/`success`/`run_result` 를 라이브로
-  재현 완료(`phase-04/results/20260829T214344Z-90746-headless/`). `phase-04/config.env` 의
-  `SANDBOX_WORKDIR` 가 바로 이 픽스를 위해 존재(04-01 에서 구현), 04-02 가 실제로 소비/검증.
+- **(FULLY RESOLVED — Phase 4 종료, 세 성공기준 모두 라이브 증거로 확정)** 03-04 에서 남긴 verdict
+  C(BLOCKED-NEEDS-HUMAN, `cline` 이 샌드박스 안에서 경로명 없는 일반 Bun 런타임 오류로 죽던 문제)의
+  근본 원인이 04-RESEARCH.md 에서 실측으로 확정된 뒤, 04-02 가 shipped 래퍼로, 04-04 가 별도의
+  criterion-3 전용 스크립트로 각각 라이브 재확인했다: 원인은 샌드박스 프로파일이 아니라 프로세스
+  자신의 cwd — `sandbox-exec` 가 `$HOME` 자체에 대한 `file-read-metadata` 를 거부하는데, cwd 가
+  화이트리스트 밖(예: repo 루트)이면 Node/Bun 의 자체 startup 이 조상 디렉터리를 stat 하려다 이
+  deny 에 걸려 cline 코드가 실행되기도 전에 일반 오류를 낸다. 고침: 샌드박스 프로세스를 실행하기
+  *전에* 이미 `ALLOWED_REPOS.json` 안에 있는 경로로 실제 `cd`(cline 자신의 `-c/--cwd` 플래그는
+  별개이며 대체하지 않음) — `EXTRA_ALLOW_PATHS` 변경 없이, `run_headless.sh --timeout 180
+  "...PONG..."` → exit 0/`success`/`run_result` (04-02,
+  `phase-04/results/20260829T214344Z-90746-headless/`), 그리고 `verify_sandbox_via_cline.sh
+  --timeout 180` → exit 0/`VERDICT: DENIED`(04-04,
+  `phase-04/results/20260829T215236Z-verify-cline-criterion3/`) 둘 다 재현 완료. `phase-04/config.env`
+  의 `SANDBOX_WORKDIR` 가 바로 이 픽스를 위해 존재(04-01 에서 구현), 04-02/04-04 둘 다 소비/검증.
   04-RESEARCH.md 가 추가로 예측했던 `--auto-approve false` 헤드리스 모드의 TTY 게이트 거부(정상
   동작, 크래시 아님)와 criterion 3 증명 분리(별도의 `--auto-approve true` 전용 검증 스크립트,
-  04-03)도 각각 04-02/04-03 완료로 반영됨. **남은 것은 04-04(phase-close) 에서 criterion 3 를
-  실제 1회 라이브로 확정하는 것뿐.** 증거:
-  `.planning/phases/04-headless-cli-wrapper/04-RESEARCH.md` Pitfall 1/2/3,
-  `phase-04/results/20260829T214344Z-90746-headless/README.md`, `docs/sandbox-whitelist.md` §7.
+  04-03 작성/04-04 실행)도 모두 반영됨. **04-04 로 Phase 4 전체가 종료됐다** — 세 ROADMAP
+  성공기준(HLS-01/02/03) 이 동시에 실측 증거로 성립, `EXTRA_ALLOW_PATHS` 는 phase 시작부터 종료까지
+  빈 값 그대로. 증거: `.planning/phases/04-headless-cli-wrapper/04-RESEARCH.md` Pitfall 1/2/3,
+  `phase-04/results/20260829T214344Z-90746-headless/README.md`,
+  `phase-04/results/20260829T215236Z-verify-cline-criterion3/README.md`,
+  `phase-04/results/20260829T215715Z-phase-close/README.md`, `docs/headless-wrapper.md`,
+  `docs/sandbox-whitelist.md` §7(`해결됨 (Phase 4)`).
+  **Phase 5 로 넘어가는 열린 항목(블로커 아님):** `docs/headless-wrapper.md` §4/§8 이 문서화한
+  `--auto-approve false` "안전하지만 무력" 한계 — Kanban/Telegram 표면이 실제 도구-사용 작업을
+  헤드리스로 수행하려면, `--auto-approve true`(샌드박스만을 경계로 수용)와 업스트림 기능 대기
+  중 하나를 사람이 반드시 명시적으로 결정해야 한다(조용히 플래그만 바꾸는 것은 금지 — HLS-02
+  보안 태세의 실제 변경이기 때문).
 - (Phase 3 설계 경계, 블로커 아님) 샌드박스는 `(allow default)` + `$HOME` deny + punch-through
   구조라 **`$HOME` 밖은 보호하지 않는다** (`/tmp`, `/opt`, `/usr/local`, 외장 볼륨 등). 전면 차단
   감옥이 아니다. `phase-03/sandbox/config.env`/`run_sandboxed.sh` 헤더와
@@ -547,30 +631,33 @@ Recent decisions affecting current work:
   04-RESEARCH.md 세션에서 근본 원인을 이미 확정했고, 04-02 가 그 픽스를 shipped 래퍼로 라이브
   재확인했다: 부족한 건 `EXTRA_ALLOW_PATHS` punch-through 가 아니라 래퍼 프로세스의 cwd 였다(위
   항목 참조). `EXTRA_ALLOW_PATHS` 의 사전 선언된 4개 후보(`$HOME/.npm` 등) 는 격리 테스트에서
-  전부 불필요한 것으로 확인됐고 넓히지 않았다. 남은 작업은 04-04 가 `verify_sandbox_via_cline.sh`
-  로 criterion 3 을 실제 1회 라이브로 확정하는 것뿐이다.
+  전부 불필요한 것으로 확인됐고 넓히지 않았다. 04-04 가 `verify_sandbox_via_cline.sh` 로 criterion
+  3 을 실제 1회 라이브로 확정했다 — 이 항목도 이제 완전히 종료.
 
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **04-02-PLAN.md 완료** (wave 2, 04-03 과 병렬 실행 — 두 wave-2 플랜 모두 이제 완료).
-`phase-04/run_headless.sh`(shipped 헤드리스 래퍼, HLS-01/02/03)를 작성: `--auto-approve false`
-리터럴 인접 토큰 고정(`--auto-approve true` 는 파일 어디에도 없음), 유일한 `$CLINE_BIN` 호출
-줄이 `run_sandboxed.sh` 를 포함(비샌드박스 경로 0개), THE CWD RULE(cd + `ALLOWED_REPOS.json`
-prefix-match 단언) 적용, 헤더에 safe-but-inert 한계 명시. Task 2(오프라인 5-fixture dry-run)
-중 자체 발견/수정 버그 2건(상대경로 `DRY_FIXTURE` 가 cd 이후 해석되던 것; 같은 UTC 초 호출들의
-결과 디렉터리 충돌) — 둘 다 `phase-04/run_headless.sh` 내부 수정으로 해결, 5개 fixture 전부
-계약 exit code(2/0/3/5/7) 일치, non-whitelisted-cwd 음성 대조군 통과. Task 3(라이브): 첫 시도가
-cline/Bun 코드 실행 전 SIGABRT(플랜이 지시한 `2>$RESULTS_DIR/stderr.log` 가 미펀치 경로였던 것,
-03-03 F8/03-04 와 동일 근본 원인) — 03-04 의 검증된 픽스(화이트리스트 안 스크래치 파일 캡처 후
-복사)를 재사용해 수정, 이 크래시는 예산에 미포함. 재시도: exit 0, `run_result` 1건, 모델 응답
-정확히 "PONG" — **Phase 3 인계 블로커(cwd 픽스)가 이제 라이브로 확정됨.** `EXTRA_ALLOW_PATHS`
-무변경, `phase-03/` git diff 없음, `phase-04/fixtures/` 무변경(04-01 커밋만 존재). 3 태스크
-모두 개별 커밋(버그 수정 포함 총 5개 커밋), SUMMARY 작성 완료. `cline` 호출 1/2 소비(phase 전체
-예산은 04-02+04-03 합산 1/2 — 04-03 은 설계상 0 소비).
-다음 세션은 **04-04-PLAN.md(phase-close)** 부터 시작 — `verify_sandbox_via_cline.sh` 를 실제로
-딱 한 번 라이브로 실행해 criterion 3 을 확정하고(phase 예산 잔여 1회로 충분), phase-close
-재검증 게이트(`verify_sandbox.sh`, `pytest phase-04/tests/`, `verify_config.sh`,
-`phase-02/infra/verify_no_regression.sh`, launchctl pid 3종, git status)를 한 자리에서 돌려
-Phase 4 를 닫을 것.
+Stopped at: **04-04-PLAN.md 완료 — Phase 4 전체 종료(wave 3, 마지막 플랜).**
+criterion 3(HLS-03) 을 `phase-04/verify_sandbox_via_cline.sh --timeout 180` 실제 1회 라이브 실행으로
+확정: exit 0, `VERDICT: DENIED` — 화이트리스트 밖 `/Users/ohama/.zshrc` 읽기가 커널 EPERM 으로
+거부됐고, 같은 tool-call 배치 안에서 화이트리스트 안쪽 canary 읽기는 성공. 라이브 실행 전 자체
+발견/수정 버그 1건(Rule 1): 04-03 이 오프라인으로만 저작한 `verify_sandbox_via_cline.sh` 가
+처음으로 실제 라이브를 받아보자 `2>"$OUT_DIR/stderr.log"`(미펀치 경로 직접 리다이렉트)가
+03-03 F8/03-04/04-02 와 동일한 SIGABRT 계열(Abort trap: 6, cline/Bun 코드 미실행)을 재현 —
+화이트리스트 안 스크래치 파일 캡처 후 복사하는 검증된 패턴을 재사용해 수정, 이 크래시는 예산
+미포함(선례의 세 번째 확인). phase 전체 실제 `cline` 호출은 정확히 2회(04-02+04-04), 상한 4회
+대비 절반. `docs/headless-wrapper.md` 작성(한글 8절, house style, 4절이 독립 헤딩으로
+`--auto-approve false` 의 "안전하지만 무력" 한계와 Phase 5 에스컬레이션 요구 명시,
+3절은 32K 운영 규칙을 `docs/32k-compaction-policy.md` 에서 verbatim 재인용). `docs/sandbox-whitelist.md`
+§7 에 `해결됨 (Phase 4)` 노트 append(원문 미해결 서술 보존). Phase-close 게이트 스윕 8개 항목
+전부 PASS(`verify_sandbox.sh` 4/4 CRITERION·16/16 CASES·CRASHED 0, `verify_no_regression.sh`
+INF03:PASS, `verify_config.sh` 1차 통과, `pytest phase-04/tests/` 13/13, `EXTRA_ALLOW_PATHS` 빈 값
++ `git diff --stat phase-03/ phase-02/` 빈 결과, ROADMAP 3개 기준 재확인, launchctl pid 3종
+불변, git status 클린 — phase-04/docs/.planning 외 사전 존재 무관 untracked 파일 2건만 제외).
+3 태스크 모두 개별 커밋, SUMMARY 작성 완료, STATE.md 갱신 완료.
+**다음 세션은 Phase 5(Kanban/Telegram 표면) 부터 시작** — `docs/headless-wrapper.md` 4절/8절이
+남긴 `--auto-approve false` "안전하지만 무력" 한계에 대한 에스컬레이션 결정(사람이 명시적으로:
+`--auto-approve true` 수용 vs 업스트림 기능 대기)과, Phase 5 의 launchd plist 가 `WorkingDirectory`
+를 반드시 명시해야 한다는 요구사항(그렇지 않으면 이번 phase 가 고친 것과 동일한 크래시가
+재발하며, 겉보기엔 샌드박스가 더 엄격해진 것처럼 보일 것)을 먼저 검토할 것.
 Resume file: None
