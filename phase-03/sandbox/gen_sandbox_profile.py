@@ -33,8 +33,13 @@ def load_allowed_repos(path):
     under another. Ignores any top-level key starting with '_' (e.g.
     "_comment"). Exits non-zero (SystemExit) naming the offending entry on
     any validation failure."""
-    with open(path) as f:
-        data = json.load(f)
+    try:
+        with open(path) as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        sys.exit(f"ALLOWED_REPOS.json not found at {path!r} -- refusing to emit a profile")
+    except json.JSONDecodeError as e:
+        sys.exit(f"ALLOWED_REPOS.json at {path!r} is not valid JSON: {e}")
 
     raw_entries = [v for k, v in data.items() if not k.startswith("_")]
     # "repos" is expected to be the (only) non-underscore key, but be
