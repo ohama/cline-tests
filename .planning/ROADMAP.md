@@ -16,7 +16,7 @@
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Cline 설정 + 압축 검증** - flashnext/32768/Compact Prompt 설정을 박고, 압축이 26.2k에서 실제로 도는지 실측으로 증명한다 (Core Value)
+- [ ] **Phase 1: Cline 설정 + 압축 검증** - flashnext/32768/`--compaction agentic` 설정을 박고, 압축이 ~26.5k에서 실제로 도는지 실측으로 증명한다 (Core Value)
 - [ ] **Phase 2: 인프라 보정** - 동시성 상한과 litellm 노출 차단으로 기존 스택을 두 표면 동시 기동에 대비시킨다
 - [ ] **Phase 3: 샌드박스 + 저장소 화이트리스트** - 원격에서 트리거 가능한 어떤 것도 이 안전망 없이는 만들지 않는다
 - [ ] **Phase 4: 헤드리스 CLI 래퍼** - 설정+샌드박스가 실제로 맞물리는지 가장 싼 값으로 확인하는 단발 스모크 테스트
@@ -40,10 +40,15 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `cline --version` 이 재실행 후에도 `3.0.53` 을 반환하고, 모든 관련 plist 의 `EnvironmentVariables` 에 `CLINE_NO_AUTO_UPDATE=1` 이 존재한다; `kanban` 패키지 버전도 재기동 후 동일 버전으로 확인된다
   4. 재실행 가능한 다중 턴 회귀 테스트 스크립트가 존재하고, 실행하면 서버 로그의 `prompt_tokens` 또는 API `usage`(Cline UI 바가 아님)를 근거로 ① ~26.2k 에서 압축 발동 ② 압축 없이 32,768 에서 서버 400 ③ 그 외, 셋 중 정확히 하나로 판정해 출력한다
   5. 테스트 실행 결과와 그에 대한 대응 방침이 파일로 기록돼 있다 — 결과가 ②(압축 미발동)여도 방침이 문서화돼 있으면 이 기준은 통과한다
-**Plans**: TBD
+**Plans**: 6 plans
 
 Plans:
-- [ ] 01-01: TBD
+- [ ] 01-01-PLAN.md — flashnext 프로바이더 설정: baseURL/contextWindow 32768/codex 별칭 차단 (CFG-01, CFG-02, CFG-07)
+- [ ] 01-02-PLAN.md — 버전 고정 + 호출 규약: cline 3.0.53 / kanban 0.1.70 / --compaction agentic (CFG-04, CFG-05, CFG-06)
+- [ ] 01-03-PLAN.md — 판정기(TDD): NDJSON + flashnext.err 로 ①/②/③ 삼분 판정 (VER-02, VER-03)
+- [ ] 01-04-PLAN.md — 회귀 하니스: 필러 생성기 + 단일 호출 툴루프 러너 + 오프라인 드라이런 (VER-01)
+- [ ] 01-05-PLAN.md — max_tokens 실측 후 대응책 결정·적용 (CFG-03)
+- [ ] 01-06-PLAN.md — 실제 회귀 실행 + 결과·대응 방침 문서화 (VER-03 보고, VER-04)
 
 ### Phase 2: 인프라 보정
 **Goal**: 이미 상주 중인 `flashnext`/`litellm` 서비스를 건드리지 않던 두 위험 — 무제한 동시 배칭과
@@ -162,7 +167,7 @@ Phase 1·2·3 은 서로 병렬 가능(의존성 없음). Phase 4·5 는 1·2·3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Cline 설정 + 압축 검증 | 0/TBD | Not started | - |
+| 1. Cline 설정 + 압축 검증 | 0/6 | Not started | - |
 | 2. 인프라 보정 | 0/TBD | Not started | - |
 | 3. 샌드박스 + 저장소 화이트리스트 | 0/TBD | Not started | - |
 | 4. 헤드리스 CLI 래퍼 | 0/TBD | Not started | - |
