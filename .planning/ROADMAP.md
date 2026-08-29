@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Cline 설정 + 압축 검증** - flashnext/32768/`--compaction agentic` 설정을 박고, 압축이 ~26.5k에서 실제로 도는지 실측으로 증명한다 (Core Value)
 - [x] **Phase 2: 인프라 보정** - 동시성 상한과 litellm 노출 차단으로 기존 스택을 두 표면 동시 기동에 대비시킨다
-- [ ] **Phase 3: 샌드박스 + 저장소 화이트리스트** - 원격에서 트리거 가능한 어떤 것도 이 안전망 없이는 만들지 않는다
+- [x] **Phase 3: 샌드박스 + 저장소 화이트리스트** - 원격에서 트리거 가능한 어떤 것도 이 안전망 없이는 만들지 않는다
 - [ ] **Phase 4: 헤드리스 CLI 래퍼** - 설정+샌드박스가 실제로 맞물리는지 가장 싼 값으로 확인하는 단발 스모크 테스트
 - [ ] **Phase 5: Kanban·Telegram 서비스화** - 두 표면이 launchd 상시 서비스로 뜨고 스스로 회복한다 (아직 loopback-only)
 - [ ] **Phase 6: 네트워크 노출** - Tailscale 무인증 + LAN 토큰 게이팅으로 처음 이 시스템을 localhost 밖에 연다 (build 단계 중 최후)
@@ -81,10 +81,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — ALLOWED_REPOS.json(SBX-01) + realpath 정규화 SBPL 생성기 + run_sandboxed.sh 래퍼
-- [ ] 03-02-PLAN.md — 영구 회귀 픽스처 + in-process/subprocess 프로브 + false-pass 판별 단언 헬퍼
-- [ ] 03-03-PLAN.md — verify_sandbox.sh 상시 게이트: 네 성공 기준 실증 + 음성 대조군 (SBX-02/03/04)
-- [ ] 03-04-PLAN.md — cline 스모크 테스트 1회(예산) + docs/sandbox-whitelist.md + phase-close 재검증
+- [x] 03-01-PLAN.md — ALLOWED_REPOS.json(SBX-01) + realpath 정규화 SBPL 생성기 + run_sandboxed.sh 래퍼
+- [x] 03-02-PLAN.md — 영구 회귀 픽스처 + in-process/subprocess 프로브 + false-pass 판별 단언 헬퍼
+- [x] 03-03-PLAN.md — verify_sandbox.sh 상시 게이트: 네 성공 기준 실증 + 음성 대조군 (SBX-02/03/04)
+- [x] 03-04-PLAN.md — cline 스모크 테스트 1회(예산) + docs/sandbox-whitelist.md + phase-close 재검증
 
 ### Phase 4: 헤드리스 CLI 래퍼
 **Goal**: Phase 1(설정)과 Phase 3(샌드박스)이 실제로 함께 맞물려 동작하는지 가장 싸고 빠르게
@@ -175,7 +175,7 @@ Phase 1·2·3 은 서로 병렬 가능(의존성 없음). Phase 4·5 는 1·2·3
 |-------|----------------|--------|-----------|
 | 1. Cline 설정 + 압축 검증 | 6/6 | ✓ Complete | 2026-08-29 |
 | 2. 인프라 보정 | 4/4 | ✓ Complete | 2026-08-30 |
-| 3. 샌드박스 + 저장소 화이트리스트 | 0/4 | Planned | - |
+| 3. 샌드박스 + 저장소 화이트리스트 | 4/4 | ✓ Complete | 2026-08-30 |
 | 4. 헤드리스 CLI 래퍼 | 0/TBD | Not started | - |
 | 5. Kanban·Telegram 서비스화 | 0/TBD | Not started | - |
 | 6. 네트워크 노출 | 0/TBD | Not started | - |

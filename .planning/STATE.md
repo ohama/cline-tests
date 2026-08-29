@@ -354,6 +354,22 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
+- **(Phase 4 인계 미해결 항목) `cline` 바이너리는 현재 샌드박스 안에서 기동되지 않는다.** 03-04 의
+  단일 예산 스모크 테스트 결과 = **verdict C (BLOCKED-NEEDS-HUMAN)**: `run_sandboxed.sh -- cline --version`
+  이 경로명이 없는 일반적인 Bun 런타임 오류(`error: An unknown error occurred (Unexpected)`)로
+  비정상 종료한다. 어떤 디렉터리 punch-through 가 부족한지 오류가 말해주지 않아, 플랜이 미리 정한
+  후보 4개 중 무엇도 매칭되지 않았고 따라서 `EXTRA_ALLOW_PATHS` 는 의도적으로 **변경하지 않았다**
+  (경계를 넓히는 것은 사람의 승인 사항). Phase 3 의 로드맵 성공기준 4개는 모두 커널 레벨에서
+  `/bin/cat`·`/bin/sh`·`node` 로 증명됐고 그중 어느 것도 `cline` 을 언급하지 않으므로 이것은 Phase 3
+  의 gap 이 아니다 — 그러나 **Phase 4 성공기준 3("샌드박스 밖 경로를 건드리려는 프롬프트로 실행하면
+  Phase 3 의 화이트리스트에 의해 거부된다")은 실제 에이전트를 이 샌드박스 안에서 돌리는 것을
+  요구하므로, Phase 4 는 이 문제를 먼저 풀어야 한다.** 증거:
+  `phase-03/results/20260829T202633Z-cline-smoke/`, 기록: `docs/sandbox-whitelist.md` §7.
+- (Phase 3 설계 경계, 블로커 아님) 샌드박스는 `(allow default)` + `$HOME` deny + punch-through
+  구조라 **`$HOME` 밖은 보호하지 않는다** (`/tmp`, `/opt`, `/usr/local`, 외장 볼륨 등). 전면 차단
+  감옥이 아니다. `phase-03/sandbox/config.env`/`run_sandboxed.sh` 헤더와
+  `docs/sandbox-whitelist.md` §3 에 명시돼 있다.
+
 - Phase 1 의 핵심 미지수는 01-06 에서 실측 완료(결과 ②, 위 결정 로그 참조) — 더 이상 미지수가
   아니다. Phase 4/5/7/8 은 `docs/32k-compaction-policy.md` 의 "작업을 다시 시작한다" 규칙과
   터미널 실패 분류를 반드시 반영해야 한다.

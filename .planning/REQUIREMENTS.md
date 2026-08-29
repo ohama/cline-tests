@@ -123,10 +123,10 @@
 | INF-01 | Phase 2 | Complete |
 | INF-02 | Phase 2 | Complete |
 | INF-03 | Phase 2 | Complete |
-| SBX-01 | Phase 3 | Pending |
-| SBX-02 | Phase 3 | Pending |
-| SBX-03 | Phase 3 | Pending |
-| SBX-04 | Phase 3 | Pending |
+| SBX-01 | Phase 3 | Complete |
+| SBX-02 | Phase 3 | Complete |
+| SBX-03 | Phase 3 | Complete |
+| SBX-04 | Phase 3 | Complete |
 | HLS-01 | Phase 4 | Pending |
 | HLS-02 | Phase 4 | Pending |
 | HLS-03 | Phase 4 | Pending |
