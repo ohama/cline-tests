@@ -1,0 +1,6 @@
+Read the following files ONE AT A TIME using the read_file tool, in the order given, as separate
+tool calls (never in parallel, never batched):
+{{FILE_LIST}}
+After reading each file, reply with exactly one acknowledgement word ("ok") and nothing else, then
+read the next file. Do not summarise, do not analyse, do not quote the contents.
+When every file has been read, reply with exactly: DONE
