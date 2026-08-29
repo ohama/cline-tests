@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "lastUsedProvider": "openai-compatible",
+  "providers": {
+    "cline": {
+      "settings": {
+        "provider": "cline",
+        "model": "tencent/hy4-preview"
+      },
+      "updatedAt": "2026-08-29T06:28:53.425Z",
+      "tokenSource": "manual"
+    },
+    "openai-compatible": {
+      "settings": {
+        "provider": "openai-compatible",
+        "apiKey": "dummy",
+        "model": "flashnext",
+        "baseUrl": "http://localhost:4000/v1",
+        "models": [
+          {
+            "id": "flashnext",
+            "contextWindow": 32768,
+            "maxTokens": 4096
+          }
+        ]
+      },
+      "updatedAt": "2026-08-29T09:10:36.566Z",
+      "tokenSource": "manual"
+    }
+  }
+}
