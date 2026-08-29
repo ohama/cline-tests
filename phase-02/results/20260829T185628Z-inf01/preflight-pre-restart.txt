@@ -1,0 +1,160 @@
+=== timestamp / OS ===
+Sat Aug 29 18:56:28 UTC 2026
+sw_vers -productVersion: 26.3
+uname -r: 25.3.0
+
+=== service state ===
+--- com.ohama.flashnext ---
+	path = /Users/ohama/Library/LaunchAgents/com.ohama.flashnext.plist
+	state = running
+	pid = 44774
+		state = active
+		state = active
+--- com.ohama.role-shim ---
+	path = /Users/ohama/Library/LaunchAgents/com.ohama.role-shim.plist
+	state = running
+	pid = 75548
+		state = active
+		state = active
+--- com.ohama.litellm ---
+	path = /Users/ohama/Library/LaunchAgents/com.ohama.litellm.plist
+	state = running
+	pid = 76864
+		state = active
+		state = active
+
+=== iogpu.wired_limit_mb ===
+iogpu.wired_limit_mb=118784 (expected 118784)
+
+=== listening ports ===
+python3.1 44774 ohama    7u  IPv4 0xd3274b9a4c04f0b7      0t0  TCP 127.0.0.1:8000 (LISTEN)
+python3.1 75548 ohama    3u  IPv4 0x1ae944cb03fc4653      0t0  TCP 127.0.0.1:8011 (LISTEN)
+python3.1 76864 ohama   13u  IPv4 0x6243d98b2f6adf4a      0t0  TCP *:4000 (LISTEN)
+LITELLM_BIND_MARKER: *:4000 (LAN-exposed)
+
+=== plist sha256 / ProgramArguments / mirror drift ===
+--- com.ohama.flashnext.plist ---
+sha256: 7be3d6c015d813d7ce1ddf7f7f093419b621ca294e4bafc8c5e2f5ff10634575  /Users/ohama/Library/LaunchAgents/com.ohama.flashnext.plist
+ProgramArguments:
+Array {
+    /Users/ohama/projs/qwen38-flash-next-tests/.venv-mlxvlm-new/bin/python3
+    -m
+    mlx_vlm.server
+    --model
+    /Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4
+    --host
+    127.0.0.1
+    --port
+    8000
+    --draft-model
+    /Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MTP-drafter
+    --draft-kind
+    mtp
+    --max-kv-size
+    32768
+    --log-level
+    INFO
+    --max-num-seqs
+    1
+}
+MIRROR_DRIFT: com.ohama.flashnext.plist (live differs from /Users/ohama/local-llm-settings/launchagents/com.ohama.flashnext.plist)
+5,45c5,47
+< 	<key>EnvironmentVariables</key>
+< 	<dict>
+< 		<key>PATH</key>
+< 		<string>/Users/ohama/projs/qwen38-flash-next-tests/.venv-mlxvlm-new/bin:/usr/local/bin:/usr/bin:/bin</string>
+< 	</dict>
+< 	<key>KeepAlive</key>
+< 	<true/>
+< 	<key>Label</key>
+< 	<string>com.ohama.flashnext</string>
+< 	<key>ProgramArguments</key>
+< 	<array>
+< 		<string>/Users/ohama/projs/qwen38-flash-next-tests/.venv-mlxvlm-new/bin/python3</string>
+< 		<string>-m</string>
+< 		<string>mlx_vlm.server</string>
+< 		<string>--model</string>
+< 		<string>/Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4</string>
+< 		<string>--host</string>
+< 		<string>127.0.0.1</string>
+< 		<string>--port</string>
+< 		<string>8000</string>
+< 		<string>--draft-model</string>
+< 		<string>/Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MTP-drafter</string>
+< 		<string>--draft-kind</string>
+< 		<string>mtp</string>
+< 		<string>--max-kv-size</string>
+< 		<string>32768</string>
+< 		<string>--log-level</string>
+< 		<string>INFO</string>
+< 		<string>--max-num-seqs</string>
+< 		<string>1</string>
+< 	</array>
+< 	<key>RunAtLoad</key>
+< 	<true/>
+< 	<key>StandardErrorPath</key>
+< 	<string>/Users/ohama/llm-system/services/logs/flashnext.err</string>
+< 	<key>StandardOutPath</key>
+< 	<string>/Users/ohama/llm-system/services/logs/flashnext.log</string>
+< 	<key>ThrottleInterval</key>
+< 	<integer>60</integer>
+< 	<key>WorkingDirectory</key>
+< 	<string>/Users/ohama/projs/qwen38-flash-next-tests</string>
+---
+>   <key>Label</key>
+>   <string>com.ohama.flashnext</string>
+> 
+>   <key>ProgramArguments</key>
+>   <array>
+>     <string>/Users/ohama/projs/qwen38-flash-next-tests/.venv-mlxvlm-new/bin/python3</string>
+>     <string>-m</string>
+>     <string>mlx_vlm.server</string>
+>     <string>--model</string>
+>     <string>/Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4</string>
+>     <string>--host</string>
+>     <string>127.0.0.1</string>
+>     <string>--port</string>
+>     <string>8000</string>
+>     <string>--draft-model</string>
+>     <string>/Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MTP-drafter</string>
+>     <string>--draft-kind</string>
+>     <string>mtp</string>
+>     <string>--max-kv-size</string>
+>     <string>32768</string>
+>     <string>--log-level</string>
+>     <string>INFO</string>
+>   </array>
+> 
+>   <key>EnvironmentVariables</key>
+>   <dict>
+>     <key>PATH</key>
+>     <string>/Users/ohama/projs/qwen38-flash-next-tests/.venv-mlxvlm-new/bin:/usr/local/bin:/usr/bin:/bin</string>
+>   </dict>
+> 
+>   <key>RunAtLoad</key>
+>   <true/>
+>   <key>KeepAlive</key>
+>   <true/>
+>   <key>ThrottleInterval</key>
+>   <integer>60</integer>
+> 
+>   <key>StandardOutPath</key>
+>   <string>/Users/ohama/llm-system/services/logs/flashnext.log</string>
+>   <key>StandardErrorPath</key>
+>   <string>/Users/ohama/llm-system/services/logs/flashnext.err</string>
+>   <key>WorkingDirectory</key>
+>   <string>/Users/ohama/projs/qwen38-flash-next-tests</string>
+
+--- com.ohama.litellm.plist ---
+sha256: 5029e290bf8da975630a9e2d2478e398d713217e67368f294d47bbbe369c372c  /Users/ohama/Library/LaunchAgents/com.ohama.litellm.plist
+ProgramArguments:
+Array {
+    /Users/ohama/agent-stack/venv/bin/litellm
+    --config
+    /Users/ohama/agent-stack/litellm/config.yaml
+    --port
+    4000
+}
+mirror: identical to /Users/ohama/local-llm-settings/launchagents/com.ohama.litellm.plist
+
+PREFLIGHT: PASS

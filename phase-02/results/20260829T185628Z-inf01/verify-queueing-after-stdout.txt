@@ -1,0 +1,11 @@
+verify_queueing: label=after concurrency=2 cap=1 out_dir=phase-02/results/20260829T185628Z-inf01
+=== per-request timing table (label=after) ===
+request      queued_at               prefill_started_at      decode_started_at       decode_completed_at    
+82e9717fb0   2026-08-30 03:57:36.114000 2026-08-30 03:57:36.153000 2026-08-30 03:58:03.719000 2026-08-30 03:58:04.887000
+82e96d39e0   2026-08-30 03:58:02.414000 2026-08-30 03:58:04.906000 2026-08-30 03:58:05.016000 2026-08-30 03:58:06.177000
+
+max_overlap=1 cap=1 queued_count=1 concurrency=2 distinct_ids=2
+gap_seconds(earliest_decode_completed - latest_prefill_started)=-0.019
+(positive gap => later admissions all started after the earliest one finished;
+ negative/near-zero gap => admissions overlapped in time -- interleaved, not queued)
+QUEUEING: PASS label=after

@@ -1,0 +1,4 @@
+o
+teardown confirmed after 2s
+..............
+RESTART OK: com.ohama.flashnext pid=46573 port=8000 waited=28s

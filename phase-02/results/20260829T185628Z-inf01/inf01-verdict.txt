@@ -1,0 +1,60 @@
+INF-01 verdict — plan 02-02 Task 3
+===================================
+
+Value applied: MAX_NUM_SEQS=1 (full serialization), from phase-02/infra/config.env,
+written to ~/Library/LaunchAgents/com.ohama.flashnext.plist via
+phase-02/infra/apply_max_num_seqs.sh. Confirmed present in both the on-disk plist
+and the loaded launchd job (loaded-arguments.txt) and the live process argv
+(ps oracle) after restart.
+
+Probe: verify_queueing.sh --label after (self-sized from config.env)
+  concurrency=2 (MAX_NUM_SEQS + 1)
+  cap=1 (MAX_NUM_SEQS)
+
+Pids:
+  old pid (pre-restart, uncapped): 44774
+  new pid (post-restart, capped):  46573
+
+Restart timing (restart_service.sh, with the async-bootout fix from commit 0ca2645):
+  teardown confirmed after: 2s   (bootout -> label deregistered + port free)
+  health poll (bootstrap -> state=running AND :8000 listening): waited=28s
+  total restart wall time: ~30s (matches the ~30s cold model+drafter load
+  previously observed in flashnext.err on 03:47:36-03:48:06 / 03:49:11-03:49:41)
+
+Measured evidence (after, capped at 1):
+  request 82e9717fb0: prefill_started=03:57:36.153  decode_completed=03:58:04.887
+  request 82e96d39e0: prefill_started=03:58:04.906  decode_completed=03:58:06.177
+  max_overlap=1  (<= cap=1)
+  queued_count=1 (>= concurrency-cap = 2-1 = 1)
+  gap_seconds(earliest_decode_completed - latest_prefill_started) = -0.019
+    (near-zero/negative == the second request's prefill started essentially the
+     instant the first one's decode completed — serialized, not interleaved)
+  QUEUEING: PASS
+
+Contrast — before baseline (uncapped), phase-02/results/20260829T183540Z/:
+  request 82e932ff50: prefill_started=03:39:50.965  decode_completed=03:39:59.636
+  request 82eab7cb60: prefill_started=03:39:58.362  (started WHILE req1 was still
+    decoding — 03:39:58.362 < 03:39:59.636)
+  max_overlap=2  queued_count=0  (both requests admitted to the decode batch
+    concurrently; recorded as the wave-1 uncapped baseline)
+
+Conclusion: INF-01 satisfied. The cap changed observed behaviour from
+interleaved (max_overlap=2, queued_count=0) to serialized (max_overlap=1,
+queued_count=1) across an identical two-small-request probe shape, evidenced
+by prefill/decode timestamps in flashnext.err — not merely by HTTP 200 counts
+or in_flight values (both of which look identical before and after and are not
+evidence, per RESEARCH.md Pitfall 3).
+
+Restart attempt history (context for plan 02-03 / Phase 5):
+  Two earlier live restart attempts (evidence at
+  phase-02/results/20260829T184656Z-inf01/) failed identically at the
+  bootstrap step with "Bootstrap failed: 5: Input/output error". Root cause:
+  launchctl bootout is asynchronous — it returns once unload is requested,
+  not once the job is actually torn down. flashnext holds a 104 GiB model, so
+  teardown takes a few seconds; bootstrapping into a still-registered label
+  during that window produces the opaque I/O error. Fixed in
+  phase-02/infra/restart_service.sh (commit 0ca2645) by polling after bootout
+  until the label is no longer found by `launchctl print` AND the port has no
+  listener, plus a 3s settle margin, before bootstrapping. This restart
+  (attempt 3, first with the fix) succeeded on the first try: teardown
+  confirmed after 2s.
