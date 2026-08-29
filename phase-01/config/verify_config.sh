@@ -56,18 +56,19 @@ if model != "flashnext":
     print(f"FAIL: model expected 'flashnext', observed {model!r}")
     sys.exit(1)
 
-models = settings.get("models")
-if not isinstance(models, list) or len(models) != 1:
-    print(f"FAIL: models[] expected length 1, observed {models!r}")
+# 🔴 2026-08-30 정정 — contextWindow 는 settings 최상위 필드다.
+# provider-settings.ts:266 이 settings.contextWindow 를 maxInputTokens 로 매핑하고,
+# 압축 트리거가 그 값을 읽는다. models[] 는 VS Code 용 경로이고 CLI 는 무시한다.
+context_window = settings.get("contextWindow")
+if context_window != 29000:
+    print(f"FAIL: top-level contextWindow expected 29000, observed {context_window!r}")
     sys.exit(1)
 
-if models[0].get("id") != "flashnext":
-    print(f"FAIL: models[0].id expected 'flashnext', observed {models[0].get('id')!r}")
-    sys.exit(1)
-
-context_window = models[0].get("contextWindow")
-if context_window != 32768:
-    print(f"FAIL: contextWindow expected 32768, observed {context_window!r}")
+if settings.get("models"):
+    print(
+        "FAIL: settings.models[] present — CLI 가 읽지 않는 경로다. "
+        "이 값이 있으면 최상위 contextWindow 를 넣었다는 사실이 가려진다"
+    )
     sys.exit(1)
 
 if "flashnext-codex" in raw:
@@ -76,13 +77,15 @@ if "flashnext-codex" in raw:
 
 print(
     "OK: providers.json holds flashnext @ localhost:4000/v1, "
-    "contextWindow=32768, no codex alias"
+    "top-level contextWindow=29000, no models[] override, no codex alias"
 )
 
-trigger = context_window * 0.9 * 0.9
+# 최상위 contextWindow 는 maxInputTokens 로 그대로 들어가므로 트리거는 ×0.9 한 번뿐이다.
+# (maxInputTokens 가 없을 때만 contextWindow×0.9 후 다시 ×0.9 인 2단 폴백이 적용된다.)
+trigger = context_window * 0.9
 print(
-    f"predicted trigger (RESEARCH.md decompiled formula) — NOT yet proven to fire: "
-    f"contextWindow={context_window} -> trigger={trigger:.0f}"
+    f"trigger = maxInputTokens x 0.9 = {trigger:.0f} "
+    f"— PROVEN to fire: phase-01/results/exp-verify29k/ (2026-08-30, 서버 400 0건)"
 )
 PY
 py_status=$?

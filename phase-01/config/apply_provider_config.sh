@@ -3,7 +3,24 @@
 #
 # Idempotent writer for the Cline `openai-compatible` provider config that
 # points Cline at the local `flashnext` model (litellm :4000) and overrides
-# the contextWindow to 32768 (CFG-01, CFG-02, CFG-07).
+# the context window (CFG-01, CFG-02, CFG-07).
+#
+# 🔴 2026-08-30 정정 — contextWindow 는 settings 의 **최상위** 필드다.
+#   provider-settings.ts:150  contextWindow: z.number().int().positive().optional()
+#   provider-settings.ts:266  maxInputTokens: settings.contextWindow
+#   handler-factory.ts        "maxInputTokens is where ProviderSettings.contextWindow
+#                              lands via toProviderConfig (the providers.json path
+#                              used by CLI/Core hosts)"
+#   `models[]` 는 VS Code 용 per-model override 경로이며 CLI 는 읽지 않는다.
+#   이전 버전은 models[] 에 넣었고, 그래서 자동 압축이 전혀 발동하지 않았다.
+#
+# 🔴 값이 32768 이 아니라 29000 인 이유 — 오버슈트.
+#   트리거는 maxInputTokens × 0.9 이고, 실제 압축은 트리거를 약 2,700~3,100 토큰
+#   초과한 뒤에 발동한다(한 턴 늦게 반응). 서버 예산은 prompt + max_tokens ≤ 32768,
+#   max_tokens 실측값은 2048 이다.
+#     32768 → trigger 29,491 + 오버슈트 3,100 + 2,048 = 34,639  ❌ 벽을 넘는다
+#     29000 → trigger 26,100 + 오버슈트 3,130 + 2,048 = 31,278  ✅ 실측 완주
+#   근거: phase-01/results/exp-verify29k/ (필러 18개 완주, 서버 400 0건)
 #
 # Safe to run repeatedly: re-running produces the same end state.
 #
@@ -58,9 +75,11 @@ settings["provider"] = "openai-compatible"
 settings["apiKey"] = "dummy"
 settings["model"] = "flashnext"
 settings["baseUrl"] = "http://localhost:4000/v1"
-settings["models"] = [
-    {"id": "flashnext", "contextWindow": 32768, "maxTokens": 4096}
-]
+# 최상위 contextWindow — 이것이 maxInputTokens 로 매핑되어 압축 트리거를 결정한다.
+settings["contextWindow"] = 29000
+# models[] 는 CLI 가 읽지 않는 경로이며, cline 이 기동 시 정규화하면서 버린다.
+# 남겨두면 "설정이 사라진다"는 오해만 만들므로 명시적으로 제거한다.
+settings.pop("models", None)
 
 with open(path, "w") as f:
     f.write(json.dumps(data, indent=2))
@@ -88,9 +107,14 @@ if settings.get("baseUrl") != "http://localhost:4000/v1":
 if settings.get("model") != "flashnext":
     errors.append(f"model wrong: {settings.get('model')!r}")
 
-models = settings.get("models") or []
-if not models or models[0].get("contextWindow") != 32768:
-    errors.append(f"contextWindow wrong: {models}")
+ctx = settings.get("contextWindow")
+if ctx != 29000:
+    errors.append(f"top-level contextWindow wrong: {ctx!r} (expected 29000)")
+
+if settings.get("models"):
+    errors.append(
+        "settings.models[] present — CLI 가 읽지 않는 경로다. 최상위 contextWindow 를 써야 한다"
+    )
 
 if "flashnext-codex" in raw:
     errors.append("literal string 'flashnext-codex' found in serialized providers.json")
@@ -103,8 +127,8 @@ if errors:
 
 print(
     f"OK: baseUrl={settings['baseUrl']} model={settings['model']} "
-    f"contextWindow={models[0]['contextWindow']}"
+    f"contextWindow={ctx} (top-level) -> trigger={int(ctx * 0.9)}"
 )
 PY
 
-echo "apply_provider_config.sh: providers.json set to openai-compatible/flashnext @ http://localhost:4000/v1, contextWindow=32768"
+echo "apply_provider_config.sh: providers.json set to openai-compatible/flashnext @ http://localhost:4000/v1, top-level contextWindow=29000 (trigger 26100)"

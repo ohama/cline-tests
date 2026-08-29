@@ -11,7 +11,7 @@
 #   A) config guard      — phase-01/config/verify_config.sh
 #   B) version guard      — phase-01/config/check_versions.sh
 #   C) max_tokens budget  — observed.env (via OBSERVED_ENV_PATH) + a trigger
-#                           DERIVED from the live contextWindow, never a baked-in 26542
+#                           DERIVED from the live top-level contextWindow, never a baked-in constant
 #   D) server reachable   — one cheap read-only GET, never starts/restarts anything
 #
 # Env knobs:
@@ -109,7 +109,7 @@ if [ -z "${CLINE_OBSERVED_MAX_TOKENS:-}" ]; then
   exit 1
 fi
 
-# Derive the trigger from the LIVE config — never trust a baked-in 26542. Plan 05
+# Derive the trigger from the LIVE config — never trust a baked-in constant. Plan 05
 # Branch B2 may deliberately lower contextWindow as a max_tokens mitigation, and a
 # hardcoded literal would silently make this gate (and the classifier's
 # below_trigger call) wrong.
@@ -120,10 +120,15 @@ import os
 path = os.environ["PROVIDERS_JSON"]
 with open(path) as f:
     data = json.load(f)
-cw = data["providers"]["openai-compatible"]["settings"]["models"][0]["contextWindow"]
+# 2026-08-30 정정: 최상위 contextWindow 가 CLI 가 읽는 유일한 경로다.
+# models[] 는 VS Code 용 per-model override 이며 cline 이 기동 시 버린다.
+cw = data["providers"]["openai-compatible"]["settings"]["contextWindow"]
 print(cw)
 ')"
-EFFECTIVE_TRIGGER="$(python3 -c "print(int($CONTEXT_WINDOW * 0.9 * 0.9))")"
+# 최상위 contextWindow 는 maxInputTokens 로 직행하므로 x0.9 한 번뿐이다.
+# (x0.9 x0.9 2단 폴백은 maxInputTokens 가 없을 때만 적용되며 우리 설정에는 해당 없음.)
+# 실측: 12000 -> triggerTokens 10800 / 29000 -> triggerTokens 26100 (둘 다 정확히 x0.9)
+EFFECTIVE_TRIGGER="$(python3 -c "print(int($CONTEXT_WINDOW * 0.9))")"
 
 TRIGGER_NOTICE=""
 if [ -n "${CLINE_PREDICTED_TRIGGER_TOKENS:-}" ] && [ "$CLINE_PREDICTED_TRIGGER_TOKENS" != "$EFFECTIVE_TRIGGER" ]; then

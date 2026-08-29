@@ -575,6 +575,14 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
+- 🔴 **2026-08-30 — Phase 1 의 결론이 정정됨.** 32k 압축은 **정상 작동한다.**
+  `contextWindow` 를 `providers.json` 의 `settings` **최상위**에 넣어야 하며(`models[]` 아님),
+  값은 오버슈트 흡수를 위해 **29000**(트리거 26,100)이다. 실측: `phase-01/results/exp-verify29k/`.
+  → Phase 4(400 종료조건 불필요) · 6(NET-05 에 "압축 중" 추가) · 7(토큰 예산 제한 불필요) ·
+    8(매뉴얼 경고 변경) 에 반영 필요. Phase 5 는 영향 없음(플랜 검색 확인).
+- 🔴 **cline 자동 업데이트가 `CLINE_NO_AUTO_UPDATE=1` 로 막히지 않는다.** 정정 작업 중에도
+  3.0.53 → 3.0.60 드리프트가 재현됨. CFG-05 성공 기준이 위태롭다. 별도 과제 필요.
+
 - **(FULLY RESOLVED — Phase 4 종료, 세 성공기준 모두 라이브 증거로 확정)** 03-04 에서 남긴 verdict
   C(BLOCKED-NEEDS-HUMAN, `cline` 이 샌드박스 안에서 경로명 없는 일반 Bun 런타임 오류로 죽던 문제)의
   근본 원인이 04-RESEARCH.md 에서 실측으로 확정된 뒤, 04-02 가 shipped 래퍼로, 04-04 가 별도의

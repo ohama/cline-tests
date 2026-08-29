@@ -29,13 +29,15 @@ from typing import List, Optional
 # The decompiled formula (see 01-RESEARCH.md):
 #   effectiveMaxInputTokens = maxInputTokens ?? contextWindow * CONTEXT_WINDOW_INPUT_RATIO(0.9)
 #   triggerTokens           = effectiveMaxInputTokens * COMPACTION_TRIGGER_RATIO(0.9)
-# i.e. triggerTokens = contextWindow * 0.9 * 0.9
-# 26542 is only the value AT contextWindow=32768. If a later branch lowers
+# 2026-08-30 정정: triggerTokens = maxInputTokens * 0.9 이고,
+# settings 최상위 contextWindow 가 그대로 maxInputTokens 로 매핑된다.
+# (x0.9 x0.9 2단 폴백은 maxInputTokens 가 없을 때만 적용된다.)
+# 26100 is the value AT contextWindow=29000. If a later branch lowers
 # contextWindow (e.g. a max_tokens mitigation), the trigger moves too - callers
 # MUST pass the derived trigger via --predicted-trigger rather than relying on
 # this default; classify() never reads this constant directly except as its
 # default parameter value.
-PREDICTED_TRIGGER_TOKENS = 26542
+PREDICTED_TRIGGER_TOKENS = 26100
 
 # Server budget rule: prompt_tokens + max_tokens <= MAX_KV_SIZE (measured on
 # the running mlx_vlm.server; see 01-RESEARCH.md and the verified facts).

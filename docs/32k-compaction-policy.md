@@ -1,5 +1,125 @@
 # 32K 압축(Compaction) 실측 결과와 대응 방침 (VER-04)
 
+> **2026-08-30 전면 정정.** 이 문서의 1차 결론(결과 ② — 압축 불가)은 **오설정 상태의 측정**이었다.
+> 측정 자체는 정확했으나 원인 진단이 틀렸다. 아래 §1~§5 가 현재 유효한 내용이고,
+> 정정 전 기록은 §9 부록에 원문 그대로 보존한다.
+
+## 1. 결론 (한 줄)
+
+**자동 압축은 정상 작동한다.** `contextWindow` 를 `providers.json` 의 **`settings` 최상위**에
+넣으면 트리거가 발동하고, 32K 벽에 닿지 않은 채 작업이 계속된다.
+증거: `phase-01/results/exp-verify29k/` (필러 18개 완주, 압축 3회 이상, **서버 400 0건**, 8분 22초).
+
+1차 결론이 "압축 불가"였던 이유는 #12520 버그가 아니라, `contextWindow` 를 **`models[]` 안에**
+넣었기 때문이다. `models[]` 는 VS Code 용 per-model override 경로이고 **CLI 는 읽지 않는다.**
+
+## 2. 근본 원인 — 어느 칸에 넣느냐
+
+소스 근거 (`cline/cline`, tag `cli-v3.0.53`):
+
+| 위치 | 내용 |
+| --- | --- |
+| `sdk/packages/core/src/services/llms/provider-settings.ts:150` | `contextWindow: z.number().int().positive().optional()` — **settings 최상위** 스키마 필드 |
+| `sdk/packages/core/src/services/llms/provider-settings.ts:266` | `maxInputTokens: settings.contextWindow` — 최상위 값이 여기로 매핑된다 |
+| `sdk/packages/core/src/services/llms/handler-factory.ts` | 주석: *"`maxInputTokens` is where `ProviderSettings.contextWindow` lands via `toProviderConfig` (the providers.json path used by CLI/Core hosts)"* |
+
+```jsonc
+// ✅ 올바름 — CLI 가 읽는 경로
+"settings": { "provider": "openai-compatible", "model": "flashnext",
+              "baseUrl": "http://localhost:4000/v1",
+              "contextWindow": 29000 }
+
+// ❌ 틀림 — VS Code 용 경로. CLI 는 무시하고, 기동 시 정규화하면서 버린다
+"settings": { "models": [ { "id": "flashnext", "contextWindow": 32768 } ] }
+```
+
+부수 효과: 어제부터 반복되던 **"providers.json 필드가 사라진다"(Pitfall 5)** 도 같은 원인이었다.
+`models[]` 는 정규화 대상이라 버려졌고, 최상위 `contextWindow` 는 살아남는다.
+`check_versions.sh` 의 `cline config --json` 호출 뒤에도 유지됨을 확인했다.
+
+## 3. 트리거 공식 — ×0.9 이지 ×0.81 이 아니다
+
+```
+maxInputTokens 가 있으면   trigger = maxInputTokens × 0.9
+없으면(폴백)                trigger = contextWindow × 0.9 × 0.9
+```
+
+최상위 `contextWindow` 는 `maxInputTokens` 로 **직행**하므로 우리 설정에서는 **×0.9 한 번**뿐이다.
+실측으로 두 번 확인: `12000 → triggerTokens 10800`, `29000 → triggerTokens 26100`.
+1차 조사가 기록한 `×0.9×0.9 = 0.81` 은 `maxInputTokens` 가 없을 때의 폴백 경로였다.
+
+## 4. 왜 32768 이 아니라 29000 인가 — 오버슈트
+
+압축은 트리거를 넘는 **즉시** 발동하지 않는다. 한 턴 늦게 반응해서 실측 **2,700~3,100 토큰**을
+초과한 뒤에 돈다. 서버 예산은 `prompt_tokens + max_tokens ≤ 32768`, `max_tokens` 실측값은 `2048`.
+
+| `contextWindow` | trigger | +오버슈트 | +max_tokens | 판정 |
+| ---: | ---: | ---: | ---: | --- |
+| 32,768 | 29,491 | 32,591 | 34,639 | ❌ 벽을 넘는다 |
+| **29,000** | **26,100** | **29,230** | **31,278** | ✅ **실측 완주** |
+
+실측 압축 기록 (`exp-verify29k`):
+
+```
+iter  8   28,409 → 22,165   (메시지 15 → 9)
+iter 10   29,136 → 22,250   (13 → 9)
+iter 12   29,230 → 22,045   (13 → 9)
+```
+
+## 5. 운영 방침
+
+1. **`settings.contextWindow = 29000`.** `models[]` 는 두지 않는다.
+   `phase-01/config/apply_provider_config.sh` 가 이 상태를 강제하고,
+   `verify_config.sh` 가 검사한다(최상위가 없거나 `models[]` 가 있으면 FAIL).
+2. **작업 크기 제한은 불필요하다.** 압축이 대역을 유지하므로 긴 세션도 완주한다
+   (필러 18개 = 누적 30k 초과 시나리오에서 검증).
+3. **UI 는 "압축 중"을 표시해야 한다.** 압축 자체가 요약 호출을 발생시켜 지연을 만든다
+   (실측: 압축 턴에 요약용 짧은 호출 ~458 토큰이 추가로 발생). Phase 6 NET-05 에 반영.
+4. **`contextWindow` 를 올릴 때는 오버슈트를 함께 계산한다.**
+   `trigger + 3,100 + max_tokens < MAX_KV_SIZE` 를 만족해야 한다.
+5. **서버 400 은 여전히 회복 불가다.** 압축이 정상 작동하면 도달하지 않지만,
+   설정이 틀린 칸으로 되돌아가면 다시 발생한다. Cline 의 오류 분류기는 이 스택의
+   `MAX_KV_SIZE` 문구를 인식하지 못하므로(정규식 8개 전부 불일치) 자가 복구가 없다.
+   따라서 **`verify_config.sh` 가 상시 가드**다.
+
+## 6. 재현 방법
+
+```bash
+bash phase-01/config/apply_provider_config.sh   # 최상위 contextWindow=29000 강제
+bash phase-01/config/verify_config.sh           # 통과해야 함
+FILLER_COUNT=18 bash phase-01/run_regression.sh # 압축 발동 + 서버 400 0건 기대
+```
+
+## 7. 이 정정이 바꾸는 것
+
+| 대상 | 이전 | 이후 |
+| --- | --- | --- |
+| CFG-02 | `models[].contextWindow: 32768` | `settings.contextWindow: 29000` |
+| Phase 4 래퍼 | 400 을 종료 조건으로 처리 | 불필요 (정상 설정 시 도달 안 함) |
+| Phase 6 NET-05 | "작업 중" 표시 | "압축 중" 상태 추가 |
+| Phase 7 벤치 | 과제당 토큰 예산 제한 | 불필요 |
+| Phase 8 매뉴얼 | "32k 에서 작업이 죽는다" | "압축되며 계속 간다 / 설정 위치 주의" |
+
+Phase 5(서비스 감독)는 컨텍스트를 다루지 않으므로 영향 없음 — 플랜 7개를 검색해 확인했다.
+
+## 8. 미해결
+
+- **`cline` 자동 업데이트가 `CLINE_NO_AUTO_UPDATE=1` 로 막히지 않는다.** 이 정정 작업 중에도
+  3.0.53 → 3.0.60 드리프트가 재현됐다. CFG-05 의 성공 기준이 위태롭다. 별도 과제.
+- `providers.json` 의 `maxTokens` 는 여전히 미적용(실측 2048 고정). Branch A 라 문제되지 않는다.
+
+---
+
+## 9. 부록 — 정정 전 기록 (오설정 상태의 실측)
+
+아래는 `contextWindow` 를 `models[]` 안에 넣었을 때의 원문 기록이다. **측정값은 모두 유효하며**,
+"CLI 가 읽지 않는 칸에 설정을 넣으면 무슨 일이 벌어지는가"의 증거로서 보존한다.
+결론 문장만 §1 로 대체됐다.
+
+<details>
+<summary>원문 펼치기</summary>
+
+
 ## 1. 결론 (한 줄)
 
 **2026-08-29, cline `3.0.53`, 실측 결과 ② — 압축은 발동하지 않았고, 서버가 `MAX_KV_SIZE=32768`
@@ -148,3 +268,6 @@ bash phase-01/run_regression.sh                # 실제 회귀 실행 (기본 12
 
 이 중 하나라도 참이면, 이 문서의 ② 결론은 재검증 없이는 신뢰할 수 없다 — `bash
 phase-01/run_regression.sh` 를 다시 돌려 새 증거 디렉터리를 만들고 이 문서를 갱신할 것.
+
+
+</details>

@@ -8,7 +8,12 @@
 ### CFG — Cline 설정 정확성
 
 - [ ] **CFG-01**: Cline 이 `flashnext` 모델을 `http://localhost:4000/v1` 로 호출한다 (`providers.json`, 비대화식 설정)
-- [ ] **CFG-02**: `providers.json` 의 `models[].contextWindow` 가 `32768` 로 기록돼 있다
+- [x] **CFG-02**: `providers.json` 의 **`settings` 최상위** `contextWindow` 가 `29000` 으로 기록돼 있고,
+  `models[]` 는 존재하지 않는다
+  <br>※ **2026-08-30 정정** — 원래 문구는 `models[].contextWindow: 32768` 이었으나, `models[]` 는
+  VS Code 용 per-model override 경로이고 CLI 는 읽지 않음이 소스로 확인됨
+  (`provider-settings.ts:150/266`). 값이 29000 인 이유는 오버슈트(약 3,100 토큰) 흡수.
+  근거: `docs/32k-compaction-policy.md` §2·§4, `phase-01/results/exp-verify29k/`
 - [ ] **CFG-03**: Cline 이 실제로 보내는 `max_tokens` 값이 서버 로그로 확인되고, `prompt + max_tokens > 32768` 로
   400 이 나지 않도록 상한이 적용된다 — providers.json 의 `maxTokens` 가 먹지 않는 것으로 관찰됐으므로
   **먼저 실측하고 대응책을 정한다**
