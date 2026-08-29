@@ -206,6 +206,101 @@ class TestCliBehavior(unittest.TestCase):
         self.assertIn("26800", text)  # peak_input_tokens / peak_prompt_tokens
         self.assertIn("26542", text)  # predicted_trigger default used
 
+    def test_cli_predicted_trigger_flag_reaches_classify(self):
+        """The --predicted-trigger flag must actually change classify()'s
+        verdict, not just be accepted and ignored (which would silently fall
+        back to the module-level PREDICTED_TRIGGER_TOKENS default)."""
+        # outcome3_below_trigger's peak inputTokens is 18400. Lowering the
+        # trigger below that must flip the sub-reason away from below_trigger.
+        code, text = self._run_cli(
+            "outcome3_below_trigger.ndjson", extra_args=["--predicted-trigger", "15000"]
+        )
+        self.assertIn("15000", text)
+        self.assertNotIn("never reached", text)
+
+    def test_cli_handles_empty_ndjson_without_crash(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            empty_ndjson = Path(tmpdir) / "empty.ndjson"
+            empty_ndjson.write_text("")
+            args = [
+                sys.executable,
+                str(PARSE_RESULT_PY),
+                "--ndjson",
+                str(empty_ndjson),
+                "--out",
+                tmpdir,
+            ]
+            result = subprocess.run(args, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 3)
+            self.assertEqual(result.stderr, "")
+
+
+class TestRobustness(unittest.TestCase):
+    """Task 3: how a real captured stream differs from a clean fixture."""
+
+    def test_truncated_trailing_line_is_counted_not_raised(self):
+        import parse_result
+
+        # Must not raise even though the file ends mid-JSON-object.
+        events = parse_result.parse_ndjson(load_ndjson("outcome3_timeout.ndjson"))
+        verdict = parse_result.classify(events, [])
+        self.assertEqual(verdict.malformed_lines, 1)
+
+    def test_empty_ndjson_is_other_unexpected_not_a_crash(self):
+        import parse_result
+
+        verdict = parse_result.classify([], [])
+        self.assertEqual(verdict.outcome, "other")
+        self.assertIn("unexpected", verdict.reason)
+
+    def test_missing_server_log_notes_missing_cross_check(self):
+        import parse_result
+
+        events = parse_result.parse_ndjson(
+            load_ndjson("outcome3_below_trigger.ndjson")
+        )
+        verdict = parse_result.classify(events, [])
+        self.assertEqual(verdict.evidence_source, "ndjson_usage")
+        self.assertIn("cross-check", verdict.reason.lower())
+
+    def test_no_disagreement_warning_when_within_threshold(self):
+        import parse_result
+
+        # 10000 vs 11000 is a 9% difference - must NOT trigger the warning.
+        events = [
+            {"type": "agent_event", "event": {"type": "usage", "inputTokens": 10000}},
+            {"type": "run_result", "finishReason": "completed"},
+        ]
+        log_lines = [
+            "2026-08-29 16:15:03,135 - INFO - Request completed: endpoint=/chat/completions "
+            "prompt_tokens=11000 generated_tokens=5 finish_reason=stop"
+        ]
+        verdict = parse_result.classify(events, log_lines)
+        self.assertNotIn("WARNING: oracle disagreement", verdict.reason)
+
+    def test_trigger_is_genuinely_parameterized_not_shadowed(self):
+        """LOAD-BEARING: proves --predicted-trigger cannot be silently
+        shadowed by the module-level PREDICTED_TRIGGER_TOKENS=26542 default.
+
+        outcome3_below_trigger's peak inputTokens is 18400 (below the 26542
+        default, hence "below_trigger" with the default). If classify()
+        genuinely honors a caller-supplied predicted_trigger, lowering it to
+        15000 (below the fixture's peak) must flip the sub-reason away from
+        below_trigger - proving the comparison used the parameter, not the
+        shadowed constant.
+        """
+        import parse_result
+
+        events = parse_result.parse_ndjson(
+            load_ndjson("outcome3_below_trigger.ndjson")
+        )
+
+        default_verdict = parse_result.classify(events, [])
+        self.assertIn("never reached", default_verdict.reason)
+
+        lowered_verdict = parse_result.classify(events, [], predicted_trigger=15000)
+        self.assertNotIn("never reached", lowered_verdict.reason)
+
 
 if __name__ == "__main__":
     unittest.main()

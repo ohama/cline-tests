@@ -137,6 +137,11 @@ def _is_status_notice(event):
     )
 
 
+def _find_notice_by_message(notices, message):
+    """First notice metadata dict whose `message` field equals `message`, or None."""
+    return next((n for n in notices if n.get("message") == message), None)
+
+
 def _is_server_context_error(message):
     """MAX_KV_SIZE OR 'context tokens' + a number - never generic 'error'."""
     if not message:
@@ -241,9 +246,7 @@ def classify(ndjson_events, server_log_lines, predicted_trigger=PREDICTED_TRIGGE
 
     if auto_compact_events:
         outcome = "compaction_fired"
-        started = next(
-            (m for m in auto_compact_events if m.get("message") == "auto-compacting"), None
-        )
+        started = _find_notice_by_message(auto_compact_events, "auto-compacting")
         trigger_tokens = None
         if started and isinstance(started.get("metadata"), dict):
             trigger_tokens = started["metadata"].get("triggerTokens")
