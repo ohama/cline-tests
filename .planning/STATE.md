@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 1 of 8 (Cline 설정 + 압축 검증)
-Plan: 03 of 6 in current phase (wave 1 complete: 01-01/01-02/01-03 all done)
+Plan: 05 of 6 in current phase (wave 2: 01-05 done, 01-04 in parallel progress)
 Status: In progress
-Last activity: 2026-08-29 — 01-01-PLAN.md 완료 (flashnext provider config: apply/verify 스크립트,
-config-snapshot). Wave 1 전체(01-01/01-02/01-03) 완료
+Last activity: 2026-08-29 — 01-05-PLAN.md 완료 (max_tokens 실측: OBSERVED_MAX=2048, Branch A —
+완화 불필요, observed.env 발행, docs/cline-max-tokens-findings.md 작성)
 
-Progress: [█████░░░░░] 50%
+Progress: [███████░░░] 67%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
+- Total plans completed: 4
 - Average duration: ~7 min
-- Total execution time: ~0.3 hours
+- Total execution time: ~0.4 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1 | 3/6 | ~21 min | ~7 min |
+| 1 | 4/6 | ~27 min | ~7 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (~5 min), 01-03 (~5 min), 01-01 (~11 min)
+- Last 5 plans: 01-05 (~6 min), 01-02 (~5 min), 01-03 (~5 min), 01-01 (~11 min)
 - Trend: stable
 
 *Updated after each plan completion*
@@ -70,6 +70,19 @@ Recent decisions affecting current work:
   않음 — "interactive mode requires a TTY" 로 즉시 실패. pty(`script`)로 감싸면 JSON 을 찍지 않고
   대화형 TUI 가 통째로 뜬다. Plan 04/06 하네스는 `cline config --json`을 evidence source 로 쓸 수
   없다 — 대신 `providers.json` 파일 자체를 읽거나 `--json` NDJSON 스트림(별도 실행)에 의존해야 함
+- 01-05: CFG-03 실측 완료 — Cline 이 실제로 서버에 보내는 `max_tokens` 는 `2048`
+  (`providers.json` 에 설정된 `4096` 이 아님, `providers.json.maxTokens` 비적용 재확인, 근본
+  원인 불명). 예산식 `trigger(26542) + max_tokens(2048) = 28590 < 32768` 통과 → **Branch A**
+  (완화 불필요). `contextWindow` 는 그대로 32768, REQUIREMENTS.md/ROADMAP.md 는 미변경.
+  `phase-01/config/observed.env` 가 `CLINE_OBSERVED_MAX_TOKENS`/`CLINE_MAX_TOKENS_BRANCH=A`/
+  `CLINE_CONFIGURED_CONTEXT_WINDOW`/`CLINE_PREDICTED_TRIGGER_TOKENS` 를 발행하며 이후
+  `run_regression.sh` preflight C 가 이를 소비함
+- 01-05: 이 세션의 Bash 도구 셸은 zsh — `$CLINE_COMMON_FLAGS` 같은 공백 구분 변수를 따옴표 없이
+  전개할 때 bash 와 달리 word-split 되지 않아 인자가 한 덩어리로 뭉침. 이후 플랜에서 이 env 파일의
+  플래그 변수를 직접 셸에서 펼쳐 쓸 때는 `bash -c '...'` 로 감싸야 함
+- 01-05: Pitfall 5(providers.json 필드 소실)가 이 플랜 실행 중에도 실시간으로 재현됨(Plan 04 와의
+  동시 실행 추정) — `verify_config.sh` 를 실제 회귀 실행 직전마다 반드시 재호출해야 한다는 Plan 01
+  의 지침이 다시 한번 실측으로 확인됨
 
 ### Pending Todos
 
@@ -86,7 +99,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-29
-Stopped at: Wave 1 전체 완료 (01-01/01-02/01-03 모두 SUMMARY.md 존재). 01-01은 flashnext provider
-config apply/verify 스크립트와 config-snapshot 증거를 남기고 종료. 다음은 Wave 2(01-04 회귀
-하네스, 01-05 max_tokens 실측+대응) 진행
+Stopped at: Wave 2 진행 중 — 01-05(max_tokens 실측+observed.env 발행) 완료. 01-04(회귀 하네스)는
+병렬로 진행 중이며 이 시점 기준 아직 SUMMARY.md 없음. 다음은 01-04 완료 확인 후 01-06(실제 회귀
+실행 + 최종 검증)
 Resume file: None
