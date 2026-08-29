@@ -1,0 +1,8 @@
+PROBE inproc-read-allowed SUCCEEDED
+PROBE inproc-read-forbidden SUCCEEDED
+PROBE inproc-write-forbidden SUCCEEDED
+PROBE inproc-write-allowed SUCCEEDED
+PROBE subproc-read-forbidden SUCCEEDED
+PROBE subproc-write-forbidden SUCCEEDED
+PROBE escape-symlink-read SUCCEEDED
+PROBE-SUMMARY succeeded=7 denied=0 error=0
