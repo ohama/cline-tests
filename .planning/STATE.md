@@ -5,20 +5,49 @@
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
-**Current focus:** **Phase 4 (헤드리스 CLI 래퍼) 진행 중.** wave 1의 첫 플랜 04-01(오프라인
-기반: classify_run.py 분류기 + config.env + fixtures + pytest)이 `cline` 호출 0회로 완료.
-04-RESEARCH.md 가 이미 Phase 3 의 인계 블로커(샌드박스 안에서 cline 이 기동되지 않던 문제)를
-실측으로 해결했음(cwd 픽스, 샌드박스 확장 불필요) — 다음 플랜(04-02/04-03)이 라이브로 이를
-소비/재확인한다.
+**Current focus:** **Phase 4 (헤드리스 CLI 래퍼) 진행 중.** wave 1의 04-01(오프라인 기반)에 이어
+wave 2의 두 플랜(04-02: 실제 라이브 래퍼, 04-03: criterion-3 증명 게이트)이 모두 완료.
+04-RESEARCH.md 가 실측으로 예측했던 Phase 3 인계 블로커의 cwd 픽스가 04-02 의 실제 라이브
+`cline` 호출로 **처음 확인**됨 — `run_headless.sh --timeout 180 "...PONG..."` 이 exit 0/
+`success`/`run_result` 를 실제로 만들어냄, `EXTRA_ALLOW_PATHS` 무변경. 남은 것은 04-04(phase-close,
+criterion-3 실제 1회 라이브 검증 포함) 뿐.
 
 ## Current Position
 
 Phase: 4 of 8 (헤드리스 CLI 래퍼) — 진행 중
-Plan: 01 of 4 in current phase — 완료 (SUMMARY 작성 완료)
+Plan: 03 of 4 in current phase — 완료 (SUMMARY 작성 완료). **04-02(wave 2, 실제 라이브 래퍼)도
+이번 갱신으로 완료 반영** — 두 wave 2 플랜 모두 종료, 남은 것은 04-04(phase-close) 뿐.
 Status: 04-01 완료 — config.env/classify_run.py/fixtures(5종)/pytest(13개) 전 태스크 개별 커밋,
 `phase-04/fixtures/` 는 이제 frozen(wave 2 두 플랜이 read-only 로 소비). `cline` 호출 0회
 (phase 예산 2회 그대로 보존).
-Verified: [04-01] `python3 -m pytest phase-04/tests/ -q` 13/13 통과(2회 연속 실행, fixture
+04-03 완료 — `phase-04/verify_sandbox_via_cline.sh`(criterion-3/HLS-03 증명 게이트) 작성,
+TEST-ONLY 배너 + `--auto-approve true` 근거 명시, `EXTRA_ALLOW_PATHS` 무변경 단언, cwd 픽스
+재사용, 8단 판정 사다리(crashed/32K terminal/TTY-rejected/모델이 target 시도 안 함/fail-open/
+control 실패/DENIED/other)를 `classify_run.py`의 `outcome.json`만으로 판정(맨 exit code 사용
+금지). `VERIFY_DRY_NDJSON` 오프라인 후크로 7개 필수 행 전부(예상 VERDICT/exit 일치) 오프라인
+자가검증 완료 — 이 플랜은 `cline` 호출 0회, `phase-04/fixtures/` 무변경(git status/diff 둘 다
+빈 결과) 확인.
+04-02 완료 — `phase-04/run_headless.sh`(HLS-01/02/03 shipped 래퍼) 작성. `--auto-approve false`
+리터럴 인접 토큰으로 고정(`--auto-approve true` 는 파일 어디에도 없음), 유일한 `$CLINE_BIN`
+호출 줄이 `run_sandboxed.sh` 를 포함(비샌드박스 경로 0개). THE CWD RULE 을 실제로 적용(cd +
+`ALLOWED_REPOS.json` prefix-match 단언) 후 처음으로 **라이브**로 검증 — Phase 3 인계 블로커가
+연구 단계를 넘어 실측으로 해소됨. 5개 fixture 전부 오프라인 dry-run 계약 exit code 일치(2/0/3/5/7),
+non-whitelisted cwd 음성 대조군은 exit 1 + `npm install` 0회. **라이브 1회**:
+`run_headless.sh --timeout 180 "...PONG..."` → exit 0/`success`/`run_result` 1건, 모델 응답
+정확히 "PONG". `EXTRA_ALLOW_PATHS` 무변경, `phase-03/` git diff 없음, `phase-04/fixtures/`
+무변경. `cline` 호출: 1/2(폰 예산) 소비 — 첫 시도는 cline/Bun 코드 실행 전 SIGABRT(하네스
+버그, 아래 결정 로그 참조)로 예산에 미포함.
+Verified: [04-02] 라이브 `ndjson.log`(10줄) 전체가 JSON 파싱 가능(`json.loads` 전체 통과), 정확히
+1개의 `"type":"run_result"` 이벤트 존재, `outcome.json`의 `outcome`이 `success`. 라이브 실행 후
+`verify_config.sh` PASS(중간에 1회 heal, 예상된 드리프트). `bash -c 'source phase-03/sandbox/
+config.env; [ -z "$EXTRA_ALLOW_PATHS" ]'` exit 0, `git diff --stat phase-03/` 빈 결과. 5개 fixture
+dry-run 전부 계약 exit code 일치(2/0/3/5/7), non-whitelisted-cwd 음성 대조군 exit 1 +
+`npm install` 0회. `--auto-approve false` grep count=1, `--auto-approve true` grep count=0,
+`run_sandboxed.sh` grep count=2(유일한 `$CLINE_BIN` 줄에 포함), `inert` grep count=1,
+`bash -n` 통과. `launchctl list` 로 flashnext(46573)/role-shim(75548)/litellm(48525) 라이브
+실행 전후 불변 확인. `git log -- phase-04/fixtures/` 가 04-01 커밋 하나뿐임을 확인(04-02 자신은
+그 디렉터리에 전혀 쓰지 않음).
+[04-01] `python3 -m pytest phase-04/tests/ -q` 13/13 통과(2회 연속 실행, fixture
 md5 불변 확인). `classify_run.py` CLI 가 다섯 fixture 전부에 대해 문서화된 exit code 계약대로
 동작(0/2/3/5/7), `--exit-code 134` 오버라이드가 crashed 를 강제함을 실측(signal death != denial).
 실제 Phase 1 32K 캡처(`phase-01/results/2026-08-29T095321Z-44990/ndjson.log`)가
@@ -47,7 +76,22 @@ read/write/subprocess/escape-symlink 5건 전부 `DENIED EPERM`으로, `ENOENT` 
 deny-less 프로파일 거부, precheck 우회 시 Group F 4건 전부 `FAIL not-denied`, `--no-canonicalize`
 아래서 F6 실패)이 모두 사양대로 동작. `launchctl print .../com.ohama.flashnext` pid 46573 로
 플랜 전체에서 불변, `cline` 호출 0회.
-Last activity: 2026-08-29 — 04-01-PLAN.md 완료 (`phase-04/classify_run.py`: 6가지 outcome을
+Last activity: 2026-08-30 — 04-02-PLAN.md 완료 (`phase-04/run_headless.sh`: HLS-01/02/03 shipped
+헤드리스 래퍼. `--auto-approve false` 리터럴 고정, 유일한 cline 호출 경로가 `run_sandboxed.sh`
+경유, THE CWD RULE(cd + prefix-match 단언) 적용. 5개 fixture 오프라인 dry-run 계약 전부 일치,
+non-whitelisted-cwd 음성 대조군 통과. **라이브 1회**: `run_headless.sh --timeout 180
+"...PONG..."` → exit 0/`success`/`run_result` 1건, 모델이 정확히 "PONG" 응답 — Phase 3 인계
+블로커(cwd 픽스)가 연구를 넘어 실측으로 확인됨. `EXTRA_ALLOW_PATHS` 무변경, `phase-03/` 무변경.
+자체 발견/수정 버그 3건(Rule 1 x2 + Rule 3 x1, 아래 결정 로그 참조) — 그 중 하나는 03-04 가 이미
+검증한 동일 근본 원인(미펀치 경로로의 sandboxed stdio 리다이렉트 → SIGABRT)이라 첫 크래시 시도는
+"정확히 1회" 예산에 미포함.)
+
+이전 활동: 2026-08-30 — 04-03-PLAN.md 완료 (`phase-04/verify_sandbox_via_cline.sh`:
+criterion-3/HLS-03 증명 게이트, TEST-ONLY 배너 + `--auto-approve true` 근거 명시, 8단 판정
+사다리를 `classify_run.py`의 `outcome.json`만으로 판정, `VERIFY_DRY_NDJSON` 오프라인 후크로
+7개 필수 행 전부 오프라인 자가검증 통과. `cline` 호출 0회, `phase-04/fixtures/` 무변경.)
+
+이전 활동: 2026-08-29 — 04-01-PLAN.md 완료 (`phase-04/classify_run.py`: 6가지 outcome을
 정확한 우선순위(crashed > sandbox_denied > context_overflow_terminal > tty_approval_rejected >
 run_aborted > success > other)로 판정하는 순수 `classify()` + CLI, `phase-01/parse_result.py` 의
 nested-error 관용구 재사용, fixtures 5종 전부 실제 캡처에서 mining, `phase-04/fixtures/` 를 이제
@@ -64,14 +108,15 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [██████▒▒▒▒] 62% (Phase 4/8 진행 중, Plan 15/24 누적 추정)
+Progress: [██████▒▒▒▒] 67% (Phase 4/8 진행 중, Plan 16/24 누적 추정 — 04-02 는 이 갱신 시점에도
+병렬 진행 중이라 아직 완료로 집계하지 않음)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 15
-- Average duration: ~14.7 min
-- Total execution time: ~3.7 hours
+- Total plans completed: 16
+- Average duration: ~14.6 min
+- Total execution time: ~3.95 hours
 
 **By Phase:**
 
@@ -80,9 +125,22 @@ Progress: [██████▒▒▒▒] 62% (Phase 4/8 진행 중, Plan 15/24
 | 1 | 6/6 | ~112 min | ~19 min |
 | 2 | 4/4 | ~55 min | ~13.8 min |
 | 3 | 4/4 | ~48 min | ~12 min |
-| 4 | 1/4 | ~10 min | ~10 min |
+| 4 | 2/4 | ~25 min | ~12.5 min |
 
 **Recent Trend:**
+- 04-03 (~15 min, wave 2 — the criterion-3 proof gate, authored and self-tested entirely offline
+  in parallel with 04-02's one live invocation. Wrote `phase-04/verify_sandbox_via_cline.sh`
+  (TEST-ONLY, `--auto-approve true`, 8-rung verdict ladder computed only from `classify_run.py`'s
+  `outcome.json`), then proved the ladder correct over all seven required NDJSON rows via a
+  `VERIFY_DRY_NDJSON` offline hook — no row needed a script fix. Structurally guaranteed zero
+  `cline` invocations by skipping the config-guard preflight (whose heal path calls `cline auth`)
+  whenever running in dry-run mode, rather than relying on the environment happening to already be
+  healthy. `phase-04/fixtures/` left byte-unchanged (`git status`/`git diff` both empty); the two
+  negated fixture variants were built under `mktemp -d "${TMPDIR:-/tmp}/..."` and never committed.
+  Two wording-only authoring bugs caught before the first commit: a literal `--auto-approve false`
+  string in explanatory prose that would have failed the plan's own grep check, and a bare
+  apostrophe in a heredoc comment line that broke `bash -n` despite the heredoc's quoted
+  delimiter.)
 - 04-01 (~10 min, wave 1 — Phase 4's offline foundation plan, zero `cline` invocations by design.
   Built `phase-04/classify_run.py`'s six-outcome NDJSON classifier reusing Phase 1's nested-error
   tolerance, mined all five fixtures from real captures (04-RESEARCH.md's live transcripts,
@@ -388,6 +446,23 @@ Recent decisions affecting current work:
   기반 PROJECT_ROOT). `SANDBOX_WORKDIR` 는 `workspace/ALLOWED_REPOS.json` 의 `repos[]` 첫 항목을
   `python3 -c`(jq 미사용)로 파싱해 파생 — 절대 하드코딩하지 않음, 기존 env var 오버라이드는 존중.
   `EXTRA_ALLOW_PATHS` 무변경(04-01 은 샌드박스를 전혀 확장하지 않음).
+- 04-03: `phase-04/verify_sandbox_via_cline.sh`(criterion-3 증명 게이트)를 `cline` 호출 0회로
+  작성/자가검증 완료. Preflight A(config guard)의 heal 경로(`apply_provider_config.sh`)가 실제로
+  `cline auth ...`를 호출한다는 것을 근거로, `VERIFY_DRY_NDJSON` 오프라인 모드에서는 Preflight A
+  자체를 아예 건너뛰도록 설계 — "cline 호출 0회"가 우연(현재 config 가 마침 깨지지 않아서)이
+  아니라 구조적으로 보장됨. 판정 사다리 (e) 규칙은 `classify_run.py`의 `success` 필드뿐 아니라,
+  이 검증기 자신이(샌드박스 밖에서) target 파일의 실제 첫 줄을 직접 읽어 raw ndjson 텍스트에
+  유출됐는지도 교차 확인(fail-open에 대한 이중 방어). 7개 필수 행 중 "model refusal"(도구 호출
+  0건) 케이스는 새 fixture 를 만들 필요 없이 04-01 의 `success_no_tools.ndjson` 을 그대로
+  무변경 재사용— 이미 정확히 그 케이스였음. 두 negated 변형(canary 제거/target success 뒤집기)은
+  `mktemp -d "${TMPDIR:-/tmp}/..."` 아래서만 만들고 커밋하지 않음, `phase-04/fixtures/` 는 실행
+  전후 `git status --porcelain`/`git diff --stat` 둘 다 빈 결과로 무변경 확인. 저작 중 발견한
+  버그 2건(둘 다 Task 1 커밋 이전에 수정, deviation 아님): (1) 헤더 설명문에 리터럴
+  `--auto-approve false` 문자열이 두 번 등장해 플랜 자신의 grep 검증(`== 0`)을 깨뜨렸던 것을
+  같은 의미를 유지한 채 재서술; (2) 판정 사다리 heredoc(`<<'PYEOF'`) 본문의 `#` 주석 한 줄에 있던
+  아포스트로피 하나가 `bash -n` 을 "unterminated quote" 오류로 깨뜨림을 격리 재현으로 확인(따옴표로
+  감싸지 않은 heredoc 본문의 아포스트로피는 quoted 구분자에도 불구하고 bash 파서가 여전히 스캔한다는
+  것을 이 세션에서 실측) — 로직 변경 없이 문장만 재서술.
 
 ### Pending Todos
 
@@ -443,19 +518,25 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-08-29
-Stopped at: **04-01-PLAN.md 완료.** Phase 4 의 오프라인 기반(wave 1의 유일한 플랜)을 `cline`
-호출 0회로 구축: `phase-04/classify_run.py`(6가지 outcome, 우선순위 고정, Phase 1 의
-nested-error 관용구 재사용), `phase-04/config.env`(`SANDBOX_WORKDIR` 를 `ALLOWED_REPOS.json`
-에서 파생), `phase-04/fixtures/`(5종, 전부 실제 캡처에서 mining, 이제 frozen/read-only),
-`phase-04/tests/test_classify_run.py`(13개 pytest, crash-outranks-denial/nested-vs-flat/
-denial-vs-TTY/model-refusal-is-not-denial 등 phase brief 가 명시한 모든 false-pass 혼동 케이스
-커버). 3개 태스크 모두 개별 커밋, SUMMARY 작성 완료. 04-RESEARCH.md 가 이미 실측으로 밝힌
-"cline 이 샌드박스 안에서 기동되지 않던" Phase 3 인계 블로커의 근본 원인(cwd 픽스, 샌드박스
-확장 불필요)은 이 플랜에서 소비되지 않았다 — 다음 플랜(04-02, 실제 래퍼 스크립트)이 이 cwd 픽스를
-적용해 라이브로 처음 재확인해야 한다.
-다음 세션은 **04-02-PLAN.md(헤드리스 래퍼 스크립트, wave 2)** 부터 시작 — `phase-04/config.env`
-와 `phase-04/classify_run.py` 를 그대로 소비하고, 04-RESEARCH.md Pitfall 1(cwd 픽스)/Pitfall 2
-(`--auto-approve false` 는 헤드리스에서 모든 도구 호출을 즉시 거부함, 정상 동작)를 먼저 읽을 것.
-Phase 4 예산 중 실제 `cline` 호출은 아직 0/2 회 — 04-02/04-03 이 소비할 차례.
+Last session: 2026-08-30
+Stopped at: **04-03-PLAN.md 완료** (04-01 의 wave-2 자매 플랜, 04-02 와 병렬 실행 — 이 STATE.md
+갱신 시점에 04-02 는 여전히 진행 중이었다). `phase-04/verify_sandbox_via_cline.sh`(criterion-3/
+HLS-03 증명 게이트)를 `cline` 호출 0회로 작성: TEST-ONLY 배너 + `--auto-approve true`(shipped
+`run_headless.sh` 와의 차이점) 근거 명시, `EXTRA_ALLOW_PATHS` 무변경 단언, cwd 픽스 재사용, 8단
+판정 사다리(crashed > 32K terminal > TTY-rejected > 모델이 target 미시도 > fail-open > control
+실패 > DENIED > other)를 오직 `classify_run.py`의 `outcome.json`으로만 판정(맨 exit code 금지).
+`VERIFY_DRY_NDJSON` 오프라인 후크로 7개 필수 행(정상 DENIED, canary 제거, target success 뒤집기,
+TTY, 32K, crashed, model-refusal) 전부가 예상 VERDICT/exit 과 일치함을 오프라인으로 자가검증 —
+어떤 행도 스크립트 수정이 필요 없었다. Preflight A(config guard)를 dry-run 모드에서 구조적으로
+건너뛰어(heal 경로가 실제 `cline auth` 호출이므로) "cline 호출 0회"를 우연이 아니라 설계로
+보장. `phase-04/fixtures/` 는 실행 전후 git status/diff 둘 다 빈 결과로 무변경 확인, negated
+변형 2종은 `/tmp` 아래서만 만들고 커밋하지 않음. Task 1 커밋 이전에 저작 중 버그 2건 발견/수정
+(문구만 변경 — 리터럴 `--auto-approve false` 이중 등장이 플랜 자신의 grep 검증을 깰 뻔했던 것,
+heredoc 주석 속 아포스트로피 하나가 `bash -n` 을 깨뜨렸던 것).
+다음 세션은 04-02 의 완료 상태를 먼저 확인한 뒤 **04-04-PLAN.md(phase-close)** 로 진행할 것 —
+04-04 가 이 플랜의 `verify_sandbox_via_cline.sh` 를 실제로 딱 한 번 라이브로 실행해 criterion 3 을
+증명할 차례다. Phase 4 예산 중 실제 `cline` 호출은 04-02 가 이미 최소 1회 이상 소비했음이 커밋
+로그(`feat(04-02): one live sandboxed cline run`)로 확인됨 — 정확한 잔여 횟수는 04-02 자신의
+SUMMARY 를 읽어 확인할 것. 이 플랜(04-03) 자신은 예산에서 0회를 소비했다(설계상 처음부터 0 이
+할당됨).
 Resume file: None
