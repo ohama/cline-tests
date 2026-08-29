@@ -5,32 +5,44 @@
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
-**Current focus:** Phase 2 (인프라 보정) 완료 — flashnext 동시성 상한 + litellm 루프백 바인딩 라이브 적용,
-INF-03 전체 체인 회귀 게이트 통과, 미러 sync 완료. Phase 3 대기.
+**Current focus:** Phase 3 (샌드박스 + 저장소 화이트리스트) 진행 중 — wave 1 두 플랜(03-01
+생성기+래퍼, 03-02 fixtures/probe/assert_denied) 모두 완료. wave 2(03-03 verify_sandbox.sh)
+착수 대기, wave 3(03-04) 는 그 이후.
 
 ## Current Position
 
-Phase: 2 of 8 (인프라 보정) — 완료
-Plan: 04 of 4 in current phase — 완료 (phase 전체 완료)
-Status: Phase complete — gsd-verifier 독립 검증 통과 (3/3 성공 기준, `02-VERIFICATION.md`)
-Verified: 라이브 plist·로드된 job·실행 중 프로세스 세 곳 모두에서 `--max-num-seqs 1`/`--host 127.0.0.1` 일치 확인,
-`lsof` 에 `*:4000` 없음, `verify_no_regression.sh` 재실행 `INF03: PASS`, 미러 diff 0
-Last activity: 2026-08-30 — 02-04-PLAN.md 완료 (INF-03 전체 체인 회귀 게이트
-`verify_no_regression.sh` 작성/실행 — `INF03: PASS`, 127.0.0.1/localhost 양쪽 경로 실측 완료.
-`~/local-llm-settings/sync.sh` 실행(live→mirror, 이 phase 유일 실행 지점) — drift 는 정확히 의도한
-두 plist 편집뿐이었음을 확인 후 sync, 이후 diff 0. `docs/infra-hardening.md` 작성.
-phase-close 재검증: `verify_queueing.sh --label after`/`verify_lan_bind.sh`/
-`verify_no_regression.sh`/`preflight.sh --label phase-close` 네 게이트 전부 동시 통과,
-`MIRROR_DRIFT` 0건. 이 플랜 내내 서비스 재시작 0회, pid 전원 불변).
+Phase: 3 of 8 (샌드박스 + 저장소 화이트리스트) — 진행 중
+Plan: 02 of 4 in current phase — 완료 (wave 1 두 플랜 모두 완료, wave 2/3 는 미착수)
+Status: In progress — 03-01/03-02 각각 세 태스크 전부 커밋 완료, 두 SUMMARY 모두 작성 완료
+Verified: [03-01] `pytest phase-03/tests/ -q` 11/11 통과, 생성된 프로파일을 `sandbox-exec`가 실제로
+수락(`/bin/echo` 성공), `run_sandboxed.sh -- /bin/cat bench/runs/CANARY.txt` 가
+`Operation not permitted`로 거부(SBX-04 첫 신호), `ALLOWED_REPOS_JSON` 부재 시 fail-closed
+확인, 두 파일(`config.env`/`run_sandboxed.sh`) 모두 SCOPE LIMITATION 문구 포함, launchd 서비스
+무변경(`com.ohama.flashnext` 계속 active). [03-02] `assert_denied.sh` 5개 필수 자가검증 전부
+사양대로 동작(`kill -ABRT $$` 로 실제 SIGABRT 유발 시 `FAIL crashed-signal rc=134`/exit 2, 크래시가
+PASS 로 오판되지 않음을 실증), `probe_fs.js` 가 라이브 `sandbox-exec` 아래서 forbidden
+read/write/subprocess/escape-symlink 5건 전부 `DENIED EPERM`으로, `ENOENT` 케이스는 별도로
+`ERROR`로 정확히 구분됨을 실측, 무샌드박스 컨트롤 베이스라인 `succeeded=7 denied=0 error=0` 확보,
+세 산출물 모두 `config.env` 미참조/`.gitignore` 미변경 grep 통과(03-01 과의 파일 소유권 경계 유지).
+Last activity: 2026-08-30 — 03-02-PLAN.md 완료 (`make_fixtures.sh`(멱등 fixture 트리 —
+prefix-trap sibling, symlink 정규화 케이스, escape-symlink 모두 영구 회귀 fixture) +
+`assert_denied.sh`(이 phase 의 품질 핵심 산출물 — signal-vs-permission 판별, 컨트롤 선행 실행,
+5가지 discrimination) + `probe_fs.js`(in-process fs + execSync 서브프로세스, EPERM 만 DENIED)
+3 태스크 모두 개별 커밋. 무샌드박스 컨트롤 베이스라인을
+`phase-03/results/20260829T200201Z-control/` 에 기록.
+자체 발견/수정 이슈 1건(코멘트 문구 자체가 플랜의 `grep 'config\.env'` 검증과 우연히 매칭 —
+동작 무변경, 문구만 수정, 첫 커밋 전에 반영). 03-01 과 병렬 실행 내내 파일 소유권 경계 유지 확인
+(`.gitignore`/`config.env`/`gen_sandbox_profile.py`/`run_sandboxed.sh` 전혀 건드리지 않음,
+03-01 이 자신의 두 커밋을 동시에 랜딩하는 동안 충돌 없음 실측).
 
-Progress: [████▒▒▒▒▒▒] 42% (Phase 2/8 완료, Plan 10/24 누적 추정)
+Progress: [█████▒▒▒▒▒] 50% (Phase 3/8 진행 중, Plan 12/24 누적 추정)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
-- Average duration: ~15.4 min
-- Total execution time: ~2.6 hours
+- Total plans completed: 12
+- Average duration: ~14.8 min
+- Total execution time: ~3.0 hours
 
 **By Phase:**
 
@@ -38,8 +50,16 @@ Progress: [████▒▒▒▒▒▒] 42% (Phase 2/8 완료, Plan 10/24 누
 |-------|-------|-------|----------|
 | 1 | 6/6 | ~112 min | ~19 min |
 | 2 | 4/4 | ~55 min | ~13.8 min |
+| 3 | 2/4 | ~20 min | ~10 min |
 
 **Recent Trend:**
+- 03-02 (~10 min, ran in parallel with 03-01 — three artifacts (make_fixtures.sh, assert_denied.sh,
+  probe_fs.js) fully self-tested including a deliberate `kill -ABRT $$` to prove crash != denial;
+  one self-inflicted fix, a comment string that literally matched the plan's own `config.env` grep,
+  caught and reworded before the first commit)
+- 03-01 (~10 min, ran in parallel with 03-02 — no live mutations outside phase-03/workspace/bench,
+  zero launchd interaction; one self-found/fixed bug: gen_sandbox_profile.py raised an unhandled
+  traceback instead of a clean SystemExit when ALLOWED_REPOS.json itself was missing)
 - Last 10 plans: 02-04 (~12 min, no restart — pure verification/sync/docs plan), 02-03 (~10 min,
   restart succeeded first try), 02-02 (~24 min incl. 2 failed restart attempts + fix + re-attempt),
   02-01 (~9 min), 01-06 (~50 min), 01-04 (~35 min), 01-05 (~6 min), 01-02 (~5 min), 01-03 (~5 min),
@@ -218,6 +238,36 @@ Recent decisions affecting current work:
   계열이지만 이번엔 로그 문구가 아니라 읽기 쪽 파싱 문제). `verify_queueing.sh` 는 `--label`
   인자를 리터럴 `before|after` 로만 하드 검증한다 — 플랜 문서가 예시로 든 `--label after-final`
   은 실제로는 실패하는 호출이므로 `--label after` 로 대체 실행(assertion 내용은 동일).
+- 03-01: **Phase 3 착수.** SBX-01 `workspace/ALLOWED_REPOS.json` 을 유일한 소스로 확정(repo 루트는
+  절대 항목으로 넣지 않음 — `bench/` 가 그 아래 있고 SBX-04 가 이를 도달 불가로 요구). SBPL
+  프로파일은 03-RESEARCH.md 가 실측 검증한 `(allow default)` + `(deny ... (subpath $HOME))` +
+  entry 당 `(allow ...)` punch-through 패턴을 그대로 채택(`(deny default)` 는 dyld 를 못 읽어
+  SIGABRT 로 크래시하는 것이 재현되어 기각됨). 모든 경로는 `os.path.realpath()` 를 거친 뒤에만
+  프로파일에 쓴다(`/tmp` vs `/private/tmp` 심볼릭링크 우회가 실측 재현됐던 지점). 프로파일은
+  `run_sandboxed.sh` 호출마다 무조건 재생성되며 캐시 경로가 전혀 없음(드리프트 방지, 03-RESEARCH.md
+  권고). `gen_sandbox_profile.py` 는 `--extra-allow` 플래그가 없어도 내장 기본값으로
+  `~/.cline` 을 항상 punch-through 하고, `run_sandboxed.sh` 는 여기에 더해 config.env 의
+  `CLINE_DATA_DIR`/`EXTRA_ALLOW_PATHS` 를 명시적으로 `--extra-allow` 로 전달(중복은 삽입순서
+  기준으로 dedupe). `EXTRA_ALLOW_PATHS` 가 유일하게 허용된 확장 지점이며 config.env 헤더에
+  `$HOME` 한정 스코프("total-deny jail 아님, `/tmp`/`/opt`/`/usr/local`/외장 볼륨은 그대로 열려
+  있음")를 verbatim 으로 명시. 자체 발견/수정 버그 1건: `ALLOWED_REPOS.json` 파일 자체가 없을 때
+  `load_allowed_repos()` 가 정리 안 된 Python traceback 을 냈던 것을 `SystemExit` 로 통일(fail-closed
+  동작 자체는 이미 맞았음, 진단 메시지만 개선). bash 3.2 에서 빈 배열 `"${ARR[@]}"` 가
+  `set -u` 하에서 unbound 오류를 내는 것도 실측 재현 후
+  `"${ARR[@]+"${ARR[@]}"}"` 관용구로 회피(`run_sandboxed.sh`). `sandbox-exec` 가 `--` 를
+  옵션 종결자로 정상 인식함도 man page 에 문서화되어 있지 않아 별도 실측으로 확인.
+  03-02(fixtures/probe_fs.js/assert_denied.sh, `.gitignore`/`config.env` 는 미터치)와 병렬 실행,
+  파일 소유권 충돌 없이 완료.
+- 03-02: `assert_denied.sh`(이 phase 전체의 품질 핵심 산출물)의 `--expect deny` 판별 순서를
+  고정: exit>128(crashed-signal, exit 2) → exit==0(not-denied) → 빈 stderr(crashed-silent, exit 2)
+  → wrong-error → target/write-target 체크, 이 순서로만 크래시가 낮은 우선순위 규칙으로 새는 것을
+  막을 수 있음. 언샌드박스 CONTROL 실행을 항상 먼저 돌려 그 커맨드 자체가 이미 깨져 있었을 가능성을
+  배제한 뒤에만 DENIED 를 인정. `probe_fs.js` 는 fs 쪽 EPERM 단독 게이트와 execSync 쪽
+  "exit!=0 AND stderr 에 Operation not permitted" 게이트를 동일 원칙으로 맞춤(ENOENT 등은 항상
+  ERROR, 라이브 sandbox-exec 아래서 실측 확인). 세 산출물 모두 `--root`/env var/`--profile` 로
+  파라미터화해 `config.env` 미참조, `.gitignore` 미변경(03-01 과의 소유권 경계) 확인 완료.
+  Fixture 트리(`phase-03/fixtures/`)는 `make_fixtures.sh` 재실행으로 언제든 재생성 가능하며 이
+  플랜이 종료된 상태에서 pristine.
 
 ### Pending Todos
 
@@ -246,20 +296,17 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **02-04-PLAN.md 완료 — Phase 2(인프라 보정) 전체 종료.** `verify_no_regression.sh`
-(INF-03 상시 게이트) 작성/실행 → `INF03: PASS`(8개 체크 전부 통과, 127.0.0.1/localhost 양쪽
-경로에서 실제 completion body 확보). `~/local-llm-settings/sync.sh` 실행(이 phase 유일 실행 —
-live→mirror 단방향, drift 는 정확히 의도한 두 plist 편집뿐이었음을 `--check` 로 사전 확인 후
-sync, 이후 diff 0). `docs/infra-hardening.md` 작성(값/근거/한계/증거/롤백/하우스룰).
-phase-close 재검증에서 로드맵 Phase 2 성공기준 1·2·3 이 동시에 성립함을 재확인
-(`verify_queueing.sh --label after`, `verify_lan_bind.sh`, `verify_no_regression.sh`,
-`preflight.sh --label phase-close` 전부 PASS, `MIRROR_DRIFT` 0건). 이 플랜 내내 서비스 재시작
-0회, pid 전원 불변(flashnext=46573, role-shim=75548, litellm=48525). 자체 발견/수정 버그 1건
-(PlistBuddy 들여쓰기 출력이 Check 1 의 `grep -qx` 정확매치를 깨뜨림 — `awk` 로 공백 제거 후
-수정, 커밋 전 반영). 증거 디렉터리: `phase-02/results/20260829T191031Z-inf03/`(INF-03 최초
-PASS + sync.txt), `phase-02/results/20260829T191110Z-inf03/`(sync 후 재확인),
-`phase-02/results/20260829T191241Z/`(queueing after), `phase-02/results/20260829T191249Z-inf02-verify/`
-(lan-bind), `phase-02/results/20260829T191251Z/`(preflight phase-close).
-다음 세션은 Phase 3(샌드박스 + 저장소 화이트리스트) 플랜 작성부터 시작 — 아직 PLAN.md 없음,
-Phase 1·2 와 독립적으로 진행 가능.
+Stopped at: **03-02-PLAN.md 완료 — Phase 3 wave 1 두 플랜(03-01, 03-02) 모두 종료, wave 2(03-03)
+착수 대기.** 03-02 는 이 phase 전체의 신뢰성을 좌우하는 테스트 인프라를 만들었다:
+`make_fixtures.sh`(멱등 fixture 트리 — prefix-trap sibling, symlink 정규화 케이스, escape-symlink
+가 전부 영구 회귀 fixture로 존재), `assert_denied.sh`(크래시-vs-거부 판별 헬퍼, CONTROL 선행
+실행 + `kill -ABRT $$` 자가검증으로 SIGABRT 크래시가 PASS 로 오판되지 않음을 실증), `probe_fs.js`
+(in-process fs + execSync 서브프로세스, EPERM 만 DENIED 로 인정 — 라이브 `sandbox-exec` 아래서
+forbidden 5건 전부 DENIED, ENOENT 케이스는 별도로 ERROR 로 정확히 구분됨을 실측). 무샌드박스
+컨트롤 베이스라인을 `phase-03/results/20260829T200201Z-control/` 에 기록(succeeded=7 denied=0
+error=0). 03-01 과 완전히 병렬로 실행되었고 파일 소유권 경계(`.gitignore`/`config.env`/
+`gen_sandbox_profile.py`/`run_sandboxed.sh` 미터치) 를 grep 과 실측 양쪽으로 확인, 03-01 이 자신의
+커밋 2건을 동시에 랜딩하는 동안 충돌 없었음.
+다음 세션은 Phase 3 wave 2(03-03, `verify_sandbox.sh` — 03-01 의 생성기/래퍼를 03-02 의
+`assert_denied.sh`/`probe_fs.js` 에 실제로 연결)부터 시작.
 Resume file: None
