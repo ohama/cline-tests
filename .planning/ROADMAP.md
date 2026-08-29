@@ -114,10 +114,16 @@ Plans:
   2. 두 서비스 중 하나를 강제 종료(`kill`)하면 launchd 가 `KeepAlive` 로 다시 살려낸다
   3. flashnext 서비스를 잠시 내린 상태에서 두 서비스를 기동해도 크래시루프 없이 재시도를 반복하다 flashnext 가 뜨면 정상 연결된다
   4. 두 plist 파일이 `~/local-llm-settings/launchagents/` 에 존재하고, `sync.sh` 실행 결과에 반영돼 있다
-**Plans**: TBD
+**Plans**: 7 plans
 
 Plans:
-- [ ] 05-01: TBD
+- [ ] 05-01-PLAN.md — 두 launchd 래퍼 스크립트와 공유 config (SVC-03/04 메커니즘)
+- [ ] 05-02-PLAN.md — check_versions.sh Check C 에 KANBAN_NO_AUTO_UPDATE 추가 + restart_service.sh 포트 없는 라벨 일반화
+- [ ] 05-03-PLAN.md — 등록 전 실증: dead-port SVC-04, 빈 토큰 idle 무-spin, 포트 인벤토리(Open Question 2)
+- [ ] 05-04-PLAN.md — com.ohama.kanban 등록/기동/KeepAlive 부활/bootout 회수 (SVC-01, SVC-03)
+- [ ] 05-05-PLAN.md — com.ohama.telegram-connect 등록(토큰 슬롯 빈 채) + 두 서비스 동시 기동 검증 (SVC-02, SVC-03)
+- [ ] 05-06-PLAN.md — sync.sh LABELS 편집 + 미러 반영 (SVC-05) + Phase 6 용 상시 게이트 verify_services.sh
+- [ ] 05-07-PLAN.md — docs/services.md + 전체 게이트 스윕 + 재부팅 검증 방식 결정 체크포인트
 
 ### Phase 6: 네트워크 노출
 **Goal**: Tailscale 무인증 + LAN 토큰 게이팅으로, 처음으로 이 시스템을 이 Mac 의 셸 밖에서
