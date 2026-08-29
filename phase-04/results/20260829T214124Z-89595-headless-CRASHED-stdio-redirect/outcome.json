@@ -1,0 +1,12 @@
+{
+  "outcome": "crashed",
+  "signals": [
+    "crashed"
+  ],
+  "reason": "Stream has no run_result event, or the wrapped process died by signal (exit code > 128). This result is INCONCLUSIVE about the sandbox and must never be reported as a successful block -- same discriminator phase-03/sandbox/assert_denied.sh uses.",
+  "finish_reason": null,
+  "tool_attempts": [],
+  "denied_targets": [],
+  "malformed_lines": 0,
+  "cline_exit_code": 134
+}

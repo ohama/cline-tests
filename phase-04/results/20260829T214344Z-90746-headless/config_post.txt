@@ -1,0 +1,4 @@
+FAIL: models[] expected length 1, observed None
+OK: providers.json holds flashnext @ localhost:4000/v1, contextWindow=32768, no codex alias
+predicted trigger (RESEARCH.md decompiled formula) — NOT yet proven to fire: contextWindow=32768 -> trigger=26542
+healed=yes post_status=0

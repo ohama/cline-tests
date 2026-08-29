@@ -1,0 +1,12 @@
+{
+  "outcome": "success",
+  "signals": [
+    "success"
+  ],
+  "reason": "run_result.finishReason == 'completed' and no higher-precedence signature fired.",
+  "finish_reason": "completed",
+  "tool_attempts": [],
+  "denied_targets": [],
+  "malformed_lines": 0,
+  "cline_exit_code": 0
+}
