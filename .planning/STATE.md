@@ -10,29 +10,32 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 1 of 8 (Cline 설정 + 압축 검증)
-Plan: 05 of 6 in current phase (wave 2: 01-05 done, 01-04 in parallel progress)
+Plan: 04 of 6 in current phase (wave 2 완료: 01-04/01-05 모두 done)
 Status: In progress
-Last activity: 2026-08-29 — 01-05-PLAN.md 완료 (max_tokens 실측: OBSERVED_MAX=2048, Branch A —
-완화 불필요, observed.env 발행, docs/cline-max-tokens-findings.md 작성)
+Last activity: 2026-08-29 — 01-04-PLAN.md 완료 (회귀 하네스: gen_filler.py, growth_prompt.txt,
+run_regression.sh 4-preflight 러너, test_harness_dryrun.sh 오프라인 전체 검증 PASS)
 
-Progress: [███████░░░] 67%
+Progress: [████████░░] 83%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: ~7 min
-- Total execution time: ~0.4 hours
+- Total plans completed: 5
+- Average duration: ~12 min
+- Total execution time: ~1.0 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1 | 4/6 | ~27 min | ~7 min |
+| 1 | 5/6 | ~62 min | ~12 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-05 (~6 min), 01-02 (~5 min), 01-03 (~5 min), 01-01 (~11 min)
-- Trend: stable
+- Last 5 plans: 01-04 (~35 min), 01-05 (~6 min), 01-02 (~5 min), 01-03 (~5 min), 01-01 (~11 min)
+- Trend: 01-04 ran long because its own offline testing live-reproduced two real environment
+  defects (cline auto-update drift, and check_versions.sh's own drift-check call deterministically
+  stripping providers.json) that had to be fixed before the harness could be proven — not scope
+  creep, the harness doing exactly its job
 
 *Updated after each plan completion*
 
@@ -83,6 +86,25 @@ Recent decisions affecting current work:
 - 01-05: Pitfall 5(providers.json 필드 소실)가 이 플랜 실행 중에도 실시간으로 재현됨(Plan 04 와의
   동시 실행 추정) — `verify_config.sh` 를 실제 회귀 실행 직전마다 반드시 재호출해야 한다는 Plan 01
   의 지침이 다시 한번 실측으로 확인됨
+- 01-04: `check_versions.sh`의 "Check B: no drift across invocations" 자체가 실행하는 실제
+  `cline config --json` 호출이 **매번 결정적으로**(우연한 동시성이 아니라) `providers.json`의
+  `models[]`/`contextWindow` 오버라이드를 지운다는 것을 3회 독립 재현으로 확인. 원래 플랜 순서
+  (Preflight A 검증 → Preflight B 버전확인)로는 B 직후 config 가 항상 깨진 채로 실제 실행에
+  들어가게 됨 — `run_regression.sh` 에 **Preflight A2**(B 직후 재검증 → 실패 시
+  `apply_provider_config.sh` 로 자동 복구 → 재검증, 그래도 실패하면만 abort)를 추가해 구조적으로
+  해결. Plan 06 실행 시에도 매번 이 자동 복구 사이클이 한 번 더 도는 것이 정상 동작임
+- 01-04: 이 세션 도중 `cline` npm 패키지가 3.0.53→3.0.60 으로 재차 auto-update 되어 있음을 발견
+  (실행 중인 cline/kanban 프로세스 없음을 `ps aux` 로 확인 후 `npm install -g cline@3.0.53` 로
+  안전하게 복구). Plan 06 은 실제 회귀 실행 직전 `check_versions.sh` 를 별도로 한 번 더 돌려
+  버전 드리프트를 재확인할 것
+- 01-04: `phase-01/config/observed.env`(Plan 05 전용 파일)처럼 동시에 실행 중인 다른 플랜이
+  소유한 공유 파일을 읽어야 하는 스크립트는 `OBSERVED_ENV_PATH` 같은 오버라이드 가능한 env 변수로
+  경로를 받아야 한다(기본값=실제 공유 경로) — 파일을 stub/restore 하는 방식은 TOCTOU 레이스가 됨.
+  `run_regression.sh` 자신의 결과 디렉토리 위치도 동일 패턴(`RESULTS_ROOT`)으로 테스트가
+  `phase-01/results/dryrun/`(gitignore 됨)를 가리키게 함
+- 01-04: 이 macOS 호스트의 기본 `/bin/bash` 는 3.2 로 연관 배열(`declare -A`)을 지원하지 않음 —
+  이후 셸 스크립트는 병렬 인덱스 배열을 써야 함(`phase-01/tests/test_harness_dryrun.sh` 에서
+  실측 재현 후 수정)
 
 ### Pending Todos
 
@@ -99,7 +121,9 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-29
-Stopped at: Wave 2 진행 중 — 01-05(max_tokens 실측+observed.env 발행) 완료. 01-04(회귀 하네스)는
-병렬로 진행 중이며 이 시점 기준 아직 SUMMARY.md 없음. 다음은 01-04 완료 확인 후 01-06(실제 회귀
-실행 + 최종 검증)
+Stopped at: Wave 2 전체 완료 (01-04/01-05 모두 SUMMARY.md 존재). 01-04 는 gen_filler.py,
+growth_prompt.txt, run_regression.sh(4-preflight 러너 + Preflight A2 자동복구), 그리고
+test_harness_dryrun.sh(오프라인 전체 파이프라인 PASS)를 남기고 종료. 실행 중 실제 cline
+auto-update 드리프트(3.0.60)와 check_versions.sh 자체 유발 Pitfall 5 를 실측 재현/수정함.
+다음은 01-06(실제 회귀 실행 + 최종 검증, 라이브 모델 호출 1회 한도)
 Resume file: None
