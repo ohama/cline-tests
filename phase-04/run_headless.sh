@@ -124,10 +124,14 @@ fi
 WRAPPER_TIMEOUT="${TIMEOUT_FLAG:-${WRAPPER_TIMEOUT:-1800}}"
 
 # ---- step 2: results directory ----------------------------------------------
+# PID suffix (same convention as phase-01/run_regression.sh's "-$$") so two
+# invocations landing in the same wall-clock second (observed live during
+# this plan's Task 2 fixture loop) get distinct evidence directories instead
+# of silently clobbering each other's ndjson.log/outcome.json.
 if [ -n "$OUT_DIR_FLAG" ]; then
   RESULTS_DIR="$OUT_DIR_FLAG"
 else
-  RESULTS_DIR="$RESULTS_ROOT/$(date -u +%Y%m%dT%H%M%SZ)-headless"
+  RESULTS_DIR="$RESULTS_ROOT/$(date -u +%Y%m%dT%H%M%SZ)-$$-headless"
 fi
 mkdir -p "$RESULTS_DIR"
 
