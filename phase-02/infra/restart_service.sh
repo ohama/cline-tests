@@ -107,6 +107,49 @@ if [ "$BOOTOUT_RC" -ne 0 ]; then
 fi
 
 # ---------------------------------------------------------------------------
+# Step 3b: WAIT FOR TEARDOWN before bootstrapping.
+#
+# `launchctl bootout` is ASYNCHRONOUS: it returns as soon as the unload is
+# requested, not when the job is actually gone. Bootstrapping while the label
+# is still registered / the old process is still exiting fails with the opaque
+# `Bootstrap failed: 5: Input/output error`.
+#
+# This bit us for real: flashnext holds a 104 GiB model, so teardown takes
+# seconds, and two consecutive live restart attempts failed identically at the
+# bootstrap step while a control test on a throwaway label (no heavy process to
+# tear down) succeeded every time. Both rollbacks then bootstrapped fine — the
+# `cp` + `plutil -lint` in between happened to give teardown the time it needed.
+#
+# So: poll until the label is genuinely out of the domain AND the port is free.
+# ---------------------------------------------------------------------------
+CURRENT_STEP="wait for teardown"
+TEARDOWN_TIMEOUT="${TEARDOWN_TIMEOUT:-120}"
+TD_WAITED=0
+while [ "$TD_WAITED" -lt "$TEARDOWN_TIMEOUT" ]; do
+  set +e
+  launchctl print "gui/$UID_NUM/$LABEL" >/dev/null 2>&1
+  STILL_REGISTERED=$?
+  TD_LISTEN="$(lsof -nP -iTCP:"$PORT" -sTCP:LISTEN 2>/dev/null)"
+  set -e
+  # STILL_REGISTERED != 0 means launchctl could no longer find the service.
+  if [ "$STILL_REGISTERED" -ne 0 ] && [ -z "$TD_LISTEN" ]; then
+    break
+  fi
+  printf 'o' >&2
+  sleep 2
+  TD_WAITED=$((TD_WAITED + 2))
+done
+echo "" >&2
+if [ "$STILL_REGISTERED" -eq 0 ] || [ -n "$TD_LISTEN" ]; then
+  echo "label still registered or port $PORT still bound after ${TD_WAITED}s" >&2
+  exit 1
+fi
+# Small settle margin: the domain can report the job gone a beat before
+# launchd is ready to accept a fresh bootstrap for the same label.
+sleep 3
+echo "teardown confirmed after ${TD_WAITED}s" >&2
+
+# ---------------------------------------------------------------------------
 # Step 4: bootstrap — reload from the (edited) file on disk.
 # ---------------------------------------------------------------------------
 CURRENT_STEP="bootstrap"
