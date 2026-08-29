@@ -6,14 +6,14 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
 **Current focus:** Phase 3 (샌드박스 + 저장소 화이트리스트) 진행 중 — wave 1 두 플랜(03-01
-생성기+래퍼, 03-02 fixtures/probe/assert_denied) 모두 완료. wave 2(03-03 verify_sandbox.sh)
-착수 대기, wave 3(03-04) 는 그 이후.
+생성기+래퍼, 03-02 fixtures/probe/assert_denied)과 wave 2(03-03 verify_sandbox.sh 상시 게이트)
+모두 완료. wave 3(03-04, cline 스모크 테스트 1회 + 문서화 + phase-close)만 남음.
 
 ## Current Position
 
 Phase: 3 of 8 (샌드박스 + 저장소 화이트리스트) — 진행 중
-Plan: 02 of 4 in current phase — 완료 (wave 1 두 플랜 모두 완료, wave 2/3 는 미착수)
-Status: In progress — 03-01/03-02 각각 세 태스크 전부 커밋 완료, 두 SUMMARY 모두 작성 완료
+Plan: 03 of 4 in current phase — 완료 (wave 1+2 세 플랜 모두 완료, wave 3(03-04)만 미착수)
+Status: In progress — 03-01/03-02/03-03 각각 전 태스크 커밋 완료, 세 SUMMARY 모두 작성 완료
 Verified: [03-01] `pytest phase-03/tests/ -q` 11/11 통과, 생성된 프로파일을 `sandbox-exec`가 실제로
 수락(`/bin/echo` 성공), `run_sandboxed.sh -- /bin/cat bench/runs/CANARY.txt` 가
 `Operation not permitted`로 거부(SBX-04 첫 신호), `ALLOWED_REPOS_JSON` 부재 시 fail-closed
@@ -24,25 +24,31 @@ PASS 로 오판되지 않음을 실증), `probe_fs.js` 가 라이브 `sandbox-ex
 read/write/subprocess/escape-symlink 5건 전부 `DENIED EPERM`으로, `ENOENT` 케이스는 별도로
 `ERROR`로 정확히 구분됨을 실측, 무샌드박스 컨트롤 베이스라인 `succeeded=7 denied=0 error=0` 확보,
 세 산출물 모두 `config.env` 미참조/`.gitignore` 미변경 grep 통과(03-01 과의 파일 소유권 경계 유지).
-Last activity: 2026-08-30 — 03-02-PLAN.md 완료 (`make_fixtures.sh`(멱등 fixture 트리 —
-prefix-trap sibling, symlink 정규화 케이스, escape-symlink 모두 영구 회귀 fixture) +
-`assert_denied.sh`(이 phase 의 품질 핵심 산출물 — signal-vs-permission 판별, 컨트롤 선행 실행,
-5가지 discrimination) + `probe_fs.js`(in-process fs + execSync 서브프로세스, EPERM 만 DENIED)
-3 태스크 모두 개별 커밋. 무샌드박스 컨트롤 베이스라인을
-`phase-03/results/20260829T200201Z-control/` 에 기록.
-자체 발견/수정 이슈 1건(코멘트 문구 자체가 플랜의 `grep 'config\.env'` 검증과 우연히 매칭 —
-동작 무변경, 문구만 수정, 첫 커밋 전에 반영). 03-01 과 병렬 실행 내내 파일 소유권 경계 유지 확인
-(`.gitignore`/`config.env`/`gen_sandbox_profile.py`/`run_sandboxed.sh` 전혀 건드리지 않음,
-03-01 이 자신의 두 커밋을 동시에 랜딩하는 동안 충돌 없음 실측).
+[03-03] `verify_sandbox.sh` 상시 게이트가 실제 `workspace/ALLOWED_REPOS.json` 대상으로 독립 2회
+연속 실행 모두 exit 0, 네 `CRITERION ... PASS` 줄 동일, 16/16 케이스, CRASHED 0, 벤치 카나리
+문자열이 어떤 캡처된 sandboxed stdout 에도 없음을 grep 스윕으로 확인. 음성 대조군 3종(precheck 가
+deny-less 프로파일 거부, precheck 우회 시 Group F 4건 전부 `FAIL not-denied`, `--no-canonicalize`
+아래서 F6 실패)이 모두 사양대로 동작. `launchctl print .../com.ohama.flashnext` pid 46573 로
+플랜 전체에서 불변, `cline` 호출 0회.
+Last activity: 2026-08-30 — 03-03-PLAN.md 완료 (`verify_sandbox.sh`: 프로파일 생성+fail-open
+사전점검 → Group F 8케이스+Group P 6케이스(모두 `assert_denied.sh` 직접 호출, 13회) → F8
+`probe_fs.js` 프로브 → criterion-1 Python 체크 → 4개 CRITERION 판정 + `CASES`/`CRASHED`
+줄 + 0/1/2 exit 계약. `--negative-control`/`--negative-control-skip-precheck` 모드와
+`gen_sandbox_profile.py --no-canonicalize`(TEST-ONLY) 로 검증기 자체가 fail-open 샌드박스를
+잡아낼 수 있음을 실증. 3 태스크 모두 개별 커밋, 실제 화이트리스트 대상 2회 실행 결과를
+`phase-03/results/20260829T202043Z-sbx/`(README 포함)·`.../20260829T202048Z-sbx/` 에,
+음성 대조군 3종을 `phase-03/results/20260829T201927Z-negative-control/`(README 포함)에 기록.
+자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
+근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [█████▒▒▒▒▒] 50% (Phase 3/8 진행 중, Plan 12/24 누적 추정)
+Progress: [█████▒▒▒▒▒] 54% (Phase 3/8 진행 중, Plan 13/24 누적 추정)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
-- Average duration: ~14.8 min
-- Total execution time: ~3.0 hours
+- Total plans completed: 13
+- Average duration: ~15.1 min
+- Total execution time: ~3.3 hours
 
 **By Phase:**
 
@@ -50,9 +56,17 @@ Progress: [█████▒▒▒▒▒] 50% (Phase 3/8 진행 중, Plan 12/24
 |-------|-------|-------|----------|
 | 1 | 6/6 | ~112 min | ~19 min |
 | 2 | 4/4 | ~55 min | ~13.8 min |
-| 3 | 2/4 | ~20 min | ~10 min |
+| 3 | 3/4 | ~36 min | ~12 min |
 
 **Recent Trend:**
+- 03-03 (~16 min, wave 2 — wired 03-01/03-02's artifacts into verify_sandbox.sh, the standing
+  Phase 3 gate; found and fixed one live-reproduced blocker: F8's sandboxed Node invocation
+  crashed with SIGABRT (redirecting output to a file under an unpunched path) and then
+  MODULE_NOT_FOUND (Node's realpath walk lstat'ing $HOME itself), fixed via pipe-capture +
+  a punched-through temp copy + --preserve-symlinks-main; ran the gate twice independently
+  against the real whitelist with identical PASS verdicts, plus three archived negative controls
+  proving the gate itself can fail (deny-less profile, precheck-bypassed deny-less profile,
+  --no-canonicalize symlink-bypass regression))
 - 03-02 (~10 min, ran in parallel with 03-01 — three artifacts (make_fixtures.sh, assert_denied.sh,
   probe_fs.js) fully self-tested including a deliberate `kill -ABRT $$` to prove crash != denial;
   one self-inflicted fix, a comment string that literally matched the plan's own `config.env` grep,
@@ -268,6 +282,30 @@ Recent decisions affecting current work:
   파라미터화해 `config.env` 미참조, `.gitignore` 미변경(03-01 과의 소유권 경계) 확인 완료.
   Fixture 트리(`phase-03/fixtures/`)는 `make_fixtures.sh` 재실행으로 언제든 재생성 가능하며 이
   플랜이 종료된 상태에서 pristine.
+- 03-03: **Phase 3 상시 게이트 완성.** `verify_sandbox.sh` 가 03-01/03-02 산출물을 실제로 연결해
+  네 ROADMAP 성공기준(SBX-01..04)을 한 커맨드로 증명 — Group F(fixture 프로파일, 8케이스)+Group
+  P(실제 production 프로파일, 6케이스) 전부 `assert_denied.sh` 직접 호출(13회)로 판정, F8 은
+  `probe_fs.js` 자체 DENIED/ERROR/SUCCEEDED 텍스트로 판정(바 exit code 판정 0건, 플랜의
+  `grep -nE '\$\? -ne 0.*(PASS|denied)'` 검증 통과). Criterion 1 의 ancestor 체크는 명시된
+  방향대로 구현(`realpath(BENCH_DIR)` 이 어떤 entry 와도 같거나 그 자손이면 FAIL — 저장소 루트를
+  화이트리스트에 넣는 실수를 잡는 방향, 반대 방향 아님). Fail-open 사전점검(두 프로파일 모두
+  `(version 1)`/`(allow default)`/정확한 realpath 된 deny-root 두 줄/allow punch-through 가
+  deny 뒤에 위치 확인 후 아니면 abort)을 모든 케이스 실행 전에 통과.
+  **자체 발견/수정 이슈 1건(중요)**: 플랜이 문자 그대로 지시한 F8 명령("sandbox-exec ... node
+  phase-03/sandbox/probe_fs.js > $OUT_DIR/probe-sandboxed.txt")이 이 환경에서 실제로 두 단계로
+  실패함을 실측: (1) 샌드박스 프로세스의 stdout 을 화이트리스트 밖 경로($OUT_DIR, `$HOME` 아래
+  미펀치)로 직접 리다이렉트하면 Node 가 자체 초기화 중 SIGABRT 로 크래시(재현 100%, 파이프
+  캡처로 전환하면 즉시 사라짐 확인). (2) 크래시를 고쳐도 `phase-03/sandbox/`(미펀치) 자체를 Node
+  가 읽을 수 없어 MODULE_NOT_FOUND, 게다가 Node 의 기본 모듈 해석이 `$HOME` 자체를 포함한 모든
+  상위 디렉터리를 lstat 하려다 EPERM. 해결: 캡처를 파일 리다이렉트 대신 커맨드 치환(파이프)으로
+  바꾸고, `probe_fs.js` 를 픽스처의 이미 펀치스루된 `$FX/allowed/` 로 실행 중에만 복사한 뒤
+  `node --preserve-symlinks-main` 으로 조상 lstat 워크를 건너뛰게 함 — DENIED/ERROR/SUCCEEDED
+  판정 로직 자체는 전혀 손대지 않음(순수 배관 수정). 음성 대조군 3종(`--negative-control`이
+  deny-less 프로파일을 사전점검에서 거부, `--negative-control-skip-precheck`로 우회 시 Group F
+  4건 전부 `FAIL not-denied`, `gen_sandbox_profile.py --no-canonicalize`(TEST-ONLY 신규 플래그)
+  아래서 F6 이 예상대로 실패) 모두 사양대로 동작 실증, README 로 각각의 의미 문서화. 실제
+  화이트리스트 대상 2회 독립 실행 모두 exit 0/CRITERION 4개 PASS 동일, `launchctl print`
+  pid(46573) 불변, `cline` 호출 0회, `phase-02/`·plist 무변경.
 
 ### Pending Todos
 
@@ -296,17 +334,15 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **03-02-PLAN.md 완료 — Phase 3 wave 1 두 플랜(03-01, 03-02) 모두 종료, wave 2(03-03)
-착수 대기.** 03-02 는 이 phase 전체의 신뢰성을 좌우하는 테스트 인프라를 만들었다:
-`make_fixtures.sh`(멱등 fixture 트리 — prefix-trap sibling, symlink 정규화 케이스, escape-symlink
-가 전부 영구 회귀 fixture로 존재), `assert_denied.sh`(크래시-vs-거부 판별 헬퍼, CONTROL 선행
-실행 + `kill -ABRT $$` 자가검증으로 SIGABRT 크래시가 PASS 로 오판되지 않음을 실증), `probe_fs.js`
-(in-process fs + execSync 서브프로세스, EPERM 만 DENIED 로 인정 — 라이브 `sandbox-exec` 아래서
-forbidden 5건 전부 DENIED, ENOENT 케이스는 별도로 ERROR 로 정확히 구분됨을 실측). 무샌드박스
-컨트롤 베이스라인을 `phase-03/results/20260829T200201Z-control/` 에 기록(succeeded=7 denied=0
-error=0). 03-01 과 완전히 병렬로 실행되었고 파일 소유권 경계(`.gitignore`/`config.env`/
-`gen_sandbox_profile.py`/`run_sandboxed.sh` 미터치) 를 grep 과 실측 양쪽으로 확인, 03-01 이 자신의
-커밋 2건을 동시에 랜딩하는 동안 충돌 없었음.
-다음 세션은 Phase 3 wave 2(03-03, `verify_sandbox.sh` — 03-01 의 생성기/래퍼를 03-02 의
-`assert_denied.sh`/`probe_fs.js` 에 실제로 연결)부터 시작.
+Stopped at: **03-03-PLAN.md 완료 — Phase 3 wave 1+2 세 플랜(03-01, 03-02, 03-03) 모두 종료,
+wave 3(03-04)만 남음.** 03-03 은 `phase-03/sandbox/verify_sandbox.sh`(상시 게이트)를 완성해 네
+ROADMAP 성공기준을 실제 화이트리스트 대상 2회 연속 실행으로 동시에 PASS 시켰고(exit 0, 16/16
+케이스, CRASHED 0, 카나리 문자열 무유출), 3종 음성 대조군으로 게이트 자체가 fail-open 샌드박스를
+잡아낼 수 있음도 실증했다(`phase-03/results/20260829T201927Z-negative-control/`). 자체 발견/수정
+이슈 1건: 플랜이 문자 그대로 지시한 F8 의 라이브 샌드박스 Node 호출이 이 환경에서 SIGABRT 로
+크래시 후 MODULE_NOT_FOUND 로 실패 — 파이프 캡처 + 펀치스루된 임시 사본 +
+`--preserve-symlinks-main` 조합으로 해결(판정 로직 자체는 무변경). `cline` 호출 0회,
+`launchctl print` pid 불변, `phase-02/`·plist 무변경 확인.
+다음 세션은 Phase 3 wave 3(03-04: `cline` 스모크 테스트 1회(예산) + `docs/sandbox-whitelist.md` +
+phase-close 재검증 — 이 phase 의 유일한 budgeted `cline` 호출이 여기서 일어남)부터 시작.
 Resume file: None
