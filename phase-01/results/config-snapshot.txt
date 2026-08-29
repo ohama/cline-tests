@@ -1,0 +1,125 @@
+=== cline config --json ===
+Timestamp: 2026-08-29T09:05:34Z
+Command: CLINE_NO_AUTO_UPDATE=1 cline config --json
+
+[stdout+stderr]
+error: interactive mode requires a TTY (stdin/stdout must both be terminals)
+exit=1
+
+NOTE: this exact command was also tried wrapped in a pty (`script -q /dev/null
+bash -c 'CLINE_NO_AUTO_UPDATE=1 cline config --json'`) to try to satisfy the
+TTY requirement non-interactively. Instead of printing JSON and exiting, it
+launched Cline's full interactive TUI chat session (the `--json`/`config`
+flag combination does not behave as a scriptable "dump and exit" in this
+exact build once a TTY is present -- it opens the live agent UI). The TUI's
+Settings > General panel was visible in the captured screen buffer and
+showed, read directly off the rendered screen (not JSON, transcribed by hand
+from the terminal escape-sequence dump):
+    Provider        OpenAI Compatible
+    Model           flashnext
+    Mode            Act
+    Compaction      LLM
+    Auto-approve all   on
+    Auto update         on
+    Verbose             off
+This is genuine visual confirmation that Cline's own UI resolves the active
+provider to "OpenAI Compatible" / "flashnext" -- consistent with
+providers.json. The panel does NOT surface a contextWindow value anywhere in
+this view, so it cannot confirm or deny whether 32768 reached Cline's
+internal model info from this screen alone.
+The spawned TUI process (and its `--cline-hub-daemon` child on 127.0.0.1:25463)
+could not be cleanly terminated from this environment (process-kill actions
+are blocked by this session's safety policy) and was left running,
+idle, waiting for terminal input. It is a local ephemeral process spawned by
+this task's own test invocation -- NOT one of the three protected launchd
+services (com.ohama.flashnext / com.ohama.role-shim / com.ohama.litellm),
+and does not touch any of them.
+
+=== cline config (human-readable) ===
+Timestamp: 2026-08-29T09:06:40Z
+Command: CLINE_NO_AUTO_UPDATE=1 cline config
+
+[stdout+stderr]
+error: interactive mode requires a TTY (stdin/stdout must both be terminals)
+exit=1
+
+--- post-invocation re-verify (Pitfall 5 durability check) ---
+Command: bash phase-01/config/verify_config.sh
+Timestamp: 2026-08-29T09:06:55Z
+
+[stdout]
+FAIL: models[] expected length 1, observed None
+exit=1
+
+DURABILITY: providers.json was stripped by a cline invocation -- verify_config.sh MUST run before
+every regression run.
+
+Real providers.json read immediately after the failed verify:
+{
+  "version": 1,
+  "lastUsedProvider": "openai-compatible",
+  "providers": {
+    "cline": {
+      "settings": { "provider": "cline", "model": "tencent/hy4-preview" },
+      "updatedAt": "2026-08-29T06:28:53.425Z",
+      "tokenSource": "manual"
+    },
+    "openai-compatible": {
+      "settings": {
+        "provider": "openai-compatible",
+        "apiKey": "dummy",
+        "model": "flashnext",
+        "baseUrl": "http://localhost:4000/v1"
+      },
+      "updatedAt": "2026-08-29T09:09:19.674Z",
+      "tokenSource": "manual"
+    }
+  }
+}
+(exact byte-for-byte capture preserved at
+phase-01/config/backups/providers.json.20260829T181007, taken automatically by
+apply_provider_config.sh's own pre-write backup step during the restore below)
+
+The `models[]` array (and with it, contextWindow=32768) was gone -- baseUrl and model survived, only
+the custom models[] field was stripped. This is the exact shape of RESEARCH.md Pitfall 5, and it was
+reproduced multiple times live during this plan's execution (see 01-01-SUMMARY.md), each time
+immediately after a `cline` invocation touched providers.json (both from this task's own `cline config`
+attempts and, separately, from a concurrent wave-1 sibling plan's cline invocations).
+
+Restoring via phase-01/config/apply_provider_config.sh:
+$ bash phase-01/config/apply_provider_config.sh
+Backed up existing providers.json to
+phase-01/config/backups/providers.json.20260829T181007, re-ran `cline auth openai-compatible`,
+re-wrote models[] with contextWindow=32768, post-write assertion passed: OK:
+baseUrl=http://localhost:4000/v1 model=flashnext contextWindow=32768
+
+Re-verify after restore:
+$ bash phase-01/config/verify_config.sh
+OK: providers.json holds flashnext @ localhost:4000/v1, contextWindow=32768, no codex alias
+predicted trigger (RESEARCH.md decompiled formula) -- NOT yet proven to fire: contextWindow=32768 -> trigger=26542
+exit=0
+
+OBSERVED:
+- Does `cline config --json`'s output mention contextWindow / 32768 at all? NO. In this exact headless
+  environment (no real TTY on stdin/stdout), `cline config --json` and `cline config` both fail
+  immediately with "error: interactive mode requires a TTY (stdin/stdout must both be terminals)" and
+  print no configuration data at all -- despite `cline config --help` documenting `--json` as an
+  output-format flag. This is a genuine limitation of this exact 3.0.53 build in a non-TTY context, not
+  a mistake in how the command was invoked (tried plain, with `< /dev/null`, both with the same result).
+  When a pty was supplied (`script`), the command did not print JSON either -- it launched the full
+  interactive chat TUI instead, whose Settings screen visually showed Provider=OpenAI Compatible,
+  Model=flashnext (but no contextWindow field is shown anywhere in that UI panel).
+- Did verify_config.sh still pass after the invocation(s)? NO, not on the first re-check. A `cline`
+  invocation (this task's own `cline config` attempts, and separately a concurrent invocation from
+  another wave-1 plan) stripped the custom `models[]` array (Pitfall 5) at least three times during
+  this plan's execution. Each time, `apply_provider_config.sh` was re-run and `verify_config.sh` was
+  confirmed to pass again afterward. At the time this snapshot file was finalized, verify_config.sh
+  exits 0 against the real config.
+
+CONCLUSION FOR THIS TASK (not Plan 06's compaction question): the `providers.json` override is not
+provably durable across arbitrary `cline` invocations in this build -- it must be re-applied and
+re-verified immediately before any real regression run, exactly as RESEARCH.md Pitfall 5 anticipated
+and as `verify_config.sh` (Task 2 of this plan) is designed to check. Whether the 32768 figure actually
+reaches Cline's live compaction check remains Plan 06's open question; this snapshot does not resolve
+it, since no machine-readable `cline config --json` output could be captured in this headless
+environment.
