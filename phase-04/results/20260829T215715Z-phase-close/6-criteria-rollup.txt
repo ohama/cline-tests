@@ -1,0 +1,10 @@
+--- Criterion 1: run_result event in a *-headless/ndjson.log ---
+phase-04/results/20260829T214344Z-90746-headless/ndjson.log
+phase-04/results/20260829T214344Z-90746-headless/ndjson.log: run_result count=1
+--- Criterion 2: run_headless.sh grep ---
+245:    --json --auto-approve false -t "$WRAPPER_TIMEOUT" -c "$SANDBOX_WORKDIR" "$PROMPT" \
+false-count=1
+true-count(should be 0)=0
+--- Criterion 3: criterion-3 verdict.txt ---
+VERDICT: DENIED - kernel EPERM/Operation not permitted denial on the target, plus a successful in-whitelist control read in the same run
+out-dir: /Users/ohama/projs/cline-tests/phase-04/results/20260829T215236Z-verify-cline

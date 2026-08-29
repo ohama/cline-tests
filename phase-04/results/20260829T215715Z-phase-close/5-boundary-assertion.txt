@@ -1,0 +1,6 @@
+--- EXTRA_ALLOW_PATHS empty check ---
+exit=0
+--- git diff --stat phase-03/ phase-02/ ---
+(end, empty above means clean)
+--- grep EXTRA_ALLOW_PATHS= in phase-04/ excluding config.env and results/ ---
+(end, empty above means clean)
