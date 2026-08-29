@@ -1,0 +1,29 @@
+=== Check 1: bind address (lsof) ===
+COMMAND     PID  USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+python3.1 48525 ohama   13u  IPv4 0x2c77df9a84349cb7      0t0  TCP 127.0.0.1:4000 (LISTEN)
+CHECK 1: PASS (loopback-only listener confirmed, no wildcard bind found)
+
+=== Check 2: LAN rejection ===
+LAN_IFACE: en0
+LAN_IP: 192.168.75.108
+curl http://192.168.75.108:4000/v1/models -> http_code=000 curl_rc=7
+CHECK 2: PASS (connection refused, rc=7)
+
+=== Check 3: loopback by IP (127.0.0.1) ===
+http_code=200 curl_rc=0
+CHECK 3: PASS (200, body contains flashnext)
+
+=== Check 4: loopback by hostname (localhost) ===
+http_code=200
+CHECK 4: PASS
+
+=== Check 5: :8000 and :8011 unchanged (loopback) ===
+--- :8000 ---
+COMMAND     PID  USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+python3.1 46573 ohama    7u  IPv4 0x5bd2b9c8c10fbef7      0t0  TCP 127.0.0.1:8000 (LISTEN)
+--- :8011 ---
+COMMAND     PID  USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+python3.1 75548 ohama    3u  IPv4 0x1ae944cb03fc4653      0t0  TCP 127.0.0.1:8011 (LISTEN)
+CHECK 5: PASS
+
+INF02: PASS
