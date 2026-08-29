@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-08-29)
 ## Current Position
 
 Phase: 1 of 8 (Cline 설정 + 압축 검증)
-Plan: 02 of 6 in current phase (wave 1: 01-01/01-02/01-03 in parallel)
+Plan: 03 of 6 in current phase (wave 1: 01-01/01-02/01-03 in parallel)
 Status: In progress
-Last activity: 2026-08-29 — 01-02-PLAN.md 완료 (버전 고정 + 호출 규약)
+Last activity: 2026-08-29 — 01-03-PLAN.md 완료 (3-way 압축 판정 분류기, TDD)
 
-Progress: [█░░░░░░░░░] 17%
+Progress: [███░░░░░░░] 33%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
+- Total plans completed: 2
 - Average duration: ~5 min
-- Total execution time: ~0.1 hours
+- Total execution time: ~0.2 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1 | 1/6 | ~5 min | ~5 min |
+| 1 | 2/6 | ~10 min | ~5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (~5 min)
-- Trend: -
+- Last 5 plans: 01-02 (~5 min), 01-03 (~5 min)
+- Trend: stable
 
 *Updated after each plan completion*
 
@@ -50,6 +50,15 @@ Recent decisions affecting current work:
 - 01-02: `CLINE_COMPACTION_TRIGGER_RATIO=0.81`/`CLINE_PREDICTED_TRIGGER_TOKENS=26542` 는
   cross-check 전용 기본값 — 이후 플랜은 실제 `contextWindow` 에서 트리거를 재계산해야 한다
   (Plan 05 Branch B2 가 `contextWindow` 를 낮출 수 있음)
+- 01-03: `phase-01/parse_result.py`의 `classify()`가 3-way 판정(①compaction_fired/②server_400_
+  no_compaction/③other)을 반환. ②는 실패가 아닌 정상 통과 결과로 취급(Cline 이 이 스택의
+  MAX_KV_SIZE 400 에서 자동 복구하지 않음을 reason 에 명시). ③은 below_trigger(미확정)와
+  unexpected 로 reason 텍스트로 구분. `--predicted-trigger`는 진짜 파라미터이며 모듈 상수
+  `PREDICTED_TRIGGER_TOKENS=26542`에 의해 가려지지 않음(전용 테스트로 검증) — 05번 브랜치가
+  contextWindow 를 낮추면 run_regression.sh 가 그 값을 재계산해 넘겨야 함
+- 01-03: CLI 종료 코드 계약(0=①/2=②/3=③)과 verdict.md 출력은 04/06 플랜의 회귀 하네스가
+  그대로 의존함 — 시그니처: `parse_result.py --ndjson <f> [--server-log <f>]
+  [--predicted-trigger <int>] [--max-kv <int>] --out <dir>`
 
 ### Pending Todos
 
@@ -66,6 +75,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-29
-Stopped at: Completed 01-02-PLAN.md (cline/kanban 버전 고정 + 호출 규약). Wave 1의 나머지 플랜
-(01-01, 01-03)은 동시 실행 중이었을 수 있음 — 재개 시 각 플랜의 SUMMARY.md 존재 여부로 확인할 것
+Stopped at: Completed 01-03-PLAN.md (3-way 압축 판정 분류기, TDD RED/GREEN/REFACTOR, 23개 테스트
+통과, 완전 오프라인/픽스처 기반). Wave 1의 나머지 플랜(01-01)이 동시 실행 중이었을 수 있음 —
+재개 시 각 플랜의 SUMMARY.md 존재 여부로 확인할 것
 Resume file: None
