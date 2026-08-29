@@ -1,0 +1,129 @@
+VERDICT: C (BLOCKED-NEEDS-HUMAN)
+
+03-RESEARCH.md Open Question 1: does the real `cline` Mach-O/Bun binary's startup need any
+punch-through beyond the generic Cline-data-dir allow already in the profile?
+
+ANSWER: unresolved with the evidence a single budgeted invocation can produce. The real `cline`
+binary, run under phase-03/sandbox/run_sandboxed.sh -- "$CLINE_BIN" --version, exited non-zero
+with a generic, non-specific runtime error. No sandbox change was made.
+
+--- What happened, in order ---
+
+1. First attempt (literal plan invocation form, output redirected straight to a file under
+   phase-03/results/<ts>-cline-smoke/, which is NOT punched through by the profile):
+
+     exit code: 134 (SIGABRT)
+     stderr (excerpt):
+       resolved allow list: ['/Users/ohama/projs/cline-tests/workspace/scratch-repo', '/Users/ohama/.cline']
+       ----- Native stack trace -----
+        1: node::InitializeOncePerProcessInternal(...) (.cold.3) [libnode.141.dylib]
+        2: node::InitializeOncePerProcessInternal(...) [libnode.141.dylib]
+        3: node::Start(int, char**) [libnode.141.dylib]
+        4: start [/usr/lib/dyld]
+
+   Classification of THIS attempt alone: a crash with exit>128, indistinguishable from a denial
+   by exit code alone -- exactly 03-RESEARCH.md Pitfall 1 and the same root cause plan 03-03 found
+   and fixed for F8's plain `node` invocation: `cline`'s launcher is a `#!/usr/bin/env node`
+   shebang script, and Node's own process bootstrap (before ANY cline/Bun code runs) crashes with
+   SIGABRT when one of its inherited stdio file descriptors is a regular file under a path the
+   sandbox profile does not punch through. This is a harness plumbing artifact of MY chosen output
+   -capture location, not a signal from the sandbox about `cline` itself, and not a denial -- no
+   cline/Bun logic had executed yet. Per Rule 3 (blocking issue), this was fixed by redirecting the
+   outer chained command's stdout/stderr to a path INSIDE the whitelist
+   (workspace/scratch-repo/.cline-smoke-version.{out,err}, an ALLOWED_REPOS.json entry) instead of
+   phase-03/results/ directly, then copying the captured files into the results directory from the
+   unsandboxed parent shell afterward. This is the same class of fix 03-03 already applied and
+   documented (pipe/in-whitelist capture instead of a direct redirect to an unpunched path) -- it
+   does not touch EXTRA_ALLOW_PATHS, config.env, or any security boundary. Because Node's own C++
+   bootstrap crashed before executing a single line of cline's/Bun's own code, this attempt does
+   NOT count as "the one real cline invocation" for the purposes of this phase's budget -- it is
+   treated as a failed harness invocation, corrected before any cline logic ever ran.
+
+2. Second (and only real) attempt, same reinstall-then-launch chain, output captured via an
+   in-whitelist file instead of an unpunched path:
+
+     command: bash -c 'set -a; . phase-01/config/cline-invocation.env; set +a; \
+       npm install -g cline@3.0.53 >/dev/null 2>&1 && \
+       phase-03/sandbox/run_sandboxed.sh -- "$CLINE_BIN" --version' \
+       > workspace/scratch-repo/.cline-smoke-version.out \
+       2> workspace/scratch-repo/.cline-smoke-version.err
+     (files then copied to version.out / version.err in this directory and the scratch copies
+     deleted)
+
+     exit code: 1
+     stdout: (empty)
+     stderr:
+       resolved allow list: ['/Users/ohama/projs/cline-tests/workspace/scratch-repo', '/Users/ohama/.cline']
+       error: An unknown error occurred (Unexpected)
+
+   This is NOT a crash (no signal, exit code 1, non-empty diagnostic) and it is NOT a clean
+   success (not exit 0, stdout is not "3.0.53") -- so it is neither (A) nor a signal-death case of
+   (C). It is also NOT classifiable as (B), because (B) requires "a permission error naming a
+   specific Cline-owned directory that is on the pre-declared candidate list" and this message
+   names no path and no directory at all.
+
+   Static evidence (zero additional invocations, `strings -a` over the installed
+   /opt/homebrew/lib/node_modules/cline/bin/.cline binary) confirms the exact string is Bun's own
+   generic runtime-error message:
+     "error: An unknown error occurred, possibly due to low max file descriptors (Unexpected)"
+   (our captured line is the shorter sibling of this same Bun error family: "error: An unknown
+   error occurred (...)"). This is Bun's catch-all for an unexpected syscall failure during its own
+   startup -- it does not surface the underlying errno or the path involved. `~/.cline/` (the one
+   punched-through Cline data dir) shows no files modified by this run at all
+   (`find ~/.cline -newermt "5 minutes ago"` was empty immediately after), meaning the failure
+   happened before `.cline`'s Bun runtime ever touched its own data directory -- consistent with
+   the failure being in Bun's own process bootstrap, most likely an EPERM from a filesystem
+   operation the profile's $HOME-wide deny blocks, but WHICH path is denied cannot be determined
+   from this evidence. An OS-level unified-log query for sandbox denial events in the relevant
+   window (`log show --last 10m --predicate 'eventMessage contains "deny("' --style compact`) was
+   attempted as a zero-cost diagnostic and returned no data (unprivileged `log show` on this host
+   does not surface sandboxd denial entries) -- this avenue is exhausted without further tooling
+   (e.g. `dtruss`, which requires elevated privileges this session does not have and was not
+   attempted, consistent with the plan's fail-closed instruction to make no changes beyond
+   diagnosis).
+
+--- Classification ---
+
+Per the plan's explicit catch-all: "(C) ... also the catch-all: ... Otherwise (C) means the
+failure demands a punch-through broader than a specific Cline-owned directory ... or the process
+died on a signal with no diagnostic ... Make no profile change." A generic, path-less runtime
+error that cannot be attributed to any single pre-declared candidate directory is exactly the kind
+of ambiguous result the plan instructs to treat as (C) rather than guess at a bounded fix. Per
+Rule 4 (deviation-classifier) and the plan's own "if unsure, widening needs a human" instruction:
+NO change was made to phase-03/sandbox/config.env's EXTRA_ALLOW_PATHS or to any other sandbox
+artifact. EXTRA_ALLOW_PATHS remains empty (default), confirmed by
+`grep -n EXTRA_ALLOW_PATHS phase-03/sandbox/config.env` after this run.
+
+--- Why this does not fail the phase ---
+
+None of the four ROADMAP Phase 3 success criteria (SBX-01..04) require the real `cline` binary to
+run under the sandbox -- criteria 2 and 3 are already proven at the kernel level by plan 03-03
+using `/bin/cat`, `/bin/sh`, and plain `node` (which share cline's fs/exec/subprocess syscall
+surface), and Phase 4 owns the actual headless `cline` wrapper this sandbox will run in production.
+This is a documented open item handed to Phase 4, not a hidden failure: Phase 4 should expect that
+running the real `cline` binary under this sandbox as-is currently fails with a generic Bun
+runtime error of unknown specific cause, and should budget time to reproduce with elevated
+diagnostic tooling (e.g. `dtruss`/`fs_usage` under sudo, or Bun's own verbose/debug flags if any
+exist) before deciding whether -- and how narrowly -- to widen EXTRA_ALLOW_PATHS.
+
+--- Invocation count ---
+
+Exactly one real `cline` invocation chain reached and ran the real `.cline` Bun binary in this
+phase (the second attempt above). The first attempt crashed inside Node's own process bootstrap,
+before any cline/Bun code executed, due to a harness plumbing choice (this executor's own output-
+redirection target), not due to the sandbox or to cline itself, and was corrected before being
+counted. `npm install -g cline@3.0.53` succeeded both times (idempotent, no-op the second time)
+and left the binary pinned at 3.0.53 (confirmed by check_versions.sh, PASS, no drift).
+
+--- Post-flight ---
+
+- phase-01/config/verify_config.sh: FAIL immediately after the smoke test (models[]=None -- the
+  same drift Phase 1 already characterized and built a heal path for); healed with
+  phase-01/config/apply_provider_config.sh; re-verified PASS.
+- phase-01/config/check_versions.sh: PASS (cline pinned at 3.0.53, no drift across its own two
+  internal invocations, kanban pinned at 0.1.70). check_versions.sh's own internal
+  `cline config --json` invocation re-stripped providers.json exactly as 01-04 predicted; healed a
+  second time with apply_provider_config.sh; re-verified PASS (final state).
+- phase-03/sandbox/verify_sandbox.sh: re-run after all of the above, exit 0, all four
+  CRITERION lines PASS, 16/16 cases, 0 CRASHED -- unchanged from the pre-flight run, confirming
+  this smoke test made no lasting change to the sandbox's behavior.

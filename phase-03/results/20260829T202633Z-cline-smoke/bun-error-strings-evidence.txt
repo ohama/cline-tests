@@ -1,0 +1,8 @@
+# strings -a /opt/homebrew/lib/node_modules/cline/bin/.cline | grep -n "An unknown error occurred"
+# (two genuine short matches; a third "match" at a much later line number was a false positive --
+#  `strings` extracted one very long run of printable minified-JS bytes as a single "line" that
+#  happens to also embed this phrase far inside it; not a separate error string)
+202164:[0m: An unknown error occurred, possibly due to low max file descriptors 
+202171:error: An unknown error occurred, possibly due to low max file descriptors (Unexpected)
+203585:[0m An unknown error occurred 
+203589:error: An unknown error occurred (

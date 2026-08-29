@@ -1,0 +1,12 @@
+--- Check A: version pins (CFG-05, CFG-06) ---
+OK: cline --version reports pinned 3.0.53
+OK: kanban --version reports pinned 0.1.70
+OK: cline npm package.json version matches pinned 3.0.53
+OK: kanban npm package.json version matches pinned 0.1.70
+--- Check B: no drift across invocations (the actual CFG-05 claim) ---
+OK: cline --version still reports 3.0.53 after an intervening 'cline config --json' invocation
+OK: kanban --version still reports 0.1.70 on a second invocation
+--- Check C: plist EnvironmentVariables (CFG-05 for launchd surfaces) ---
+OK: no cline/kanban launchd plists exist yet (Phase 5 creates them) — this check is armed for reuse
+---
+check_versions: PASS

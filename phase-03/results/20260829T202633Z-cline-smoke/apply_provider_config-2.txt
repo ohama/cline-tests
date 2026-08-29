@@ -1,0 +1,5 @@
+Backed up existing /Users/ohama/.cline/data/settings/providers.json to /Users/ohama/projs/cline-tests/phase-01/config/backups/providers.json.20260830T053102
+Running: cline auth openai-compatible -b http://localhost:4000/v1 -k dummy -m flashnext
+[32mProvider configured:[0m [36mopenai-compatible[0m (flashnext)
+OK: baseUrl=http://localhost:4000/v1 model=flashnext contextWindow=32768
+apply_provider_config.sh: providers.json set to openai-compatible/flashnext @ http://localhost:4000/v1, contextWindow=32768
