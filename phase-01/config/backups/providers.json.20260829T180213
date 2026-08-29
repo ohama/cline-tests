@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "lastUsedProvider": "cline",
+  "modes": {},
+  "providers": {
+    "cline": {
+      "settings": {
+        "provider": "cline",
+        "model": "tencent/hy4-preview"
+      },
+      "updatedAt": "2026-08-29T06:28:53.425Z",
+      "tokenSource": "manual"
+    }
+  }
+}
