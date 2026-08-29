@@ -1,0 +1,11 @@
+BACKUP: phase-02/infra/backups/com.ohama.litellm.plist.20260829T190346Z
+/Users/ohama/Library/LaunchAgents/com.ohama.litellm.plist: OK
+ProgramArguments:
+  /Users/ohama/agent-stack/venv/bin/litellm
+  --config
+  /Users/ohama/agent-stack/litellm/config.yaml
+  --port
+  4000
+  --host
+  127.0.0.1
+APPLIED: --host 127.0.0.1

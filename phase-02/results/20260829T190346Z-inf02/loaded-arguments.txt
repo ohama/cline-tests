@@ -1,0 +1,16 @@
+	arguments = {
+		/Users/ohama/agent-stack/venv/bin/litellm
+		--config
+		/Users/ohama/agent-stack/litellm/config.yaml
+		--port
+		4000
+		--host
+		127.0.0.1
+	}
+
+	working directory = /Users/ohama/agent-stack/litellm
+
+	stdout path = /Users/ohama/agent-stack/litellm/litellm.log
+	stderr path = /Users/ohama/agent-stack/litellm/litellm.err.log
+	inherited environment = {
+		SSH_AUTH_SOCK => /private/tmp/com.apple.launchd.iX4AdwKcCL/Listeners

@@ -1,0 +1,1 @@
+RESTART OK: com.ohama.litellm pid=48525 port=4000 waited=2s
