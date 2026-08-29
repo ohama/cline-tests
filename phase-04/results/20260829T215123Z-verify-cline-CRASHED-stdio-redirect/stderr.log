@@ -1,0 +1,7 @@
+resolved allow list: ['/Users/ohama/projs/cline-tests/workspace/scratch-repo', '/Users/ohama/.cline']
+----- Native stack trace -----
+
+ 1: 0x107c1d520 node::InitializeOncePerProcessInternal(std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>> const&, node::ProcessInitializationFlags::Flags) (.cold.3) [/opt/homebrew/Cellar/node/25.9.0_2/lib/libnode.141.dylib]
+ 2: 0x106c74d7c node::InitializeOncePerProcessInternal(std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char>>>> const&, node::ProcessInitializationFlags::Flags) [/opt/homebrew/Cellar/node/25.9.0_2/lib/libnode.141.dylib]
+ 3: 0x106c75950 node::Start(int, char**) [/opt/homebrew/Cellar/node/25.9.0_2/lib/libnode.141.dylib]
+ 4: 0x19a961d54 start [/usr/lib/dyld]

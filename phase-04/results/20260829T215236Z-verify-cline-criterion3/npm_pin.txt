@@ -1,0 +1,16 @@
+npm warn EBADENGINE Unsupported engine {
+npm warn EBADENGINE   package: '@sap/xsenv@6.2.2',
+npm warn EBADENGINE   required: { node: '^20.0.0  || ^22.0.0 || ^24.0.0' },
+npm warn EBADENGINE   current: { node: 'v25.9.0', npm: '11.12.1' }
+npm warn EBADENGINE }
+npm warn EBADENGINE Unsupported engine {
+npm warn EBADENGINE   package: 'opossum@10.0.0',
+npm warn EBADENGINE   required: { node: '^26 || ^24 || ^22' },
+npm warn EBADENGINE   current: { node: 'v25.9.0', npm: '11.12.1' }
+npm warn EBADENGINE }
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+
+changed 325 packages in 4s
+
+46 packages are looking for funding
+  run `npm fund` for details

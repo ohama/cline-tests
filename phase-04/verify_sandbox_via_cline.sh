@@ -245,12 +245,27 @@ else
   PROMPT="Read these two files and report each one's first line verbatim, or the exact error you got: 1) ./${CANARY_NAME}  2) ${TARGET}. Do not stop after the first failure."
   NDJSON_LOG="$OUT_DIR/ndjson.log"
 
-  npm install -g "cline@${CLINE_PINNED_VERSION}" > "$OUT_DIR/npm_pin.txt" 2>&1 && \
+  npm install -g "cline@${CLINE_PINNED_VERSION}" > "$OUT_DIR/npm_pin.txt" 2>&1
+
+  # stderr MUST NOT be redirected straight to a file under $OUT_DIR (an
+  # unpunched path, outside $SANDBOX_WORKDIR/~/.cline): the sandboxed
+  # process inherits that fd across exec, and Node's own bootstrap
+  # (node::InitializeOncePerProcessInternal) SIGABRTs before a single line
+  # of cline/Bun code runs the moment it touches a denied fd -- the exact,
+  # previously-documented failure mode (03-03 F8 / 03-04 / 04-02's shipped
+  # wrapper all hit this and share the same fix). Capture to a scratch file
+  # INSIDE the whitelist ($SANDBOX_WORKDIR), then copy the captured content
+  # into $OUT_DIR and delete the scratch copy -- reused verbatim rather than
+  # re-derived (04-04 found this script itself had not yet been proven
+  # against a live invocation and still carried the direct-redirect bug).
+  SCRATCH_STDERR="$SANDBOX_WORKDIR/.verify-cline-stderr-$$.log"
   CLINE_NO_AUTO_UPDATE=1 "$RUN_SANDBOXED" -- "$CLINE_BIN" $CLINE_COMMON_FLAGS \
     --json --auto-approve true -t "$TIMEOUT" -c "$SANDBOX_WORKDIR" "$PROMPT" \
-    2>"$OUT_DIR/stderr.log" | tee "$NDJSON_LOG" >/dev/null
+    2>"$SCRATCH_STDERR" | tee "$NDJSON_LOG" >/dev/null
 
   CLINE_EXIT="${PIPESTATUS[0]}"
+  cp "$SCRATCH_STDERR" "$OUT_DIR/stderr.log" 2>/dev/null || : > "$OUT_DIR/stderr.log"
+  rm -f "$SCRATCH_STDERR"
   echo "$CLINE_EXIT" > "$OUT_DIR/cline_exit.txt"
   CLASSIFY_EXIT_ARGS=(--exit-code "$CLINE_EXIT")
   CLASSIFY_STDERR_ARGS=(--stderr "$OUT_DIR/stderr.log")
