@@ -1,5 +1,14 @@
 # Feature Research
 
+> 🔴 **2026-08-30 정정 — 압축/컨텍스트 관련 서술은 무효다.**
+> 이 문서는 `models[].contextWindow` 가 Cline 의 압축 임계값에 영향을 주는지 불확실하다고 쓴다.
+> 실측 결과: `models[]` 는 **CLI 가 읽지 않는 경로**(VS Code 용 per-model override)이고,
+> `settings` **최상위** `contextWindow` 가 `maxInputTokens` 로 매핑되어 트리거를 결정한다
+> (`provider-settings.ts:150/266`). trigger = `maxInputTokens × 0.9`.
+> 최상위에 29000 을 넣으면 압축이 정상 발동한다 — `phase-01/results/exp-verify29k/`.
+> **유효한 문서: `docs/32k-compaction-policy.md`, `.planning/PROJECT.md`.**
+
+
 **Domain:** Self-hosted, single-user Cline agent server (local model, 32K context, Tailscale-reachable from iPad/iPhone) + Korean user manual + bench-based verification suite
 **Researched:** 2026-08-29
 **Confidence:** MEDIUM-HIGH (Cline's own docs and repo verified directly; a few surfaces — Kanban touch/mobile behavior, `cline schedule` + local-model interaction, exact cline-bench task count — are undocumented by Cline itself and rated LOW/MEDIUM accordingly)

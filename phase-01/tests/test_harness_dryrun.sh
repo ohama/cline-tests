@@ -54,9 +54,11 @@ CONTEXT_WINDOW="$(python3 -c "
 import json
 with open('$PROVIDERS_JSON_DEFAULT') as f:
     data = json.load(f)
-print(data['providers']['openai-compatible']['settings']['models'][0]['contextWindow'])
+# 2026-08-30 정정: 최상위 contextWindow 가 CLI 가 읽는 경로다 (models[] 아님)
+print(data['providers']['openai-compatible']['settings']['contextWindow'])
 ")"
-EXPECTED_TRIGGER="$(python3 -c "print(int($CONTEXT_WINDOW * 0.9 * 0.9))")"
+# 최상위 contextWindow -> maxInputTokens 직행이므로 x0.9 한 번 (run_regression.sh 와 동일)
+EXPECTED_TRIGGER="$(python3 -c "print(int($CONTEXT_WINDOW * 0.9))")"
 
 MAX_KV_SIZE="$(grep -m1 '^export CLINE_SERVER_MAX_KV_SIZE=' phase-01/config/cline-invocation.env | cut -d= -f2)"
 

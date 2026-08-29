@@ -13,8 +13,15 @@
 
 **Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것.**
 
+> ✅ **2026-08-30 — 달성됨.** `providers.json` 의 **`settings` 최상위**에 `contextWindow: 29000`
+> 을 넣으면 트리거(26,100)가 정상 발동한다. 실측: `phase-01/results/exp-verify29k/`
+> (필러 18개 완주, 압축 3회 이상, 서버 400 0건). 상세: `docs/32k-compaction-policy.md`.
+
 🔴 초기 가정을 실측으로 뒤집었다. 모델 서버는 조용히 고장 나지 않는다 —
 `prompt + max_tokens > 32768` 이면 prefill 전에 **HTTP 400 으로 크게 실패**한다.
+🔴 **아래 진단은 2026-08-30 에 뒤집혔다** — 원인은 #12520 이 아니라 우리가 `contextWindow` 를
+`models[]` 안에 넣은 것이었다. 기록으로만 남긴다.
+
 문제는 다른 데 있다. Cline 은 자기가 128k 를 쓴다고 믿어서 압축을 ~115k 에서 기다린다.
 그래서 대화가 32k 를 넘는 순간 이후 모든 요청이 400 이 되고, **Cline 은 스스로 회복하지
 못한 채 작업이 죽는다.**
@@ -45,7 +52,7 @@ Cline 의 압축이 ~26.2k 에서 실제로 도는지 — 이것만은 실측으
 - [ ] Cline 이 `flashnext`(`:4000`) 를 프로바이더로 쓰도록 구성
 - [ ] **Cline 쪽 컨텍스트 창을 32768 로 못 박기** — 128k 폴백을 덮어쓴다
 - [ ] **`max_output_tokens` 상한 설정** — 서버 예산은 `prompt + max_tokens`. 크게 보내면 첫 턴부터 400
-- [ ] **다중 턴 압축 회귀 테스트** — 대화를 누적해 ~26.2k 를 넘겼을 때 Cline 이 실제로 압축하는가
+- [x] **다중 턴 압축 회귀 테스트** — 완료. 최상위 `contextWindow` 설정 시 26,100 에서 압축 발동 확인
 - [ ] **`CLINE_NO_AUTO_UPDATE=1` 을 모든 plist 에** — Cline 이 실행 때마다 몰래 자기를 업데이트한다
 - [ ] cline-bench 공식 과제 일부를 로컬 Docker 로 실행해 동작 검증
 - [ ] 테스트의 **프롬프트와 결과를 모두** 파일로 보존
@@ -84,7 +91,30 @@ Cline (새로 만드는 부분)
 기준 문서는 `~/local-llm-settings/` (README·TOPOLOGY·STATE·VALIDATED).
 `STATE.md` 는 `sync.sh` 가 생성하므로 손으로 고치지 않는다.
 
-### 🔴 이 프로젝트를 정면으로 겨냥하는 Cline 버그
+### ✅ 32K 압축 — 해결됨 (2026-08-30)
+
+```jsonc
+// providers.json — CLI 가 읽는 유일한 경로
+"settings": { "provider": "openai-compatible", "model": "flashnext",
+              "baseUrl": "http://localhost:4000/v1",
+              "contextWindow": 29000 }   // ← settings 최상위. models[] 아님
+```
+
+| 항목 | 값 | 근거 |
+| --- | --- | --- |
+| 매핑 | `settings.contextWindow` → `maxInputTokens` | `provider-settings.ts:150, 266` |
+| 트리거 | `maxInputTokens × 0.9` = 26,100 | 실측 2회 (12000→10800, 29000→26100) |
+| 오버슈트 | 트리거 초과 후 약 3,100 토큰 | `exp-verify29k` 압축 기록 |
+| 결과 | 필러 18개 완주, 서버 400 **0건** | `phase-01/results/exp-verify29k/` |
+
+부수 효과: `providers.json` 필드 소실(Pitfall 5)도 같은 원인이었다. `models[]` 는 정규화에서
+버려지지만 최상위 `contextWindow` 는 살아남는다.
+
+🔴 **하위 페이즈 적용 규칙** — 컨텍스트 관련 설정을 다루는 모든 플랜은
+`phase-01/config/apply_provider_config.sh` / `verify_config.sh` 를 통해야 한다.
+직접 `providers.json` 을 쓰지 말 것. 두 스크립트가 최상위 경로를 강제·검사한다.
+
+### 🔴 (기록) 이 프로젝트를 정면으로 겨냥한다고 판단했던 Cline 버그
 
 Cline 의 `openai-compatible` 프로바이더는 모델 정보를 못 찾으면 컨텍스트를
 **128,000 으로 폴백**한다.
@@ -133,7 +163,10 @@ prompt 13 + max_tokens  4096 → 200
 긴 컨텍스트의 병목은 생성이 아니라 prefill 이다. 에이전트 루프는 매 턴 대화 전체를
 다시 보내므로, 컨텍스트가 차면 한 턴에 1분이 넘는다.
 
-- Cline 압축 임계값 `max(ctx − 40000, ctx × 0.8)` → 32768 이면 **26,214 에서 압축 시작**
+- Cline 압축 임계값 (2026-08-30 실측 확정): **`trigger = maxInputTokens × 0.9`**
+  `settings` 최상위 `contextWindow` 가 `maxInputTokens` 로 직행한다 → `29000 × 0.9 = 26,100`
+  (초기 추정 `max(ctx−40000, ctx×0.8)` 도, 1차 조사의 `×0.9×0.9` 도 둘 다 틀렸다.
+   `×0.9×0.9` 는 `maxInputTokens` 가 없을 때의 폴백 경로다.)
 - Compact Prompt(전체 시스템 프롬프트의 약 10%)는 32K 에서 **선택이 아니라 필수**
 - 아이패드 UI 는 이 대기를 사용자에게 반드시 알려야 한다
 
@@ -179,7 +212,9 @@ prompt 13 + max_tokens  4096 → 200
 |----------|-----------|---------|
 | 세 표면(Kanban·Telegram·헤드리스) 모두 구축 | iPad 는 웹 UI, iPhone 은 메신저, 자동화는 CLI — 기기마다 맞는 표면이 다르다 | — Pending |
 | 게이트웨이 거부 가드를 빼고 검증으로 대체 | 서버가 이미 400 으로 크게 실패함을 실측. 중복 판정은 지연만 늘고 토크나이저 불일치 위험 (사용자 결정 2026-08-29) | ✓ Good |
-| 진짜 검증 대상을 "압축이 26.2k 에서 도는가" 로 재정의 | 400 은 벽을 알려줄 뿐 막지 못한다. Cline 이 115k 를 기다리면 작업이 회복 불가로 죽는다 | — Pending |
+| 진짜 검증 대상을 "압축이 26.2k 에서 도는가" 로 재정의 | 400 은 벽을 알려줄 뿐 막지 못한다 | ✓ Good — 이 재정의 덕에 설정 위치 오류를 찾아냈다 |
+| `contextWindow` 는 `settings` 최상위에 넣는다 (`models[]` 아님) | `provider-settings.ts:266` 이 최상위 값만 `maxInputTokens` 로 매핑한다. `models[]` 는 VS Code 용이며 CLI 가 기동 시 버린다 | ✓ Good — 압축 발동 실측 확인 |
+| `contextWindow` 값은 32768 이 아니라 29000 | 압축이 트리거를 약 3,100 토큰 초과한 뒤 발동(오버슈트). 32768 이면 `29,491+3,100+2,048 > 32,768` 로 여전히 벽을 넘는다 | ✓ Good |
 | `max_output_tokens` 상한을 요구사항으로 승격 | 서버 예산이 `prompt + max_tokens` 임을 실측. 첫 턴부터 깨질 수 있다 | — Pending |
 | Cline 버전을 `CLINE_NO_AUTO_UPDATE=1` 로 고정 | 자동 업데이트 드리프트를 실측 재현. 버전이 바뀌면 설정 전제가 무너진다 | — Pending |
 | 테스트는 cline-bench 공식 과제 사용 | 자작 테스트는 내가 아는 것만 검증한다. 공식 하니스가 더 정직하다 | — Pending |

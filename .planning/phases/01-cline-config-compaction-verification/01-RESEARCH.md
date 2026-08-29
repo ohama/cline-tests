@@ -1,5 +1,10 @@
 # Phase 1: Cline 설정 + 압축 검증 - Research
 
+> 🔴 **2026-08-30 정정** — 이 문서의 압축 관련 결론은 오설정 상태를 전제로 한다.
+> `contextWindow` 는 `providers.json` 의 `settings` **최상위**에 넣어야 하며(`models[]` 아님),
+> 그러면 압축이 정상 발동한다. trigger = `maxInputTokens × 0.9`.
+> 유효 문서: `docs/32k-compaction-policy.md`
+
 **Researched:** 2026-08-29
 **Domain:** Cline CLI 3.0.53 internal compaction mechanics (decompiled from the installed Bun binary) + multi-turn headless test design against a local 32768-token `mlx_vlm.server`
 **Confidence:** HIGH on the compaction formula, the compaction gate, the error-recovery classifier, and the `--id`+`--json` bug (all verified either by reading the exact installed binary's decompiled source or by live reproduction). MEDIUM-LOW on whether the `contextWindow`/`maxTokens` override in `providers.json` is actually threaded into the live request path — this is exactly the thing Phase 1's own regression test must settle, and this document hands the planner a design to settle it.

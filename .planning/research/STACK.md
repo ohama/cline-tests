@@ -1,5 +1,14 @@
 # Stack Research: Cline as a Persistent macOS Server
 
+> 🔴 **2026-08-30 정정 — 압축/컨텍스트 관련 서술은 무효다.**
+> 이 문서는 `models[].contextWindow` 가 Cline 의 압축 임계값에 영향을 주는지 불확실하다고 쓴다.
+> 실측 결과: `models[]` 는 **CLI 가 읽지 않는 경로**(VS Code 용 per-model override)이고,
+> `settings` **최상위** `contextWindow` 가 `maxInputTokens` 로 매핑되어 트리거를 결정한다
+> (`provider-settings.ts:150/266`). trigger = `maxInputTokens × 0.9`.
+> 최상위에 29000 을 넣으면 압축이 정상 발동한다 — `phase-01/results/exp-verify29k/`.
+> **유효한 문서: `docs/32k-compaction-policy.md`, `.planning/PROJECT.md`.**
+
+
 **Domain:** Cline CLI 3.0.53 as a launchd-managed, always-on coding-agent server on macOS, backed by a local OpenAI-compatible endpoint pinned to a 32768-token context window, reachable from iPad/iPhone.
 **Researched:** 2026-08-29
 **Confidence:** Mixed — see per-item ratings. Every claim below was verified by either (a) running the installed binary and reading its actual output/files, or (b) reading the decompiled/minified source of the exact installed package. Nothing here is recalled from training data without a live check.

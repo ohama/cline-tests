@@ -1,5 +1,14 @@
 # Pitfalls Research
 
+> 🔴 **2026-08-30 정정 — 압축/컨텍스트 관련 서술은 무효다.**
+> 이 문서는 `models[].contextWindow` 가 Cline 의 압축 임계값에 영향을 주는지 불확실하다고 쓴다.
+> 실측 결과: `models[]` 는 **CLI 가 읽지 않는 경로**(VS Code 용 per-model override)이고,
+> `settings` **최상위** `contextWindow` 가 `maxInputTokens` 로 매핑되어 트리거를 결정한다
+> (`provider-settings.ts:150/266`). trigger = `maxInputTokens × 0.9`.
+> 최상위에 29000 을 넣으면 압축이 정상 발동한다 — `phase-01/results/exp-verify29k/`.
+> **유효한 문서: `docs/32k-compaction-policy.md`, `.planning/PROJECT.md`.**
+
+
 **Domain:** Persistent local-LLM coding-agent server (Cline CLI + Kanban + Telegram connector, backed by a 32K-context local model, exposed over Tailscale/LAN to iPad/iPhone)
 **Researched:** 2026-08-29
 **Confidence:** HIGH on context-accounting and security findings (verified against live `cline/cline` source at commit `1986fa56` / today's `main`, live GitHub issue states via `gh`, and live curl probes against the running `litellm→role-shim→mlx_vlm.server` stack on this machine). MEDIUM on launchd/cline-bench specifics that could not be safely tested live (would require restarting services or loading a second model, which was out of scope for this research).

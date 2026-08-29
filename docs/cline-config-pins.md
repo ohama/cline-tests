@@ -107,7 +107,7 @@ cline/kanban plist 가 하나도 없기 때문이다 (2026-08-29 확인). Phase 
 
 ## 5. 드리프트가 나면 무엇이 무효가 되는가
 
-압축 트리거 상수(`contextWindow × 0.9 × 0.9 = 26,542`), NDJSON 의 `notice` 이벤트 모양, 그리고
+압축 트리거 상수(**2026-08-30 정정**: `maxInputTokens × 0.9 = 26,100`, 최상위 `settings.contextWindow=29000` 기준. `×0.9×0.9` 는 `maxInputTokens` 부재 시 폴백), NDJSON 의 `notice` 이벤트 모양, 그리고
 overflow-recovery 정규식 목록은 전부 **정확히 `cline@3.0.53` 바이너리를 디컴파일해서** 얻은
 것이다. `cline --version` 이 3.0.53 이 아닌 다른 값을 보고하는 순간, 이 페이즈의 판정
 (compaction 이 뜨는가/안 뜨는가) 은 재실행 전까지 신뢰할 수 없다 — 위 상수들이 새 버전에서도

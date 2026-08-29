@@ -69,6 +69,7 @@ flashnext_window.log,observed_lines.txt,observed.txt}`.
 `77`을 각각 설정해봤지만 서버는 매번 `max_tokens=2048`을 로그에 남겼고, 실제로 출력 캡이
 전혀 적용되지 않은 채 `finish_reason=stop`으로 1,228 토큰을 생성한 사례도 있었다. 두 곳
 (top-level `settings.maxTokens` 및 `settings.models[0].maxTokens`)에 값을 넣어봐도 결과가
+<!-- 주: maxTokens 는 여전히 미적용이다. contextWindow 와 달리 최상위 경로도 없다. -->
 바뀌지 않았다는 것이 연구의 결론이었고, 이번 실측도 그 결론과 모순되지 않는다.
 
 **근본 원인은 여전히 밝혀지지 않았다.** `2048`이 Cline 바이너리에 하드코딩된 내부 기본값인지,
@@ -100,15 +101,15 @@ Branch B2 관련 문서 두 곳(REQUIREMENTS.md CFG-02, ROADMAP.md Success Crite
 | 항목 | 값 |
 | --- | --- |
 | 설정된(live) `contextWindow` | 32768 |
-| 예측 트리거 (`contextWindow × 0.9 × 0.9`) | 26542 |
+| 예측 트리거 (**정정**: `maxInputTokens × 0.9`) | 26100 (최상위 contextWindow=29000) |
 | 관찰된 `max_tokens` (OBSERVED_MAX) | 2048 |
-| 트리거 + OBSERVED_MAX | 26542 + 2048 = 28590 |
+| 트리거 + OBSERVED_MAX | 26100 + 2048 = 28148 |
 | 서버 `MAX_KV_SIZE` | 32768 |
 | 여유(headroom) | 32768 − 28590 = 4178 |
 | 판정 | **안전 (safe)** — `28590 < 32768` |
 
-공식: `trigger = contextWindow × 0.9 × 0.9`. 이 문서와 `observed.env` 모두 이 공식을 **살아있는
-`contextWindow` 로부터 매번 재계산**하며, `cline-invocation.env` 의 리터럴 `26542` 기본값을
+공식(**2026-08-30 정정**): `trigger = maxInputTokens × 0.9`, 그리고 `maxInputTokens` 는 `settings` 최상위 `contextWindow` 에서 온다. 이 문서와 `observed.env` 모두 이 공식을 **살아있는
+`contextWindow` 로부터 매번 재계산**하며, `cline-invocation.env` 의 리터럴 기본값을
 그대로 재사용하지 않는다 — Branch B2 가 `contextWindow` 를 낮췄다면 그 리터럴은 곧바로 틀린 값이
 되기 때문이다 (이번 실행에서는 `contextWindow` 가 바뀌지 않았으므로 우연히 두 값이 같다).
 
