@@ -1,0 +1,28 @@
+=== Control 3: --no-canonicalize regression (F6 must FAIL) ===
+/Users/ohama/projs/cline-tests/phase-03/fixtures/allowed/canary.txt ALLOWED-CANARY-OK
+/Users/ohama/projs/cline-tests/phase-03/fixtures/allowed/subdir/deep.txt ALLOWED-DEEP-OK
+/Users/ohama/projs/cline-tests/phase-03/fixtures/allowed/escape-link -> /Users/ohama/projs/cline-tests/phase-03/fixtures/forbidden
+/Users/ohama/projs/cline-tests/phase-03/fixtures/allowed_extra_should_not_match/canary.txt PREFIX-TRAP-CANARY
+/Users/ohama/projs/cline-tests/phase-03/fixtures/forbidden/secret.txt FORBIDDEN-SECRET
+/Users/ohama/projs/cline-tests/phase-03/fixtures/symlinked/real/canary.txt CANON-CANARY-OK
+/Users/ohama/projs/cline-tests/phase-03/fixtures/symlinked/link -> /Users/ohama/projs/cline-tests/phase-03/fixtures/symlinked/real
+/Users/ohama/projs/cline-tests/phase-03/fixtures/allowed_repos.test.json {"repos": ["/Users/ohama/projs/cline-tests/phase-03/fixtures/allowed", "/Users/ohama/projs/cline-tests/phase-03/fixtures/symlinked/link"]}
+--- generating fixture profile WITHOUT canonicalization ---
+resolved allow list: ['/Users/ohama/projs/cline-tests/phase-03/fixtures/allowed', '/Users/ohama/projs/cline-tests/phase-03/fixtures/symlinked/link', '/Users/ohama/.cline']
+--- generated profile ---
+(version 1)
+;; DO NOT EDIT — generated from /Users/ohama/projs/cline-tests/phase-03/fixtures/allowed_repos.test.json
+;; Generated: 2026-08-29T20:19:48Z
+(allow default)
+(deny file-read* (subpath "/Users/ohama"))
+(deny file-write* (subpath "/Users/ohama"))
+(allow file-read* (subpath "/Users/ohama/projs/cline-tests/phase-03/fixtures/allowed"))
+(allow file-write* (subpath "/Users/ohama/projs/cline-tests/phase-03/fixtures/allowed"))
+(allow file-read* (subpath "/Users/ohama/projs/cline-tests/phase-03/fixtures/symlinked/link"))
+(allow file-write* (subpath "/Users/ohama/projs/cline-tests/phase-03/fixtures/symlinked/link"))
+(allow file-read* (subpath "/Users/ohama/.cline"))
+(allow file-write* (subpath "/Users/ohama/.cline"))
+--- running F6 (allow-canonical-of-symlinked-entry) against it: must FAIL ---
+CASE F6 FAIL not-allowed rc=1
+F6 (non-canonical) rc=1 (expected non-zero -- realpath() removal must be caught)
+CONTROL-3 PASSED: F6 correctly failed against a non-canonicalized profile -- the standing gate catches a dropped realpath() step

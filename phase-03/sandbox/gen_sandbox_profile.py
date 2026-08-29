@@ -19,6 +19,14 @@ Every path written into the profile is os.path.realpath()'d first --
 in non-canonical (e.g. symlinked /tmp/...) form did not block access via the
 canonical (/private/tmp/...) path. Skipping realpath() here re-opens that
 exact hole.
+
+TEST-ONLY DEBUG FLAG: --no-canonicalize. Used exclusively by
+phase-03/sandbox/verify_sandbox.sh's negative control (plan 03-03 Task 2)
+to prove the standing gate actually catches a canonicalization regression
+if the realpath() step above is ever removed -- it substitutes
+os.path.abspath() (normalizes '..'/'.' and makes the path absolute, but
+does NOT resolve symlinks) for os.path.realpath() everywhere a path is
+resolved. run_sandboxed.sh must NEVER pass this flag.
 """
 import argparse
 import datetime
@@ -27,12 +35,13 @@ import os
 import sys
 
 
-def load_allowed_repos(path):
-    """Parse ALLOWED_REPOS.json, realpath() every repo entry, and validate
-    that each resolves to an existing directory and that no entry is nested
-    under another. Ignores any top-level key starting with '_' (e.g.
-    "_comment"). Exits non-zero (SystemExit) naming the offending entry on
-    any validation failure."""
+def load_allowed_repos(path, resolve=os.path.realpath):
+    """Parse ALLOWED_REPOS.json, resolve() every repo entry (realpath() by
+    default; see --no-canonicalize above for the one sanctioned exception),
+    and validate that each resolves to an existing directory and that no
+    entry is nested under another. Ignores any top-level key starting with
+    '_' (e.g. "_comment"). Exits non-zero (SystemExit) naming the offending
+    entry on any validation failure."""
     try:
         with open(path) as f:
             data = json.load(f)
@@ -51,7 +60,7 @@ def load_allowed_repos(path):
 
     resolved = []
     for raw in raw_repos:
-        real = os.path.realpath(raw)
+        real = resolve(raw)
         if not os.path.isdir(real):
             sys.exit(
                 f"ALLOWED_REPOS entry does not resolve to an existing "
@@ -88,8 +97,8 @@ def render_profile(protected_root, allow_paths):
     return "\n".join(lines) + "\n"
 
 
-def _validate_extra_allow(raw):
-    real = os.path.realpath(raw)
+def _validate_extra_allow(raw, resolve=os.path.realpath):
+    real = resolve(raw)
     if not os.path.isdir(real):
         sys.exit(
             f"--extra-allow entry does not resolve to an existing "
@@ -107,21 +116,35 @@ def main(argv=None):
     parser.add_argument("--extra-allow", action="append", default=[], help="Additional path to punch through (repeatable)")
     parser.add_argument("--out", help="Output path for the generated profile")
     parser.add_argument("--print-only", action="store_true", help="Write profile to stdout instead of --out")
+    parser.add_argument(
+        "--no-canonicalize",
+        action="store_true",
+        help=(
+            "TEST-ONLY debug flag: use os.path.abspath() instead of "
+            "os.path.realpath() everywhere a path is resolved (does NOT "
+            "resolve symlinks). Exists solely so verify_sandbox.sh's "
+            "negative control can prove the standing gate catches a "
+            "canonicalization regression. run_sandboxed.sh must never pass "
+            "this."
+        ),
+    )
     args = parser.parse_args(argv)
 
     if not args.print_only and not args.out:
         parser.error("--out is required unless --print-only is given")
 
-    repo_paths = load_allowed_repos(args.allowed_repos)
-    protected_root = os.path.realpath(args.protected_root)
+    resolve = os.path.abspath if args.no_canonicalize else os.path.realpath
+
+    repo_paths = load_allowed_repos(args.allowed_repos, resolve=resolve)
+    protected_root = resolve(args.protected_root)
 
     # The Cline data dir is always punched through, even with no --extra-allow
     # given at all: it lives under $HOME and would otherwise be caught by the
     # protected-root deny. Callers (e.g. run_sandboxed.sh) may additionally
     # pass it explicitly via --extra-allow (e.g. when CLINE_DATA_DIR has been
     # overridden away from the default in config.env) -- deduplicated below.
-    default_cline_dir = _validate_extra_allow(os.path.expanduser("~/.cline"))
-    extra_allow = [_validate_extra_allow(p) for p in args.extra_allow]
+    default_cline_dir = _validate_extra_allow(os.path.expanduser("~/.cline"), resolve=resolve)
+    extra_allow = [_validate_extra_allow(p, resolve=resolve) for p in args.extra_allow]
 
     allow_paths = []
     for p in repo_paths + [default_cline_dir] + extra_allow:

@@ -1,0 +1,10 @@
+=== NEGATIVE CONTROL MODE ===
+fail-open fixture.sb written to phase-03/results/20260829T201927Z-negative-control/run2-skip-precheck-not-denied/fixture.sb:
+(version 1)
+(allow default)
+(pre-check skipped by --negative-control-skip-precheck; running Group F deny cases against the fail-open profile)
+CASE F2-negctl FAIL not-denied
+CASE F4-negctl FAIL not-denied
+CASE F5-negctl FAIL not-denied
+CASE F7-negctl FAIL not-denied
+NEGATIVE-CONTROL PASSED: every Group F deny case reported FAIL not-denied against the fail-open profile — the verifier correctly detected the fail-open sandbox

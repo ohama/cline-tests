@@ -1,0 +1,9 @@
+=== CASE F7-negctl ===
+--- command ---
+/bin/cat
+/Users/ohama/projs/cline-tests/phase-03/fixtures/allowed/escape-link/secret.txt
+--- rc ---
+0
+--- stdout ---
+FORBIDDEN-SECRET--- stderr ---
+

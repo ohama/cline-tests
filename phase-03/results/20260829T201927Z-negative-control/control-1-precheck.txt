@@ -1,0 +1,5 @@
+=== NEGATIVE CONTROL MODE ===
+fail-open fixture.sb written to phase-03/results/20260829T201927Z-negative-control/run1-precheck-rejects/fixture.sb:
+(version 1)
+(allow default)
+NEGATIVE-CONTROL PASSED: profile sanity pre-check correctly rejected the fail-open profile (fixture: missing deny-root file-read* line for /Users/ohama)

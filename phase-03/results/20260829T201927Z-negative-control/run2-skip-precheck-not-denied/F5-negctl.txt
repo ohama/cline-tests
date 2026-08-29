@@ -1,0 +1,9 @@
+=== CASE F5-negctl ===
+--- command ---
+/bin/cat
+/Users/ohama/projs/cline-tests/phase-03/fixtures/allowed_extra_should_not_match/canary.txt
+--- rc ---
+0
+--- stdout ---
+PREFIX-TRAP-CANARY--- stderr ---
+

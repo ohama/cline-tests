@@ -25,11 +25,18 @@
 #
 # Usage:
 #   verify_sandbox.sh [--out-dir <dir>]
+#   verify_sandbox.sh --negative-control [--negative-control-skip-precheck] [--out-dir <dir>]
 #
 # Exit code contract (mirrors phase-01/parse_result.py's 3-way discipline):
 #   0 = all four CRITERION lines PASS
 #   1 = at least one CRITERION FAIL (and no case CRASHED)
 #   2 = at least one case CRASHED — inconclusive, never report as a pass
+#
+# --negative-control mode proves this verifier can itself detect a
+# fail-open sandbox (03-RESEARCH.md Pitfall 5: a sandbox that passes
+# because it fails open is invisible to a shallow test). It deliberately
+# feeds Group F a deny-less fixture.sb and inverts the expectation; see the
+# NEGATIVE CONTROL MODE section below for its own, separate exit contract.
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -37,11 +44,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/config.env"
 
 OUT_DIR=""
+NEGATIVE_CONTROL=0
+NEGATIVE_CONTROL_SKIP_PRECHECK=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --out-dir)
       OUT_DIR="$2"; shift 2 ;;
+    --negative-control)
+      NEGATIVE_CONTROL=1; shift ;;
+    --negative-control-skip-precheck)
+      NEGATIVE_CONTROL_SKIP_PRECHECK=1; shift ;;
     *)
       echo "verify_sandbox.sh: unknown argument: $1" >&2
       exit 1
@@ -50,7 +63,11 @@ while [ $# -gt 0 ]; do
 done
 
 if [ -z "$OUT_DIR" ]; then
-  OUT_DIR="$RESULTS_ROOT/$(date -u +%Y%m%dT%H%M%SZ)-sbx"
+  if [ "$NEGATIVE_CONTROL" -eq 1 ]; then
+    OUT_DIR="$RESULTS_ROOT/$(date -u +%Y%m%dT%H%M%SZ)-negative-control"
+  else
+    OUT_DIR="$RESULTS_ROOT/$(date -u +%Y%m%dT%H%M%SZ)-sbx"
+  fi
 fi
 mkdir -p "$OUT_DIR"
 export EVIDENCE_DIR="$OUT_DIR"
@@ -176,6 +193,84 @@ profile_precheck() {
     return
   fi
 }
+
+# ---------------------------------------------------------------------------
+# NEGATIVE CONTROL MODE — proves this verifier can detect a fail-open
+# sandbox. Deliberately separate flow from the normal run below: it never
+# reaches Group P, never touches the production profile, and has its own
+# exit contract (0 = the negative control demonstrated the failure it set
+# out to demonstrate; 1 = the verifier itself is broken, i.e. it reported a
+# PASS it should not have).
+# ---------------------------------------------------------------------------
+if [ "$NEGATIVE_CONTROL" -eq 1 ]; then
+  vlog "=== NEGATIVE CONTROL MODE ==="
+
+  "$SCRIPT_DIR/make_fixtures.sh" --root "$FIXTURES_ROOT" > "$OUT_DIR/fixture-manifest.txt"
+
+  python3 "$SCRIPT_DIR/gen_sandbox_profile.py" \
+    --allowed-repos "$FIXTURES_ROOT/allowed_repos.test.json" \
+    --protected-root "$PROTECTED_ROOT" \
+    --out "$FIXTURE_SB" 2> "$OUT_DIR/gen-fixture.stderr"
+
+  # Deliberately replace the fixture profile with a fail-open one: no deny
+  # rules at all, just `(allow default)`.
+  printf '(version 1)\n(allow default)\n' > "$FIXTURE_SB"
+  vlog "fail-open fixture.sb written to $FIXTURE_SB:"
+  vlog "$(cat "$FIXTURE_SB")"
+
+  if [ "$NEGATIVE_CONTROL_SKIP_PRECHECK" -eq 0 ]; then
+    profile_precheck "$FIXTURE_SB" "fixture"
+    if [ "$PRECHECK_OK" -eq 0 ]; then
+      vlog "NEGATIVE-CONTROL PASSED: profile sanity pre-check correctly rejected the fail-open profile ($PRECHECK_DETAIL)"
+      exit 0
+    fi
+    vlog "NEGATIVE-CONTROL FAILED: profile sanity pre-check did NOT reject a deny-less profile"
+    exit 1
+  fi
+
+  vlog "(pre-check skipped by --negative-control-skip-precheck; running Group F deny cases against the fail-open profile)"
+
+  FX="$FIXTURES_ROOT"
+  ANY_FALSE_PASS=0
+  ANY_UNEXPECTED=0
+
+  "$SCRIPT_DIR/assert_denied.sh" --label F2-negctl --profile "$FIXTURE_SB" --expect deny --target secret.txt \
+    -- /bin/cat "$FX/forbidden/secret.txt" > "$OUT_DIR/F2-negctl.out" 2>&1
+  F2_NEGCTL_RC=$?
+
+  "$SCRIPT_DIR/assert_denied.sh" --label F4-negctl --profile "$FIXTURE_SB" --expect deny --target secret.txt \
+    -- /bin/sh -c "cat $FX/forbidden/secret.txt" > "$OUT_DIR/F4-negctl.out" 2>&1
+  F4_NEGCTL_RC=$?
+
+  "$SCRIPT_DIR/assert_denied.sh" --label F5-negctl --profile "$FIXTURE_SB" --expect deny --target canary.txt \
+    -- /bin/cat "$FX/allowed_extra_should_not_match/canary.txt" > "$OUT_DIR/F5-negctl.out" 2>&1
+  F5_NEGCTL_RC=$?
+
+  "$SCRIPT_DIR/assert_denied.sh" --label F7-negctl --profile "$FIXTURE_SB" --expect deny --target secret.txt \
+    -- /bin/cat "$FX/allowed/escape-link/secret.txt" > "$OUT_DIR/F7-negctl.out" 2>&1
+  F7_NEGCTL_RC=$?
+
+  for out in "$OUT_DIR"/F2-negctl.out "$OUT_DIR"/F4-negctl.out "$OUT_DIR"/F5-negctl.out "$OUT_DIR"/F7-negctl.out; do
+    LINE="$(grep '^CASE' "$out")"
+    vlog "$LINE"
+    if printf '%s' "$LINE" | grep -q ' PASS '; then
+      ANY_FALSE_PASS=1
+    elif ! printf '%s' "$LINE" | grep -q 'not-denied'; then
+      ANY_UNEXPECTED=1
+    fi
+  done
+
+  if [ "$ANY_FALSE_PASS" -eq 1 ]; then
+    vlog "NEGATIVE-CONTROL FAILED: verifier reports PASS against a fail-open profile"
+    exit 1
+  fi
+  if [ "$ANY_UNEXPECTED" -eq 1 ]; then
+    vlog "NEGATIVE-CONTROL FAILED: at least one deny case neither passed falsely nor reported not-denied (unexpected classification) -- inspect the CASE lines above"
+    exit 1
+  fi
+  vlog "NEGATIVE-CONTROL PASSED: every Group F deny case reported FAIL not-denied against the fail-open profile — the verifier correctly detected the fail-open sandbox"
+  exit 0
+fi
 
 # ---------------------------------------------------------------------------
 # Setup.

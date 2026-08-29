@@ -1,0 +1,9 @@
+=== CASE F2-negctl ===
+--- command ---
+/bin/cat
+/Users/ohama/projs/cline-tests/phase-03/fixtures/forbidden/secret.txt
+--- rc ---
+0
+--- stdout ---
+FORBIDDEN-SECRET--- stderr ---
+
