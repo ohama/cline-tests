@@ -5,37 +5,40 @@
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
-**Current focus:** Phase 1 — Cline 설정 + 압축 검증
+**Current focus:** Phase 1 완료 — Phase 2 (인프라 보정) 준비
 
 ## Current Position
 
-Phase: 1 of 8 (Cline 설정 + 압축 검증)
-Plan: 04 of 6 in current phase (wave 2 완료: 01-04/01-05 모두 done)
-Status: In progress
-Last activity: 2026-08-29 — 01-04-PLAN.md 완료 (회귀 하네스: gen_filler.py, growth_prompt.txt,
-run_regression.sh 4-preflight 러너, test_harness_dryrun.sh 오프라인 전체 검증 PASS)
+Phase: 1 of 8 (Cline 설정 + 압축 검증) — **완료**
+Plan: 06 of 6 in current phase — 전체 완료
+Status: Phase complete
+Last activity: 2026-08-29 — 01-06-PLAN.md 완료 (라이브 회귀 실행 2회, 실측 결과 ②
+server_400_no_compaction 확정, docs/32k-compaction-policy.md 작성). Phase 1 전체 6/6 완료.
 
-Progress: [████████░░] 83%
+Progress: [██████████] 100% (Phase 1 of 8)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: ~12 min
-- Total execution time: ~1.0 hours
+- Total plans completed: 6
+- Average duration: ~19 min
+- Total execution time: ~1.9 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1 | 5/6 | ~62 min | ~12 min |
+| 1 | 6/6 | ~112 min | ~19 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-04 (~35 min), 01-05 (~6 min), 01-02 (~5 min), 01-03 (~5 min), 01-01 (~11 min)
-- Trend: 01-04 ran long because its own offline testing live-reproduced two real environment
-  defects (cline auto-update drift, and check_versions.sh's own drift-check call deterministically
-  stripping providers.json) that had to be fixed before the harness could be proven — not scope
-  creep, the harness doing exactly its job
+- Last 6 plans: 01-06 (~50 min), 01-04 (~35 min), 01-05 (~6 min), 01-02 (~5 min), 01-03 (~5 min), 01-01 (~11 min)
+- Trend: 01-06 ran long for two reasons found live, not scope creep: (1) this session's `cline`
+  binary self-triggers a background auto-update on essentially every invocation regardless of
+  `CLINE_NO_AUTO_UPDATE=1`, requiring a tight reinstall-then-immediately-launch pattern to get a
+  clean preflight pass at all; (2) the live run surfaced a genuine bug in `parse_result.py`'s
+  classifier (real NDJSON error events nest their message one level deeper than the hand-written
+  fixtures assumed), which had to be fixed and both already-captured runs reclassified before the
+  ② verdict could be trusted
 
 *Updated after each plan completion*
 
@@ -105,6 +108,31 @@ Recent decisions affecting current work:
 - 01-04: 이 macOS 호스트의 기본 `/bin/bash` 는 3.2 로 연관 배열(`declare -A`)을 지원하지 않음 —
   이후 셸 스크립트는 병렬 인덱스 배열을 써야 함(`phase-01/tests/test_harness_dryrun.sh` 에서
   실측 재현 후 수정)
+- 01-06: **Phase 1 핵심 미지수 실측 완료 — 결과 ②.** `providers.json` 의 `contextWindow:32768`
+  오버라이드는 라이브 압축 체크에 도달하지 못했다: 18개 filler 파일로 두 번째 라이브 실행 시
+  peak_input_tokens=peak_prompt_tokens=30505 (두 오라클 완전 일치, 예측 트리거 26542 를 3,963
+  토큰 초과)까지 갔지만 `auto-compact*`/`overflow-recovery-compact*` notice 는 0건이었고, 서버가
+  prompt_tokens=31950 에서 `MAX_KV_SIZE is 32768` 400 으로 거부하며 작업이 죽었다. Cline 은 이
+  오류에서 자동 복구하지 않는다(overflow-recovery 분류기가 이 서버의 오류 문구와 매칭되지 않음).
+  운영 규칙: "작업을 다시 시작한다". 증거: `phase-01/results/2026-08-29T095321Z-44990/`.
+  대응 방침 전체는 `docs/32k-compaction-policy.md` (VER-04). 1회차 실행(12개 filler)은
+  below_trigger(peak 23266<26542)로 미확정이었고, 플랜이 허용한 "filler 늘려 1회 재실행"
+  규칙에 따라 18개로 재실행해 확정함 — 총 라이브 실행 2/3회, 3회차는 불필요(outcome ①/②는
+  최종 답이므로 재실행 금지 규칙에 따름)
+- 01-06: `phase-01/parse_result.py`의 `classify()`에서 실제 버그 발견/수정 — cline 3.0.53 의
+  실제 NDJSON 오류 이벤트는 메시지를 `event.error.message` 에 한 단계 더 깊이 중첩하는데(기존
+  수기 fixture 는 `event.message` 평면 구조를 가정), 이 때문에 진짜 ② 결과가 최초엔 ③/unexpected
+  로 오분류됨. `_error_event_message()` 헬퍼로 두 스키마 모두 허용하도록 수정, 실제 캡처된
+  이벤트로 만든 회귀 fixture/테스트 추가(24개 테스트 전체 통과). 이미 캡처된 두 실행의 ndjson.log
+  를 수정된 분류기로 재분류(추가 라이브 호출 없이) — Plan 03/04 가 만든 fixture 가 RESEARCH.md
+  예측 스키마를 그대로 가정했을 뿐 실측 스키마와 다를 수 있다는 사례로 남김
+- 01-06: 이 세션에서 `cline` 이 `CLINE_NO_AUTO_UPDATE=1` 에도 불구하고 사실상 모든 호출(`--version`
+  포함)마다 백그라운드 `npm update cline` 를 트리거해 2-9초 내에 3.0.60 으로 드리프트하는 것을
+  반복 재현(wave 2 가 기록한 "세션 중 1회 드리프트"보다 훨씬 공격적). PATH 상의 `npm` 을 no-op
+  shim 으로 가리는 우회는 환경 자체의 안전 분류기에 의해 거부됨 — 대신 "재설치 직후 중간에 수동
+  `cline` 호출 없이 바로 `run_regression.sh` 실행"을 한 셸 커맨드로 체이닝하는 패턴을 반복
+  사용해 우회. 이후 어떤 플랜이든 `cline` 을 호출할 때 이 재설치-체이닝 오버헤드를 시간 예산에
+  포함할 것
 
 ### Pending Todos
 
@@ -112,18 +140,22 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- Phase 1 의 핵심 미지수: `providers.json` 의 `contextWindow: 32768` 오버라이드가 Cline 내부 압축
-  임계값을 실제로 바꾸는지는 연구 단계에서 결론 내지 못했다 (MEDIUM-LOW confidence). Phase 1 의
-  회귀 테스트로 반드시 실측해야 하며, 압축이 안 뜨는 경우의 대응 방침도 함께 기록해야 한다
+- Phase 1 의 핵심 미지수는 01-06 에서 실측 완료(결과 ②, 위 결정 로그 참조) — 더 이상 미지수가
+  아니다. Phase 4/5/7/8 은 `docs/32k-compaction-policy.md` 의 "작업을 다시 시작한다" 규칙과
+  터미널 실패 분류를 반드시 반영해야 한다.
 - Telegram 봇 토큰은 BotFather 에서 사람이 직접 발급해야 한다 — Phase 5 는 토큰 주입 자리를
   비운 채로 완료되고, 실사용은 토큰 발급 후에 가능하다
+- (환경 노트, 블로커 아님) 이 개발 환경에서 `cline` 은 거의 모든 호출마다 백그라운드에서
+  3.0.53→3.0.60 으로 self-update 를 시도한다. Phase 5 가 launchd plist 로 `cline`/`kanban` 을
+  등록할 때 이 드리프트에 대비해야 한다 — `check_versions.sh` Check C 가 이미 이런 plist 를
+  스캔하도록 armed 되어 있음.
 
 ## Session Continuity
 
 Last session: 2026-08-29
-Stopped at: Wave 2 전체 완료 (01-04/01-05 모두 SUMMARY.md 존재). 01-04 는 gen_filler.py,
-growth_prompt.txt, run_regression.sh(4-preflight 러너 + Preflight A2 자동복구), 그리고
-test_harness_dryrun.sh(오프라인 전체 파이프라인 PASS)를 남기고 종료. 실행 중 실제 cline
-auto-update 드리프트(3.0.60)와 check_versions.sh 자체 유발 Pitfall 5 를 실측 재현/수정함.
-다음은 01-06(실제 회귀 실행 + 최종 검증, 라이브 모델 호출 1회 한도)
+Stopped at: **Phase 1 전체 완료 (6/6 플랜, 모든 SUMMARY.md 존재).** 01-06 이 마지막 플랜: 라이브
+회귀 2회 실행(12개/18개 filler), parse_result.py 분류기 버그 실측 발견/수정, 최종 결과 ②
+(server_400_no_compaction, peak 30505) 확정, `docs/32k-compaction-policy.md` 작성 완료.
+보호 대상 서비스(flashnext/role-shim/litellm) 는 전 과정에서 재시작 없이 그대로 유지됨.
+다음 세션은 Phase 2(인프라 보정) 시작.
 Resume file: None
