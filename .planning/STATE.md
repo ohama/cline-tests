@@ -5,38 +5,42 @@
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
-**Current focus:** Phase 2 (인프라 보정) 진행 중 — 안전 툴킷 + 사전 베이스라인 완료, 02-02 대기
+**Current focus:** Phase 2 (인프라 보정) 진행 중 — flashnext 동시성 상한 라이브 적용 완료, 02-03(litellm) 대기
 
 ## Current Position
 
 Phase: 2 of 8 (인프라 보정)
-Plan: 01 of 4 in current phase — 완료
+Plan: 02 of 4 in current phase — 완료
 Status: In progress
-Last activity: 2026-08-30 — 02-01-PLAN.md 완료 (config.env/preflight.sh/restart_service.sh/
-verify_queueing.sh 작성, 언캡트 서버 대상 큐잉 베이스라인 실측: interleaved, max_overlap=2).
-라이브 서비스 재시작/부팅/편집 0건 — PID 3개 모두 원본 그대로 유지.
+Last activity: 2026-08-30 — 02-02-PLAN.md 완료 (flashnext 플리스트에 `--max-num-seqs 1` 라이브 적용,
+비동기 bootout 레이스 진단/수정 후 재시작 성공, INF-01 큐잉 증거 확보: max_overlap 2→1,
+queued_count 0→1). 사용자 체크포인트 승인: `proceed-1` — 이 승인이 02-03 의 litellm 재시작도 커버함.
 
-Progress: [██▒▒▒▒▒▒▒▒] 25% (Phase 2 of 8, Plan 1/4)
+Progress: [███▒▒▒▒▒▒▒] 31% (Phase 2 of 8, Plan 2/4)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: ~17.4 min
-- Total execution time: ~2.05 hours
+- Total plans completed: 8
+- Average duration: ~16.5 min
+- Total execution time: ~2.2 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 | 6/6 | ~112 min | ~19 min |
-| 2 | 1/4 | ~9 min | ~9 min |
+| 2 | 2/4 | ~33 min | ~16.5 min |
 
 **Recent Trend:**
-- Last 7 plans: 02-01 (~9 min), 01-06 (~50 min), 01-04 (~35 min), 01-05 (~6 min), 01-02 (~5 min),
-  01-03 (~5 min), 01-01 (~11 min)
-- Trend: 02-01 ran fast — this plan was deliberately scoped to zero live mutations (scripts +
-  observation only), so there was no restart-wait/poll time and no auth/CLI-drift overhead
+- Last 8 plans: 02-02 (~24 min incl. 2 failed restart attempts + fix + re-attempt), 02-01 (~9 min),
+  01-06 (~50 min), 01-04 (~35 min), 01-05 (~6 min), 01-02 (~5 min), 01-03 (~5 min), 01-01 (~11 min)
+- Trend: 02-01 ran fast (zero live mutations). 02-02 was the project's first live launchd restart and
+  hit a real bug: `launchctl bootout` is asynchronous, so `restart_service.sh` raced flashnext's
+  104 GiB teardown and failed twice with an opaque I/O error before the async-teardown-wait fix
+  landed; the restart then succeeded on the first attempt after the fix. Future plans/phases that
+  restart launchd services (02-03, Phase 5) inherit the fix for free and should not need this
+  overhead again.
 - 01-06 ran long for two reasons found live, not scope creep: (1) this session's `cline`
   binary self-triggers a background auto-update on essentially every invocation regardless of
   `CLINE_NO_AUTO_UPDATE=1`, requiring a tight reinstall-then-immediately-launch pattern to get a
@@ -156,6 +160,23 @@ Recent decisions affecting current work:
   가 0 이어야 함)이 `restart_service.sh` 상단의 설명 주석에 있던 "kill/pkill" 이라는 단어 자체와
   매칭되는 것을 발견 — 실제 명령어가 아니라 주석 문구였지만, 검증을 통과시키기 위해 같은 하우스
   룰을 그 단어들을 쓰지 않는 문장으로 재작성함(동작 변경 없음)
+- 02-02: **`launchctl bootout` 은 비동기다 — 이 프로젝트 첫 라이브 재시작에서 실제로 두 번 재현된
+  결정적 버그.** `bootout` 은 언로드를 "요청"한 시점에 리턴하며, 실제로 잡이 사라지는 시점을
+  보장하지 않는다. flashnext 는 104GiB 모델을 물고 있어 teardown 에 수 초가 걸리는데, 그 사이
+  bootstrap 을 곧바로 호출하면 `Bootstrap failed: 5: Input/output error` 로 실패한다 —
+  무거운 프로세스가 없는 throwaway 라벨 컨트롤 테스트는 매번 성공해 타이밍 가설을 뒷받침했다.
+  `restart_service.sh` 에 Step 3b(`launchctl print` 로 라벨이 더 이상 조회되지 않고 포트에 리스너가
+  없을 때까지 폴링 + 3초 여유)를 추가해 해결(commit `0ca2645`). 이 수정은 02-03(litellm)과
+  Phase 5(신규 launchd 서비스 등록)에도 그대로 적용되는 헬퍼 차원의 영구 수정이며, 향후 재시작
+  헬퍼를 다시 작성할 때 이 순서(bootout → teardown 확인 폴링 → bootstrap → healthy 폴링)를
+  그대로 재사용해야 한다.
+- 02-02: `MAX_NUM_SEQS=1` 라이브 적용 및 재시작 승인 완료 — 사용자 응답 `proceed-1`
+  (`.planning/phases/02-infra-hardening/02-02-SUMMARY.md` 에 `CHECKPOINT_ANSWER: proceed-1`
+  라인으로 기록). 이 승인은 이번 flashnext 재시작뿐 아니라 02-03 의 litellm 재시작도 명시적으로
+  커버함 — 02-03 은 재승인을 요청하지 않고 이 SUMMARY 파일을 grep 해서 소비해야 한다.
+  INF-01 큐잉 증거 실측: `max_overlap=1`(cap=1 이하), `queued_count=1`(>= concurrency-cap=1),
+  1차 시도(수정 적용 후)에서 바로 성공(teardown 2초, 총 재시작 28초). 언캡트 베이스라인
+  (`phase-02/results/20260829T183540Z/`, max_overlap=2/queued_count=0) 대비 명확한 대조 확보.
 
 ### Pending Todos
 
@@ -172,16 +193,27 @@ Recent decisions affecting current work:
   3.0.53→3.0.60 으로 self-update 를 시도한다. Phase 5 가 launchd plist 로 `cline`/`kanban` 을
   등록할 때 이 드리프트에 대비해야 한다 — `check_versions.sh` Check C 가 이미 이런 plist 를
   스캔하도록 armed 되어 있음.
+- (환경 노트, 블로커 아님) `launchctl bootout` 은 비동기이므로, 무거운 프로세스(모델 로드 등)를
+  물고 있는 launchd 서비스를 재시작할 때는 반드시 teardown 확인 폴링을 거쳐야 한다.
+  `restart_service.sh` 가 이미 이 폴링을 내장하고 있으므로(Step 3b) 이 헬퍼만 사용하면 문제
+  없음 — 다만 Phase 5 에서 새 launchd 서비스용 헬퍼를 별도로 작성한다면 동일 패턴을 반드시
+  재사용할 것.
 
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **02-01-PLAN.md 완료 (Phase 2, 1/4 플랜).** 안전 툴킷 4개 스크립트
-(`config.env`/`preflight.sh`/`restart_service.sh`/`verify_queueing.sh`) 작성 및 언캡트 서버
-대상 큐잉 베이스라인 실측(interleaved, `max_overlap=2`) 완료. 이 플랜은 라이브 뮤테이션을 전혀
-수행하지 않음 — `restart_service.sh` 는 작성만 되고 호출되지 않았고, 세 보호 대상 서비스
-(flashnext=8716/role-shim=75548/litellm=76864) 는 실행 전후 동일 PID 로 계속 running 확인됨.
-베이스라인 디렉터리: `phase-02/results/20260829T183540Z/` (02-02/02-03/02-04 가 인용해야 함).
-다음 세션은 02-02-PLAN.md(flashnext 플리스트에 `--max-num-seqs 1` 적용 + 실제 재시작 + INF-01
-after 검증)부터 시작.
+Stopped at: **02-02-PLAN.md 완료 (Phase 2, 2/4 플랜).** flashnext 플리스트에 `--max-num-seqs 1`
+라이브 적용 → 사용자 체크포인트 승인(`proceed-1`) → 재시작. 첫 두 라이브 시도는
+`launchctl bootout` 비동기 특성으로 인한 teardown 레이스로 동일하게 실패(`Bootstrap failed: 5:
+Input/output error`, 매번 ROLLBACK 후 healthy 확인됨) — `restart_service.sh` 에 teardown 확인
+폴링(Step 3b)을 추가해 수정(commit `0ca2645`), 이후 3차 시도는 첫 시도에 성공(teardown 2초,
+총 28초). 최종 상태: flashnext pid=46573(구 44774), `--max-num-seqs 1` 로드 확인(launchctl +
+ps 두 오라클), INF-01 큐잉 증거 `QUEUEING: PASS`(max_overlap=1, queued_count=1, 언캡트
+베이스라인 max_overlap=2/queued_count=0 대비). role-shim/litellm 은 이 플랜에서 미변경.
+증거 디렉터리: `phase-02/results/20260829T185628Z-inf01/`(성공), `phase-02/results/
+20260829T184656Z-inf01/`(실패 2회, 진단 근거로 보존), `phase-02/results/20260829T185843Z/`
+(post-inf01 preflight PASS).
+**02-03 은 이 플랜의 `CHECKPOINT_ANSWER: proceed-1` 로 litellm 재시작 동의를 이미 확보했으므로
+재질문 금지** — `.planning/phases/02-infra-hardening/02-02-SUMMARY.md` 를 grep 해서 소비할 것.
+다음 세션은 02-03-PLAN.md(litellm 바인딩 변경 + 재시작)부터 시작.
 Resume file: None
