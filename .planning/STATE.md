@@ -12,7 +12,9 @@ INF-03 전체 체인 회귀 게이트 통과, 미러 sync 완료. Phase 3 대기
 
 Phase: 2 of 8 (인프라 보정) — 완료
 Plan: 04 of 4 in current phase — 완료 (phase 전체 완료)
-Status: In progress (Phase 2 종료, Phase 3 플랜 미작성)
+Status: Phase complete — gsd-verifier 독립 검증 통과 (3/3 성공 기준, `02-VERIFICATION.md`)
+Verified: 라이브 plist·로드된 job·실행 중 프로세스 세 곳 모두에서 `--max-num-seqs 1`/`--host 127.0.0.1` 일치 확인,
+`lsof` 에 `*:4000` 없음, `verify_no_regression.sh` 재실행 `INF03: PASS`, 미러 diff 0
 Last activity: 2026-08-30 — 02-04-PLAN.md 완료 (INF-03 전체 체인 회귀 게이트
 `verify_no_regression.sh` 작성/실행 — `INF03: PASS`, 127.0.0.1/localhost 양쪽 경로 실측 완료.
 `~/local-llm-settings/sync.sh` 실행(live→mirror, 이 phase 유일 실행 지점) — drift 는 정확히 의도한

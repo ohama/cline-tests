@@ -16,8 +16,8 @@
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Cline 설정 + 압축 검증** - flashnext/32768/`--compaction agentic` 설정을 박고, 압축이 ~26.5k에서 실제로 도는지 실측으로 증명한다 (Core Value)
-- [ ] **Phase 2: 인프라 보정** - 동시성 상한과 litellm 노출 차단으로 기존 스택을 두 표면 동시 기동에 대비시킨다
+- [x] **Phase 1: Cline 설정 + 압축 검증** - flashnext/32768/`--compaction agentic` 설정을 박고, 압축이 ~26.5k에서 실제로 도는지 실측으로 증명한다 (Core Value)
+- [x] **Phase 2: 인프라 보정** - 동시성 상한과 litellm 노출 차단으로 기존 스택을 두 표면 동시 기동에 대비시킨다
 - [ ] **Phase 3: 샌드박스 + 저장소 화이트리스트** - 원격에서 트리거 가능한 어떤 것도 이 안전망 없이는 만들지 않는다
 - [ ] **Phase 4: 헤드리스 CLI 래퍼** - 설정+샌드박스가 실제로 맞물리는지 가장 싼 값으로 확인하는 단발 스모크 테스트
 - [ ] **Phase 5: Kanban·Telegram 서비스화** - 두 표면이 launchd 상시 서비스로 뜨고 스스로 회복한다 (아직 loopback-only)
@@ -43,12 +43,12 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 6 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — flashnext 프로바이더 설정: baseURL/contextWindow 32768/codex 별칭 차단 (CFG-01, CFG-02, CFG-07)
-- [ ] 01-02-PLAN.md — 버전 고정 + 호출 규약: cline 3.0.53 / kanban 0.1.70 / --compaction agentic (CFG-04, CFG-05, CFG-06)
-- [ ] 01-03-PLAN.md — 판정기(TDD): NDJSON + flashnext.err 로 ①/②/③ 삼분 판정 (VER-02, VER-03)
-- [ ] 01-04-PLAN.md — 회귀 하니스: 필러 생성기 + 단일 호출 툴루프 러너 + 오프라인 드라이런 (VER-01)
-- [ ] 01-05-PLAN.md — max_tokens 실측 후 대응책 결정·적용 (CFG-03)
-- [ ] 01-06-PLAN.md — 실제 회귀 실행 + 결과·대응 방침 문서화 (VER-03 보고, VER-04)
+- [x] 01-01-PLAN.md — flashnext 프로바이더 설정: baseURL/contextWindow 32768/codex 별칭 차단 (CFG-01, CFG-02, CFG-07)
+- [x] 01-02-PLAN.md — 버전 고정 + 호출 규약: cline 3.0.53 / kanban 0.1.70 / --compaction agentic (CFG-04, CFG-05, CFG-06)
+- [x] 01-03-PLAN.md — 판정기(TDD): NDJSON + flashnext.err 로 ①/②/③ 삼분 판정 (VER-02, VER-03)
+- [x] 01-04-PLAN.md — 회귀 하니스: 필러 생성기 + 단일 호출 툴루프 러너 + 오프라인 드라이런 (VER-01)
+- [x] 01-05-PLAN.md — max_tokens 실측 후 대응책 결정·적용 (CFG-03)
+- [x] 01-06-PLAN.md — 실제 회귀 실행 + 결과·대응 방침 문서화 (VER-03 보고, VER-04)
 
 ### Phase 2: 인프라 보정
 **Goal**: 이미 상주 중인 `flashnext`/`litellm` 서비스를 건드리지 않던 두 위험 — 무제한 동시 배칭과
@@ -63,10 +63,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Phase-2 안전 툴킷(config.env/preflight/restart_service/verify_queueing) + 변경 전 무캡 동시성 베이스라인 (라이브 무변경)
-- [ ] 02-02-PLAN.md — INF-01: flashnext plist 에 `--max-num-seqs` 적용 + 재기동 + 로그 타이밍으로 큐잉 증명 (라이브 재기동 승인 체크포인트 포함)
-- [ ] 02-03-PLAN.md — INF-02: litellm plist 에 `--host 127.0.0.1` 적용 + 재기동 + LAN 거부/루프백 200 증명
-- [ ] 02-04-PLAN.md — INF-03: 전체 체인 회귀 게이트 + `sync.sh` 미러 반영 + `docs/infra-hardening.md` 기록
+- [x] 02-01-PLAN.md — Phase-2 안전 툴킷(config.env/preflight/restart_service/verify_queueing) + 변경 전 무캡 동시성 베이스라인 (라이브 무변경)
+- [x] 02-02-PLAN.md — INF-01: flashnext plist 에 `--max-num-seqs` 적용 + 재기동 + 로그 타이밍으로 큐잉 증명 (라이브 재기동 승인 체크포인트 포함)
+- [x] 02-03-PLAN.md — INF-02: litellm plist 에 `--host 127.0.0.1` 적용 + 재기동 + LAN 거부/루프백 200 증명
+- [x] 02-04-PLAN.md — INF-03: 전체 체인 회귀 게이트 + `sync.sh` 미러 반영 + `docs/infra-hardening.md` 기록
 
 ### Phase 3: 샌드박스 + 저장소 화이트리스트
 **Goal**: 원격에서 트리거될 수 있는 어떤 것(헤드리스 래퍼, Kanban, Telegram)도 이 안전망이
@@ -170,8 +170,8 @@ Phase 1·2·3 은 서로 병렬 가능(의존성 없음). Phase 4·5 는 1·2·3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Cline 설정 + 압축 검증 | 0/6 | Not started | - |
-| 2. 인프라 보정 | 0/4 | Not started | - |
+| 1. Cline 설정 + 압축 검증 | 6/6 | ✓ Complete | 2026-08-29 |
+| 2. 인프라 보정 | 4/4 | ✓ Complete | 2026-08-30 |
 | 3. 샌드박스 + 저장소 화이트리스트 | 0/TBD | Not started | - |
 | 4. 헤드리스 CLI 래퍼 | 0/TBD | Not started | - |
 | 5. Kanban·Telegram 서비스화 | 0/TBD | Not started | - |

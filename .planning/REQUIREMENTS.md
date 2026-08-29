@@ -109,20 +109,20 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CFG-01 | Phase 1 | Pending |
-| CFG-02 | Phase 1 | Pending |
-| CFG-03 | Phase 1 | Pending |
-| CFG-04 | Phase 1 | Pending |
-| CFG-05 | Phase 1 | Pending |
-| CFG-06 | Phase 1 | Pending |
-| CFG-07 | Phase 1 | Pending |
-| VER-01 | Phase 1 | Pending |
-| VER-02 | Phase 1 | Pending |
-| VER-03 | Phase 1 | Pending |
-| VER-04 | Phase 1 | Pending |
-| INF-01 | Phase 2 | Pending |
-| INF-02 | Phase 2 | Pending |
-| INF-03 | Phase 2 | Pending |
+| CFG-01 | Phase 1 | Complete |
+| CFG-02 | Phase 1 | Complete |
+| CFG-03 | Phase 1 | Complete |
+| CFG-04 | Phase 1 | Complete |
+| CFG-05 | Phase 1 | Complete |
+| CFG-06 | Phase 1 | Complete |
+| CFG-07 | Phase 1 | Complete |
+| VER-01 | Phase 1 | Complete |
+| VER-02 | Phase 1 | Complete |
+| VER-03 | Phase 1 | Complete |
+| VER-04 | Phase 1 | Complete |
+| INF-01 | Phase 2 | Complete |
+| INF-02 | Phase 2 | Complete |
+| INF-03 | Phase 2 | Complete |
 | SBX-01 | Phase 3 | Pending |
 | SBX-02 | Phase 3 | Pending |
 | SBX-03 | Phase 3 | Pending |
