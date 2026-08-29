@@ -1,0 +1,24 @@
+2026-08-30 03:39:50,916 - INFO - Request started: endpoint=/chat/completions model=/Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4 stream=False in_flight=1
+2026-08-30 03:39:50,917 - INFO - Generation queued: request=82e932ff50 prompt_tokens=26 max_tokens=60 images=0 audio=0 videos=0
+2026-08-30 03:39:50,965 - INFO - Prefill started: request=82e932ff50 backend=continuous_batching prompt_tokens=26 images=0 audio=0 videos=0
+2026-08-30 03:39:51,295 - INFO - Request started: endpoint=/chat/completions model=/Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4 stream=False in_flight=2
+2026-08-30 03:39:51,295 - INFO - Generation queued: request=82eab7cb60 prompt_tokens=26 max_tokens=60 images=0 audio=0 videos=0
+2026-08-30 03:39:58,362 - INFO - Prefill completed: request=82e932ff50 prompt_tokens=26 cached_tokens=0 elapsed=7.382s rate=3.5 tok/s
+2026-08-30 03:39:58,362 - INFO - Prefill started: request=82eab7cb60 backend=continuous_batching prompt_tokens=26 images=0 audio=0 videos=0
+2026-08-30 03:39:58,362 - INFO - Decode started: request=82e932ff50 time_to_first_token=7.446s
+2026-08-30 03:39:58,601 - INFO - Decode progress: request=82e932ff50 generated_tokens=10 elapsed=0.238s rate=21.6 tok/s
+2026-08-30 03:39:58,832 - INFO - Decode progress: request=82e932ff50 generated_tokens=20 elapsed=0.470s rate=21.5 tok/s
+2026-08-30 03:39:59,064 - INFO - Decode progress: request=82e932ff50 generated_tokens=30 elapsed=0.702s rate=21.6 tok/s
+2026-08-30 03:39:59,296 - INFO - Decode progress: request=82e932ff50 generated_tokens=40 elapsed=0.934s rate=21.5 tok/s
+2026-08-30 03:39:59,636 - INFO - Prefill completed: request=82eab7cb60 prompt_tokens=26 cached_tokens=0 elapsed=0.107s rate=242.9 tok/s
+2026-08-30 03:39:59,636 - INFO - Decode progress: request=82e932ff50 generated_tokens=50 elapsed=1.274s rate=6.5 tok/s
+2026-08-30 03:39:59,636 - INFO - Decode completed: request=82e932ff50 generated_tokens=51 elapsed=1.274s rate=39.3 tok/s finish_reason=stop
+2026-08-30 03:39:59,636 - INFO - Decode started: request=82eab7cb60 time_to_first_token=8.341s
+2026-08-30 03:39:59,655 - INFO - Request completed: endpoint=/chat/completions model=/Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4 stream=False backend=continuous_batching prompt_tokens=26 generated_tokens=51 elapsed=8.747s prefill=3.5 tok/s decode=40.0 tok/s finish_reason=stop in_flight=1
+2026-08-30 03:39:59,886 - INFO - Decode progress: request=82eab7cb60 generated_tokens=10 elapsed=0.250s rate=21.7 tok/s
+2026-08-30 03:40:00,118 - INFO - Decode progress: request=82eab7cb60 generated_tokens=20 elapsed=0.482s rate=21.6 tok/s
+2026-08-30 03:40:00,350 - INFO - Decode progress: request=82eab7cb60 generated_tokens=30 elapsed=0.714s rate=21.7 tok/s
+2026-08-30 03:40:00,581 - INFO - Decode progress: request=82eab7cb60 generated_tokens=40 elapsed=0.945s rate=21.7 tok/s
+2026-08-30 03:40:00,824 - INFO - Decode progress: request=82eab7cb60 generated_tokens=50 elapsed=1.188s rate=21.6 tok/s
+2026-08-30 03:40:00,824 - INFO - Decode completed: request=82eab7cb60 generated_tokens=51 elapsed=1.188s rate=42.1 tok/s finish_reason=stop
+2026-08-30 03:40:00,843 - INFO - Request completed: endpoint=/chat/completions model=/Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4 stream=False backend=continuous_batching prompt_tokens=26 generated_tokens=51 elapsed=9.549s prefill=242.9 tok/s decode=42.9 tok/s finish_reason=stop in_flight=0
