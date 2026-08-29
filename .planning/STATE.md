@@ -108,15 +108,15 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [██████▒▒▒▒] 67% (Phase 4/8 진행 중, Plan 16/24 누적 추정 — 04-02 는 이 갱신 시점에도
-병렬 진행 중이라 아직 완료로 집계하지 않음)
+Progress: [██████▒▒▒▒] 71% (Phase 4/8 진행 중, Plan 17/24 누적 추정 — wave 2 두 플랜(04-02/04-03)
+모두 완료, 남은 것은 04-04 phase-close 뿐)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
-- Average duration: ~14.6 min
-- Total execution time: ~3.95 hours
+- Total plans completed: 17
+- Average duration: ~14.4 min
+- Total execution time: ~4.08 hours
 
 **By Phase:**
 
@@ -125,9 +125,21 @@ Progress: [██████▒▒▒▒] 67% (Phase 4/8 진행 중, Plan 16/24
 | 1 | 6/6 | ~112 min | ~19 min |
 | 2 | 4/4 | ~55 min | ~13.8 min |
 | 3 | 4/4 | ~48 min | ~12 min |
-| 4 | 2/4 | ~25 min | ~12.5 min |
+| 4 | 3/4 | ~33 min | ~11 min |
 
 **Recent Trend:**
+- 04-02 (~8 min, wave 2 — the shipped headless wrapper, `phase-04/run_headless.sh`. Offline dry-run
+  testing against all five 04-01 fixtures immediately surfaced two real bugs (relative `DRY_FIXTURE`
+  resolved against the wrong post-cd directory; same-UTC-second invocations silently clobbered each
+  other's results directory), both fixed before the live run. The first live invocation crashed with
+  SIGABRT before any cline/Bun code ran — the wrapper's own `2>file` stderr redirect pointed at an
+  unpunched path, the exact failure class 03-04 already diagnosed and fixed for the plain smoke test;
+  reused that fix verbatim (in-whitelist scratch-file capture, then copy out) rather than re-deriving
+  it, and per 03-04's own precedent this crash does not count toward the invocation budget since no
+  cline/Bun code executed. The corrected retry succeeded: exit 0, `run_result` present, model replied
+  exactly "PONG" — the first LIVE confirmation that 04-RESEARCH.md's cwd fix actually resolves the
+  inherited Phase 3 blocker, not just a research prediction. `EXTRA_ALLOW_PATHS` unchanged throughout.
+  `cline` invocations used: 1/2.)
 - 04-03 (~15 min, wave 2 — the criterion-3 proof gate, authored and self-tested entirely offline
   in parallel with 04-02's one live invocation. Wrote `phase-04/verify_sandbox_via_cline.sh`
   (TEST-ONLY, `--auto-approve true`, 8-rung verdict ladder computed only from `classify_run.py`'s
@@ -463,6 +475,25 @@ Recent decisions affecting current work:
   아포스트로피 하나가 `bash -n` 을 "unterminated quote" 오류로 깨뜨림을 격리 재현으로 확인(따옴표로
   감싸지 않은 heredoc 본문의 아포스트로피는 quoted 구분자에도 불구하고 bash 파서가 여전히 스캔한다는
   것을 이 세션에서 실측) — 로직 변경 없이 문장만 재서술.
+- 04-02: **Phase 3 인계 블로커, 라이브로 처음 해소됨.** `phase-04/run_headless.sh` 가
+  `SANDBOX_WORKDIR` 로 실제 `cd` 한 뒤 `ALLOWED_REPOS.json` prefix-match 를 단언하고 나서야
+  `run_sandboxed.sh` 를 호출 — 04-RESEARCH.md 의 cwd 픽스 예측이 이제 라이브 실측으로 확인됨:
+  `run_headless.sh --timeout 180 "...PONG..."` → exit 0, `run_result.finishReason:"completed"`,
+  모델 응답 정확히 "PONG". `EXTRA_ALLOW_PATHS` 는 여전히 빈 문자열, `phase-03/` 무변경.
+- 04-02: 라이브 첫 시도가 `Abort trap: 6`(exit 134)로 크래시 — `stderr.log` 가 네이티브 C++
+  스택트레이스(`node::InitializeOncePerProcessInternal`/`node::Start`)만 담고 있었고 `ndjson.log`
+  는 비어 있어 cline/Bun 코드가 단 한 줄도 실행되지 않았음을 확인. 근본 원인은 플랜이 문자
+  그대로 지시한 `2>"$RESULTS_DIR/stderr.log"`(미펀치 경로로의 직접 파일 리다이렉트) — 03-03 F8/
+  03-04 가 이미 진단/수정한 것과 완전히 동일한 실패 계열. `SANDBOX_WORKDIR`(이미 화이트리스트
+  안) 아래 스크래치 파일로 캡처한 뒤 결과 디렉터리로 복사·삭제하는 03-04 의 검증된 픽스를 그대로
+  재사용(재도출하지 않음). 이 크래시 시도는 03-04 의 선례에 따라 "정확히 1회" 예산에 포함하지
+  않음(cline/Bun 코드 미실행) — 재시도가 실제 예산 1회차로 계수됨.
+- 04-02: 오프라인 dry-run 테스트(Task 2) 중 자체 발견/수정 버그 2건. (1) `DRY_FIXTURE`(플랜의
+  모든 예시 커맨드가 리포 루트 기준 상대경로로 지정)가 Step 5 의 `cd "$SANDBOX_WORKDIR"` 이후에
+  읽혀 잘못된 디렉터리 기준으로 풀렸던 것 — 스크립트 최상단에서 `cd` 전에 `ORIG_PWD` 를 캡처해
+  상대경로를 그 기준으로 해석하도록 수정. (2) 초 단위 타임스탬프만 쓴 결과 디렉터리 이름이
+  같은 UTC 초 안의 연속 호출(5-fixture 루프)끼리 충돌해 서로의 evidence 를 덮어썼던 것 —
+  `$$`(PID)를 `-headless` 접미사 앞에 삽입해 해결(`*-headless` glob 매칭은 그대로 유지).
 
 ### Pending Todos
 
@@ -470,22 +501,24 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- **(Phase 4 인계 항목 — 04-RESEARCH.md 가 이미 해결, 04-02/04-03 의 라이브 실행으로 재확인 대기)**
-  03-04 에서 남긴 verdict C(BLOCKED-NEEDS-HUMAN, `cline` 이 샌드박스 안에서 경로명 없는 일반
-  Bun 런타임 오류로 죽던 문제)의 근본 원인이 04-RESEARCH.md 에서 실측으로 확정됐다: **원인은
-  샌드박스 프로파일이 아니라 래퍼 자신의 프로세스 cwd** — `sandbox-exec` 가 `$HOME` 자체에 대한
-  `file-read-metadata` 를 거부하는데, cwd 가 화이트리스트 밖(예: repo 루트)이면 Node/Bun 의 자체
-  startup 이 조상 디렉터리를 stat 하려다 이 deny 에 걸려 cline 코드가 실행되기도 전에 일반
-  오류를 낸다. 고침: 샌드박스 프로세스를 실행하기 *전에* 이미 `ALLOWED_REPOS.json` 안에 있는
-  경로로 실제 `cd`(cline 자신의 `-c/--cwd` 플래그는 별개이며 대체하지 않음) — `EXTRA_ALLOW_PATHS`
-  변경 없이, `workspace/scratch-repo` 에서 `cline --version` → `3.0.53` exit 0 을 라이브로
-  재현 완료. `phase-04/config.env` 의 `SANDBOX_WORKDIR` 가 바로 이 픽스를 위해 존재(04-01 에서
-  구현). **04-01 자신은 `cline` 을 호출하지 않았으므로 이 결론을 재확인하지 않았다** — 04-02(래퍼
-  스크립트)가 실제로 이 cwd 픽스를 적용해 라이브로 재검증해야 한다. 04-RESEARCH.md 는 추가로
-  `--auto-approve false` 헤드리스 모드가 모든 도구 호출을 TTY 게이트로 즉시 거부함(정상 동작,
-  크래시 아님)을 실측했고, criterion 3 증명은 별도의 `--auto-approve true` 전용 검증 스크립트
-  (04-03)로 분리해야 함을 확정했다. 증거: `.planning/phases/04-headless-cli-wrapper/04-RESEARCH.md`
-  Pitfall 1/2/3, `phase-03/results/20260829T202633Z-cline-smoke/`, `docs/sandbox-whitelist.md` §7.
+- **(RESOLVED — Phase 4 인계 항목, 04-02 가 라이브로 재확인 완료)** 03-04 에서 남긴 verdict C
+  (BLOCKED-NEEDS-HUMAN, `cline` 이 샌드박스 안에서 경로명 없는 일반 Bun 런타임 오류로 죽던 문제)의
+  근본 원인이 04-RESEARCH.md 에서 실측으로 확정된 뒤, **04-02 가 실제 shipped 래퍼
+  (`phase-04/run_headless.sh`)로 이를 라이브로 재확인했다**: 원인은 샌드박스 프로파일이 아니라
+  래퍼 자신의 프로세스 cwd — `sandbox-exec` 가 `$HOME` 자체에 대한 `file-read-metadata` 를
+  거부하는데, cwd 가 화이트리스트 밖(예: repo 루트)이면 Node/Bun 의 자체 startup 이 조상
+  디렉터리를 stat 하려다 이 deny 에 걸려 cline 코드가 실행되기도 전에 일반 오류를 낸다. 고침:
+  샌드박스 프로세스를 실행하기 *전에* 이미 `ALLOWED_REPOS.json` 안에 있는 경로로 실제 `cd`(cline
+  자신의 `-c/--cwd` 플래그는 별개이며 대체하지 않음) — `EXTRA_ALLOW_PATHS` 변경 없이,
+  `run_headless.sh --timeout 180 "...PONG..."` → exit 0/`success`/`run_result` 를 라이브로
+  재현 완료(`phase-04/results/20260829T214344Z-90746-headless/`). `phase-04/config.env` 의
+  `SANDBOX_WORKDIR` 가 바로 이 픽스를 위해 존재(04-01 에서 구현), 04-02 가 실제로 소비/검증.
+  04-RESEARCH.md 가 추가로 예측했던 `--auto-approve false` 헤드리스 모드의 TTY 게이트 거부(정상
+  동작, 크래시 아님)와 criterion 3 증명 분리(별도의 `--auto-approve true` 전용 검증 스크립트,
+  04-03)도 각각 04-02/04-03 완료로 반영됨. **남은 것은 04-04(phase-close) 에서 criterion 3 를
+  실제 1회 라이브로 확정하는 것뿐.** 증거:
+  `.planning/phases/04-headless-cli-wrapper/04-RESEARCH.md` Pitfall 1/2/3,
+  `phase-04/results/20260829T214344Z-90746-headless/README.md`, `docs/sandbox-whitelist.md` §7.
 - (Phase 3 설계 경계, 블로커 아님) 샌드박스는 `(allow default)` + `$HOME` deny + punch-through
   구조라 **`$HOME` 밖은 보호하지 않는다** (`/tmp`, `/opt`, `/usr/local`, 외장 볼륨 등). 전면 차단
   감옥이 아니다. `phase-03/sandbox/config.env`/`run_sandboxed.sh` 헤더와
@@ -508,35 +541,36 @@ Recent decisions affecting current work:
 - (환경 노트, 블로커 아님) Phase 2 가 남긴 상시 게이트 `phase-02/infra/verify_no_regression.sh`
   는 읽기 전용·재실행 가능 — Phase 5(Kanban+Telegram 동시 기동)와 Phase 6(네트워크 노출)은 새
   서비스를 올리기 전/후 이 스크립트를 그대로 호출해 회귀를 잡을 것.
-- **(SUPERSEDED by 04-RESEARCH.md — kept for history)** 이 항목은 03-04 종료 시점에 "Phase 4 가
-  `dtruss`/`fs_usage` 로 정밀 재현해야 한다"고 남겼던 오픈 아이템이었다. 실제로는 `log stream`
-  (관리자 권한 불필요, `dtruss`/`fs_usage` 불필요)로 04-RESEARCH.md 세션에서 근본 원인을 이미
-  확정했다: 부족한 건 `EXTRA_ALLOW_PATHS` punch-through 가 아니라 래퍼 프로세스의 cwd 였다(위
+- **(SUPERSEDED by 04-RESEARCH.md, now fully RESOLVED live by 04-02 — kept for history)** 이
+  항목은 03-04 종료 시점에 "Phase 4 가 `dtruss`/`fs_usage` 로 정밀 재현해야 한다"고 남겼던 오픈
+  아이템이었다. 실제로는 `log stream`(관리자 권한 불필요, `dtruss`/`fs_usage` 불필요)로
+  04-RESEARCH.md 세션에서 근본 원인을 이미 확정했고, 04-02 가 그 픽스를 shipped 래퍼로 라이브
+  재확인했다: 부족한 건 `EXTRA_ALLOW_PATHS` punch-through 가 아니라 래퍼 프로세스의 cwd 였다(위
   항목 참조). `EXTRA_ALLOW_PATHS` 의 사전 선언된 4개 후보(`$HOME/.npm` 등) 는 격리 테스트에서
-  전부 불필요한 것으로 확인됐고 넓히지 않았다. 남은 작업은 04-02/04-03 이 이 cwd 픽스를 실제
-  래퍼/검증 스크립트에 적용해 라이브로 재확인하는 것뿐이다.
+  전부 불필요한 것으로 확인됐고 넓히지 않았다. 남은 작업은 04-04 가 `verify_sandbox_via_cline.sh`
+  로 criterion 3 을 실제 1회 라이브로 확정하는 것뿐이다.
 
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **04-03-PLAN.md 완료** (04-01 의 wave-2 자매 플랜, 04-02 와 병렬 실행 — 이 STATE.md
-갱신 시점에 04-02 는 여전히 진행 중이었다). `phase-04/verify_sandbox_via_cline.sh`(criterion-3/
-HLS-03 증명 게이트)를 `cline` 호출 0회로 작성: TEST-ONLY 배너 + `--auto-approve true`(shipped
-`run_headless.sh` 와의 차이점) 근거 명시, `EXTRA_ALLOW_PATHS` 무변경 단언, cwd 픽스 재사용, 8단
-판정 사다리(crashed > 32K terminal > TTY-rejected > 모델이 target 미시도 > fail-open > control
-실패 > DENIED > other)를 오직 `classify_run.py`의 `outcome.json`으로만 판정(맨 exit code 금지).
-`VERIFY_DRY_NDJSON` 오프라인 후크로 7개 필수 행(정상 DENIED, canary 제거, target success 뒤집기,
-TTY, 32K, crashed, model-refusal) 전부가 예상 VERDICT/exit 과 일치함을 오프라인으로 자가검증 —
-어떤 행도 스크립트 수정이 필요 없었다. Preflight A(config guard)를 dry-run 모드에서 구조적으로
-건너뛰어(heal 경로가 실제 `cline auth` 호출이므로) "cline 호출 0회"를 우연이 아니라 설계로
-보장. `phase-04/fixtures/` 는 실행 전후 git status/diff 둘 다 빈 결과로 무변경 확인, negated
-변형 2종은 `/tmp` 아래서만 만들고 커밋하지 않음. Task 1 커밋 이전에 저작 중 버그 2건 발견/수정
-(문구만 변경 — 리터럴 `--auto-approve false` 이중 등장이 플랜 자신의 grep 검증을 깰 뻔했던 것,
-heredoc 주석 속 아포스트로피 하나가 `bash -n` 을 깨뜨렸던 것).
-다음 세션은 04-02 의 완료 상태를 먼저 확인한 뒤 **04-04-PLAN.md(phase-close)** 로 진행할 것 —
-04-04 가 이 플랜의 `verify_sandbox_via_cline.sh` 를 실제로 딱 한 번 라이브로 실행해 criterion 3 을
-증명할 차례다. Phase 4 예산 중 실제 `cline` 호출은 04-02 가 이미 최소 1회 이상 소비했음이 커밋
-로그(`feat(04-02): one live sandboxed cline run`)로 확인됨 — 정확한 잔여 횟수는 04-02 자신의
-SUMMARY 를 읽어 확인할 것. 이 플랜(04-03) 자신은 예산에서 0회를 소비했다(설계상 처음부터 0 이
-할당됨).
+Stopped at: **04-02-PLAN.md 완료** (wave 2, 04-03 과 병렬 실행 — 두 wave-2 플랜 모두 이제 완료).
+`phase-04/run_headless.sh`(shipped 헤드리스 래퍼, HLS-01/02/03)를 작성: `--auto-approve false`
+리터럴 인접 토큰 고정(`--auto-approve true` 는 파일 어디에도 없음), 유일한 `$CLINE_BIN` 호출
+줄이 `run_sandboxed.sh` 를 포함(비샌드박스 경로 0개), THE CWD RULE(cd + `ALLOWED_REPOS.json`
+prefix-match 단언) 적용, 헤더에 safe-but-inert 한계 명시. Task 2(오프라인 5-fixture dry-run)
+중 자체 발견/수정 버그 2건(상대경로 `DRY_FIXTURE` 가 cd 이후 해석되던 것; 같은 UTC 초 호출들의
+결과 디렉터리 충돌) — 둘 다 `phase-04/run_headless.sh` 내부 수정으로 해결, 5개 fixture 전부
+계약 exit code(2/0/3/5/7) 일치, non-whitelisted-cwd 음성 대조군 통과. Task 3(라이브): 첫 시도가
+cline/Bun 코드 실행 전 SIGABRT(플랜이 지시한 `2>$RESULTS_DIR/stderr.log` 가 미펀치 경로였던 것,
+03-03 F8/03-04 와 동일 근본 원인) — 03-04 의 검증된 픽스(화이트리스트 안 스크래치 파일 캡처 후
+복사)를 재사용해 수정, 이 크래시는 예산에 미포함. 재시도: exit 0, `run_result` 1건, 모델 응답
+정확히 "PONG" — **Phase 3 인계 블로커(cwd 픽스)가 이제 라이브로 확정됨.** `EXTRA_ALLOW_PATHS`
+무변경, `phase-03/` git diff 없음, `phase-04/fixtures/` 무변경(04-01 커밋만 존재). 3 태스크
+모두 개별 커밋(버그 수정 포함 총 5개 커밋), SUMMARY 작성 완료. `cline` 호출 1/2 소비(phase 전체
+예산은 04-02+04-03 합산 1/2 — 04-03 은 설계상 0 소비).
+다음 세션은 **04-04-PLAN.md(phase-close)** 부터 시작 — `verify_sandbox_via_cline.sh` 를 실제로
+딱 한 번 라이브로 실행해 criterion 3 을 확정하고(phase 예산 잔여 1회로 충분), phase-close
+재검증 게이트(`verify_sandbox.sh`, `pytest phase-04/tests/`, `verify_config.sh`,
+`phase-02/infra/verify_no_regression.sh`, launchctl pid 3종, git status)를 한 자리에서 돌려
+Phase 4 를 닫을 것.
 Resume file: None
