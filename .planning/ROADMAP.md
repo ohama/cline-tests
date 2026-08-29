@@ -78,10 +78,13 @@ Plans:
   2. 화이트리스트 밖 경로에 대한 파일 읽기/쓰기 시도가 실제로 실패한다 (직접 시도로 재현 가능)
   3. 화이트리스트 밖 경로를 대상으로 한 `execute_command` 실행이 `sandbox-exec` 에 의해 차단된다
   4. 벤치 결과 디렉터리가 샌드박스 경로 밖에 위치해, 샌드박스 안에서 실행되는 명령이 그 디렉터리의 내용을 읽을 수 없다
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 03-01: TBD
+- [ ] 03-01-PLAN.md — ALLOWED_REPOS.json(SBX-01) + realpath 정규화 SBPL 생성기 + run_sandboxed.sh 래퍼
+- [ ] 03-02-PLAN.md — 영구 회귀 픽스처 + in-process/subprocess 프로브 + false-pass 판별 단언 헬퍼
+- [ ] 03-03-PLAN.md — verify_sandbox.sh 상시 게이트: 네 성공 기준 실증 + 음성 대조군 (SBX-02/03/04)
+- [ ] 03-04-PLAN.md — cline 스모크 테스트 1회(예산) + docs/sandbox-whitelist.md + phase-close 재검증
 
 ### Phase 4: 헤드리스 CLI 래퍼
 **Goal**: Phase 1(설정)과 Phase 3(샌드박스)이 실제로 함께 맞물려 동작하는지 가장 싸고 빠르게
@@ -172,7 +175,7 @@ Phase 1·2·3 은 서로 병렬 가능(의존성 없음). Phase 4·5 는 1·2·3
 |-------|----------------|--------|-----------|
 | 1. Cline 설정 + 압축 검증 | 6/6 | ✓ Complete | 2026-08-29 |
 | 2. 인프라 보정 | 4/4 | ✓ Complete | 2026-08-30 |
-| 3. 샌드박스 + 저장소 화이트리스트 | 0/TBD | Not started | - |
+| 3. 샌드박스 + 저장소 화이트리스트 | 0/4 | Planned | - |
 | 4. 헤드리스 CLI 래퍼 | 0/TBD | Not started | - |
 | 5. Kanban·Telegram 서비스화 | 0/TBD | Not started | - |
 | 6. 네트워크 노출 | 0/TBD | Not started | - |
