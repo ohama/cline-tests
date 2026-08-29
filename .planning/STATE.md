@@ -5,38 +5,48 @@
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
-**Current focus:** Phase 2 (인프라 보정) 진행 중 — flashnext 동시성 상한 + litellm 루프백 바인딩 라이브 적용 완료, 02-04(미러 sync) 대기
+**Current focus:** Phase 2 (인프라 보정) 완료 — flashnext 동시성 상한 + litellm 루프백 바인딩 라이브 적용,
+INF-03 전체 체인 회귀 게이트 통과, 미러 sync 완료. Phase 3 대기.
 
 ## Current Position
 
-Phase: 2 of 8 (인프라 보정)
-Plan: 03 of 4 in current phase — 완료
-Status: In progress
-Last activity: 2026-08-30 — 02-03-PLAN.md 완료 (litellm 플리스트에 `--host 127.0.0.1` 라이브 적용,
-02-02 의 `proceed-1` 승인을 재질문 없이 재사용해 재시작 → 첫 시도 성공(teardown 2초), INF-02 증거
-확보: lsof `*:4000`→`127.0.0.1:4000`, LAN IP(192.168.75.108) curl 거부(rc=7), loopback IP/hostname
-둘 다 200).
+Phase: 2 of 8 (인프라 보정) — 완료
+Plan: 04 of 4 in current phase — 완료 (phase 전체 완료)
+Status: In progress (Phase 2 종료, Phase 3 플랜 미작성)
+Last activity: 2026-08-30 — 02-04-PLAN.md 완료 (INF-03 전체 체인 회귀 게이트
+`verify_no_regression.sh` 작성/실행 — `INF03: PASS`, 127.0.0.1/localhost 양쪽 경로 실측 완료.
+`~/local-llm-settings/sync.sh` 실행(live→mirror, 이 phase 유일 실행 지점) — drift 는 정확히 의도한
+두 plist 편집뿐이었음을 확인 후 sync, 이후 diff 0. `docs/infra-hardening.md` 작성.
+phase-close 재검증: `verify_queueing.sh --label after`/`verify_lan_bind.sh`/
+`verify_no_regression.sh`/`preflight.sh --label phase-close` 네 게이트 전부 동시 통과,
+`MIRROR_DRIFT` 0건. 이 플랜 내내 서비스 재시작 0회, pid 전원 불변).
 
-Progress: [████▒▒▒▒▒▒] 38% (Phase 2 of 8, Plan 3/4)
+Progress: [████▒▒▒▒▒▒] 42% (Phase 2/8 완료, Plan 10/24 누적 추정)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: ~15.8 min
-- Total execution time: ~2.4 hours
+- Total plans completed: 10
+- Average duration: ~15.4 min
+- Total execution time: ~2.6 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 | 6/6 | ~112 min | ~19 min |
-| 2 | 3/4 | ~43 min | ~14.3 min |
+| 2 | 4/4 | ~55 min | ~13.8 min |
 
 **Recent Trend:**
-- Last 9 plans: 02-03 (~10 min, restart succeeded first try), 02-02 (~24 min incl. 2 failed restart
-  attempts + fix + re-attempt), 02-01 (~9 min), 01-06 (~50 min), 01-04 (~35 min), 01-05 (~6 min),
-  01-02 (~5 min), 01-03 (~5 min), 01-01 (~11 min)
+- Last 10 plans: 02-04 (~12 min, no restart — pure verification/sync/docs plan), 02-03 (~10 min,
+  restart succeeded first try), 02-02 (~24 min incl. 2 failed restart attempts + fix + re-attempt),
+  02-01 (~9 min), 01-06 (~50 min), 01-04 (~35 min), 01-05 (~6 min), 01-02 (~5 min), 01-03 (~5 min),
+  01-01 (~11 min)
+- 02-04 closed Phase 2: found one self-inflicted bug (PlistBuddy's indented ProgramArguments output
+  defeated an exact-match grep in the new gate script's flag-presence check — fixed before the task
+  commit, same class of bug as 02-03's verify_lan_bind.sh false positive but on the read side this
+  time), ran the full-chain gate 4 times with identical PASS and zero pid churn, and closed with all
+  three ROADMAP Phase 2 success criteria verified simultaneously true rather than sequentially true.
 - Trend: 02-01 ran fast (zero live mutations). 02-02 was the project's first live launchd restart and
   hit a real bug: `launchctl bootout` is asynchronous, so `restart_service.sh` raced flashnext's
   104 GiB teardown and failed twice with an opaque I/O error before the async-teardown-wait fix
@@ -187,6 +197,25 @@ Recent decisions affecting current work:
   없음 확인). pid 76864→48525. `verify_lan_bind.sh` 자체 검증 문구가 자기 검증용 grep 패턴
   (`*:4000`)과 우연히 매칭되는 버그를 실행 중 발견/수정(로그 문구만 변경, 로직 무변경). 미러
   sync 는 02-04 로 이월(의도적 drift, `MIRROR_DRIFT` 경고로 확인됨).
+- 02-04: **Phase 2 종료.** `verify_no_regression.sh`(INF-03 상시 게이트, 읽기 전용·재실행 가능)
+  작성/실행 — `INF03: PASS`, 8개 체크(플래그 존재→3개 서비스 실행중→hop3→hop2→hop1→전체 체인
+  127.0.0.1→전체 체인 localhost→직접 :8000 무교착 확인) 전부 통과, 실제 completion body 확보
+  ("Hi there! How can I help you"). 이 플랜 내내 4회 재실행 모두 동일 PASS, pid 전원 불변
+  (flashnext=46573, role-shim=75548, litellm=48525) — 서비스 재시작 0회.
+  `~/local-llm-settings/sync.sh` 를 이 phase 에서 유일하게 실행(live→mirror 단방향) — 사전에
+  `--check` 로 drift 가 정확히 의도한 두 plist(`com.ohama.flashnext.plist`,
+  `com.ohama.litellm.plist`) 뿐임을 확인한 뒤 sync, 이후 diff 0/`--check` 도 일치 보고.
+  `docs/infra-hardening.md` 작성 완료 — 값/근거/한계(단일요청 32K OOM 은 안 고침)/증거경로/롤백
+  런북/하우스룰(비동기 bootout 포함). phase-close 재검증에서 로드맵 성공기준 1·2·3 이 동시에
+  성립함을 재확인(`verify_queueing.sh --label after`, `verify_lan_bind.sh`,
+  `verify_no_regression.sh`, `preflight.sh --label phase-close` 모두 PASS, `MIRROR_DRIFT` 0건).
+  자체 발견/수정 버그 1건: `PlistBuddy` 의 `ProgramArguments` 덤프가 각 원소를 들여쓰기해서
+  출력하는데(`    1`), `verify_no_regression.sh` 의 Check 1 이 값 원문에 대해 `grep -qx` 정확
+  매치를 시도해 실제로는 플래그가 멀쩡히 있는데도 FAIL 로 오판했던 것 — `awk '{$1=$1; print}'`
+  로 공백 제거 후 매치하도록 커밋 전에 수정(02-03 의 `verify_lan_bind.sh` 자기검증 버그와 같은
+  계열이지만 이번엔 로그 문구가 아니라 읽기 쪽 파싱 문제). `verify_queueing.sh` 는 `--label`
+  인자를 리터럴 `before|after` 로만 하드 검증한다 — 플랜 문서가 예시로 든 `--label after-final`
+  은 실제로는 실패하는 호출이므로 `--label after` 로 대체 실행(assertion 내용은 동일).
 
 ### Pending Todos
 
@@ -207,26 +236,28 @@ Recent decisions affecting current work:
   물고 있는 launchd 서비스를 재시작할 때는 반드시 teardown 확인 폴링을 거쳐야 한다.
   `restart_service.sh` 가 이미 이 폴링을 내장하고 있으므로(Step 3b) 이 헬퍼만 사용하면 문제
   없음 — 다만 Phase 5 에서 새 launchd 서비스용 헬퍼를 별도로 작성한다면 동일 패턴을 반드시
-  재사용할 것.
+  재사용할 것. 이 하우스 룰은 이제 `docs/infra-hardening.md` 에도 기록됨.
+- (환경 노트, 블로커 아님) Phase 2 가 남긴 상시 게이트 `phase-02/infra/verify_no_regression.sh`
+  는 읽기 전용·재실행 가능 — Phase 5(Kanban+Telegram 동시 기동)와 Phase 6(네트워크 노출)은 새
+  서비스를 올리기 전/후 이 스크립트를 그대로 호출해 회귀를 잡을 것.
 
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **02-03-PLAN.md 완료 (Phase 2, 3/4 플랜).** litellm 플리스트에 `--host 127.0.0.1`
-라이브 적용(`apply_litellm_bind.sh`, backup-first + plutil-lint-gated, idempotence 확인) →
-02-02 의 `CHECKPOINT_ANSWER: proceed-1` 을 grep 으로 재사용(재질문 없음) → `restart_service.sh`
-로 재시작, 첫 시도 성공(teardown 2초, litellm 은 모델 로드가 없어 flashnext 보다 훨씬 빠름).
-최종 상태: litellm pid=48525(구 76864), `--host 127.0.0.1` 로드 확인(launchctl print).
-INF-02 증거(`verify_lan_bind.sh`, `INF02: PASS`): lsof `127.0.0.1:4000`(더 이상 `*:4000` 아님),
-LAN IP(192.168.75.108) curl 거부(rc=7), loopback IP 200(`flashnext` 포함), loopback hostname
-(`localhost`) 도 200 — IPv6 `::1` 스트랜딩 위험 없음 확인. `:8000`/`:8011` 무변경. `config.yaml`
-미변경, `master_key` 미도입. 실행 중 자체 발견/수정한 버그 1건: `verify_lan_bind.sh` 의 PASS
-로그 문구가 자신의 검증 grep 패턴(`*:4000`)과 우연히 매칭되어 evidence 파일 검사가 거짓 양성
-났던 것을 로그 문구 변경만으로 수정(로직 무변경). 증거 디렉터리:
-`phase-02/results/20260829T190346Z-inf02/`(apply/restart/loaded-arguments/verdict),
-`phase-02/results/20260829T190317Z/`(pre-inf02 preflight), `phase-02/results/20260829T190552Z/`
-(post-inf02 preflight, bind-marker 대조 `*:4000`→`127.0.0.1:4000`).
-**미러 sync 는 의도적으로 미실행** — `~/local-llm-settings/launchagents/com.ohama.litellm.plist`
-는 아직 구버전(`MIRROR_DRIFT` 경고로 확인됨), 02-04(`sync.sh`)의 몫.
-다음 세션은 02-04-PLAN.md(미러 sync, 이미 작성됨)부터 시작.
+Stopped at: **02-04-PLAN.md 완료 — Phase 2(인프라 보정) 전체 종료.** `verify_no_regression.sh`
+(INF-03 상시 게이트) 작성/실행 → `INF03: PASS`(8개 체크 전부 통과, 127.0.0.1/localhost 양쪽
+경로에서 실제 completion body 확보). `~/local-llm-settings/sync.sh` 실행(이 phase 유일 실행 —
+live→mirror 단방향, drift 는 정확히 의도한 두 plist 편집뿐이었음을 `--check` 로 사전 확인 후
+sync, 이후 diff 0). `docs/infra-hardening.md` 작성(값/근거/한계/증거/롤백/하우스룰).
+phase-close 재검증에서 로드맵 Phase 2 성공기준 1·2·3 이 동시에 성립함을 재확인
+(`verify_queueing.sh --label after`, `verify_lan_bind.sh`, `verify_no_regression.sh`,
+`preflight.sh --label phase-close` 전부 PASS, `MIRROR_DRIFT` 0건). 이 플랜 내내 서비스 재시작
+0회, pid 전원 불변(flashnext=46573, role-shim=75548, litellm=48525). 자체 발견/수정 버그 1건
+(PlistBuddy 들여쓰기 출력이 Check 1 의 `grep -qx` 정확매치를 깨뜨림 — `awk` 로 공백 제거 후
+수정, 커밋 전 반영). 증거 디렉터리: `phase-02/results/20260829T191031Z-inf03/`(INF-03 최초
+PASS + sync.txt), `phase-02/results/20260829T191110Z-inf03/`(sync 후 재확인),
+`phase-02/results/20260829T191241Z/`(queueing after), `phase-02/results/20260829T191249Z-inf02-verify/`
+(lan-bind), `phase-02/results/20260829T191251Z/`(preflight phase-close).
+다음 세션은 Phase 3(샌드박스 + 저장소 화이트리스트) 플랜 작성부터 시작 — 아직 PLAN.md 없음,
+Phase 1·2 와 독립적으로 진행 가능.
 Resume file: None
