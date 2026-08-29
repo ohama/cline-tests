@@ -1,0 +1,9 @@
+{"ts":"2026-08-29T09:16:40.449Z","type":"hook_event","hookEventName":"agent_start","agentId":"agent_1787995000377_myfezl","taskId":"conv_1787995000442_l0hddfd","parentAgentId":null}
+{"ts":"2026-08-29T09:16:40.451Z","type":"agent_event","event":{"type":"iteration_start","iteration":1}}
+{"ts":"2026-08-29T09:16:50.101Z","type":"agent_event","event":{"type":"content_start","contentType":"text","text":"OK"}}
+{"ts":"2026-08-29T09:16:50.109Z","type":"agent_event","event":{"type":"usage","inputTokens":5495,"outputTokens":2,"cacheReadTokens":0,"cacheWriteTokens":0,"cost":0,"totalInputTokens":5495,"totalOutputTokens":2,"totalCacheReadTokens":0,"totalCacheWriteTokens":0,"totalCost":0}}
+{"ts":"2026-08-29T09:16:50.112Z","type":"agent_event","event":{"type":"content_end","contentType":"text","text":"OK"}}
+{"ts":"2026-08-29T09:16:50.114Z","type":"agent_event","event":{"type":"iteration_end","iteration":1,"hadToolCalls":false,"toolCallCount":0}}
+{"ts":"2026-08-29T09:16:50.115Z","type":"hook_event","hookEventName":"agent_end","agentId":"agent_1787995000377_myfezl","taskId":"conv_1787995000442_l0hddfd","parentAgentId":null}
+{"ts":"2026-08-29T09:16:50.115Z","type":"agent_event","event":{"type":"done","reason":"completed","text":"OK","iterations":1,"usage":{"inputTokens":5495,"outputTokens":2,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0}}}
+{"ts":"2026-08-29T09:16:50.260Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":5495,"outputTokens":2,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":5495,"outputTokens":2,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":9672,"text":"OK","model":{"id":"flashnext","provider":"openai-compatible"}}

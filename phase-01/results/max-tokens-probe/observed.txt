@@ -1,0 +1,40 @@
+CFG-03 max_tokens probe — Task 1 result
+========================================
+
+Probe invocation:
+  CLINE_NO_AUTO_UPDATE=1 cline -P openai-compatible -m flashnext --compaction agentic \
+    --json --auto-approve true -t 600 "Reply with exactly one word: OK"
+  (prompt saved at phase-01/results/max-tokens-probe/prompt.txt)
+
+Server-side evidence (phase-01/results/max-tokens-probe/flashnext_window.log,
+sliced from flashnext.err starting at byte offset 163580, i.e. the exact
+tail of the log as of immediately before this invocation):
+
+  2026-08-29 18:16:40,587 - INFO - Generation queued: request=82eb9186e0 prompt_tokens=5495 max_tokens=2048 images=0 audio=0 videos=0
+
+OBSERVED_MAX = 2048
+
+Number of "Generation queued" requests seen in this probe window: 1
+(a single-turn probe produces exactly one request; no retries/tool-call
+follow-ups occurred because the prompt required no tool use)
+
+Does OBSERVED_MAX match the configured providers.json value?
+  NO. providers.json currently has
+    providers.openai-compatible.settings.models[0].maxTokens = 4096
+  (also present at the top level nowhere else — verify_config.sh does not
+  assert this field, only contextWindow/baseUrl/model/models[]).
+  The wire value is 2048, not 4096. This reproduces exactly what
+  01-RESEARCH.md observed: providers.json's maxTokens field is not honored
+  by the running Cline binary (3.0.53) regardless of what value is
+  configured there. Root cause remains unknown; not investigated further
+  per Task 2 Branch A guidance (not blocking).
+
+Cross-read of the NDJSON usage event for the same request:
+  {"type":"agent_event","event":{"type":"usage","inputTokens":5495,"outputTokens":2, ...}}
+  {"type":"run_result", ..., "usage":{"inputTokens":5495,"outputTokens":2,...}}
+  Cline reports outputTokens=2 (the model emitted "OK" and stopped,
+  finish_reason=stop per flashnext.err's "Decode completed" line). This is
+  far below the 2048 cap — the probe did not exercise truncation at the
+  cap, only confirmed what value the server was told the cap was.
+
+Conclusion carried into Task 2: OBSERVED_MAX = 2048.
