@@ -60,10 +60,13 @@ Plans:
   1. `com.ohama.flashnext.plist` 에 `--max-num-seqs` 상한 값이 박혀 있고, 서비스 재기동 후 두 개의 동시 요청을 보내면 하나가 즉시 처리되고 다른 하나는 큐잉/지연되는 동작이 로그로 관찰된다 (OOM 이 아니다)
   2. `litellm` 설정이 `127.0.0.1` 바인딩 또는 `master_key` 중 하나로 잠겨 있어, LAN IP 에서 인증 없이 보낸 요청이 거부된다 (curl 로 재현 가능)
   3. 위 두 변경 후에도 기존 `flashnext` 별칭 호출(litellm → role-shim → mlx_vlm.server)이 정상 200 응답을 그대로 반환한다
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 02-01: TBD
+- [ ] 02-01-PLAN.md — Phase-2 안전 툴킷(config.env/preflight/restart_service/verify_queueing) + 변경 전 무캡 동시성 베이스라인 (라이브 무변경)
+- [ ] 02-02-PLAN.md — INF-01: flashnext plist 에 `--max-num-seqs` 적용 + 재기동 + 로그 타이밍으로 큐잉 증명 (라이브 재기동 승인 체크포인트 포함)
+- [ ] 02-03-PLAN.md — INF-02: litellm plist 에 `--host 127.0.0.1` 적용 + 재기동 + LAN 거부/루프백 200 증명
+- [ ] 02-04-PLAN.md — INF-03: 전체 체인 회귀 게이트 + `sync.sh` 미러 반영 + `docs/infra-hardening.md` 기록
 
 ### Phase 3: 샌드박스 + 저장소 화이트리스트
 **Goal**: 원격에서 트리거될 수 있는 어떤 것(헤드리스 래퍼, Kanban, Telegram)도 이 안전망이
@@ -168,7 +171,7 @@ Phase 1·2·3 은 서로 병렬 가능(의존성 없음). Phase 4·5 는 1·2·3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Cline 설정 + 압축 검증 | 0/6 | Not started | - |
-| 2. 인프라 보정 | 0/TBD | Not started | - |
+| 2. 인프라 보정 | 0/4 | Not started | - |
 | 3. 샌드박스 + 저장소 화이트리스트 | 0/TBD | Not started | - |
 | 4. 헤드리스 CLI 래퍼 | 0/TBD | Not started | - |
 | 5. Kanban·Telegram 서비스화 | 0/TBD | Not started | - |
