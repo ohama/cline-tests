@@ -5,18 +5,28 @@
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
-**Current focus:** **Phase 3 (샌드박스 + 저장소 화이트리스트) 종료.** wave 1(03-01 생성기+래퍼,
-03-02 fixtures/probe/assert_denied), wave 2(03-03 verify_sandbox.sh 상시 게이트), wave 3(03-04
-cline 스모크 테스트 1회 + docs/sandbox-whitelist.md + phase-close 재검증) 4개 플랜 모두 완료.
-다음 세션은 Phase 4(헤드리스 CLI 래퍼)부터 시작.
+**Current focus:** **Phase 4 (헤드리스 CLI 래퍼) 진행 중.** wave 1의 첫 플랜 04-01(오프라인
+기반: classify_run.py 분류기 + config.env + fixtures + pytest)이 `cline` 호출 0회로 완료.
+04-RESEARCH.md 가 이미 Phase 3 의 인계 블로커(샌드박스 안에서 cline 이 기동되지 않던 문제)를
+실측으로 해결했음(cwd 픽스, 샌드박스 확장 불필요) — 다음 플랜(04-02/04-03)이 라이브로 이를
+소비/재확인한다.
 
 ## Current Position
 
-Phase: 3 of 8 (샌드박스 + 저장소 화이트리스트) — **완료**, Phase 4 착수 대기
-Plan: 04 of 4 in current phase — 완료 (4개 플랜 전부 완료, 네 SUMMARY 모두 작성 완료)
-Status: Phase 3 complete — 03-01/03-02/03-03/03-04 각각 전 태스크 커밋 완료, phase-close
-재검증에서 ROADMAP 네 성공 기준(SBX-01..04) 동시 PASS 확인
-Verified: [03-04] 실제 `cline` 바이너리를 샌드박스 아래서 정확히 1회 호출(재설치-체이닝 패턴,
+Phase: 4 of 8 (헤드리스 CLI 래퍼) — 진행 중
+Plan: 01 of 4 in current phase — 완료 (SUMMARY 작성 완료)
+Status: 04-01 완료 — config.env/classify_run.py/fixtures(5종)/pytest(13개) 전 태스크 개별 커밋,
+`phase-04/fixtures/` 는 이제 frozen(wave 2 두 플랜이 read-only 로 소비). `cline` 호출 0회
+(phase 예산 2회 그대로 보존).
+Verified: [04-01] `python3 -m pytest phase-04/tests/ -q` 13/13 통과(2회 연속 실행, fixture
+md5 불변 확인). `classify_run.py` CLI 가 다섯 fixture 전부에 대해 문서화된 exit code 계약대로
+동작(0/2/3/5/7), `--exit-code 134` 오버라이드가 crashed 를 강제함을 실측(signal death != denial).
+실제 Phase 1 32K 캡처(`phase-01/results/2026-08-29T095321Z-44990/ndjson.log`)가
+context_overflow_terminal(exit 5)로 정확히 분류됨. `phase-04/config.env` 가 `SANDBOX_WORKDIR` 를
+`workspace/ALLOWED_REPOS.json` 에서 파생(하드코딩 없음), 임의 cwd 에서도 source 가능함을 확인.
+`EXTRA_ALLOW_PATHS` 미변경(`phase-03/sandbox/config.env` grep 확인), `phase-01/`·`phase-02/`·
+`phase-03/`·`docs/` 무변경(`git diff --stat` 빈 결과).
+[03-04] 실제 `cline` 바이너리를 샌드박스 아래서 정확히 1회 호출(재설치-체이닝 패턴,
 `run_sandboxed.sh -- "$CLINE_BIN" --version`) — 판정 (C) BLOCKED-NEEDS-HUMAN(경계 미확장,
 `EXTRA_ALLOW_PATHS` 변경 없음). `docs/sandbox-whitelist.md` 작성(8절, 한계 절이 자체 섹션,
 Phase 4 인터페이스 계약 포함). phase-close 6개 게이트 전부 동시 PASS(`verify_sandbox.sh` 4/4
@@ -37,7 +47,13 @@ read/write/subprocess/escape-symlink 5건 전부 `DENIED EPERM`으로, `ENOENT` 
 deny-less 프로파일 거부, precheck 우회 시 Group F 4건 전부 `FAIL not-denied`, `--no-canonicalize`
 아래서 F6 실패)이 모두 사양대로 동작. `launchctl print .../com.ohama.flashnext` pid 46573 로
 플랜 전체에서 불변, `cline` 호출 0회.
-Last activity: 2026-08-30 — 03-03-PLAN.md 완료 (`verify_sandbox.sh`: 프로파일 생성+fail-open
+Last activity: 2026-08-29 — 04-01-PLAN.md 완료 (`phase-04/classify_run.py`: 6가지 outcome을
+정확한 우선순위(crashed > sandbox_denied > context_overflow_terminal > tty_approval_rejected >
+run_aborted > success > other)로 판정하는 순수 `classify()` + CLI, `phase-01/parse_result.py` 의
+nested-error 관용구 재사용, fixtures 5종 전부 실제 캡처에서 mining, `phase-04/fixtures/` 를 이제
+frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부 통과. `cline` 호출 0회.)
+
+이전 활동: 2026-08-30 — 03-03-PLAN.md 완료 (`verify_sandbox.sh`: 프로파일 생성+fail-open
 사전점검 → Group F 8케이스+Group P 6케이스(모두 `assert_denied.sh` 직접 호출, 13회) → F8
 `probe_fs.js` 프로브 → criterion-1 Python 체크 → 4개 CRITERION 판정 + `CASES`/`CRASHED`
 줄 + 0/1/2 exit 계약. `--negative-control`/`--negative-control-skip-precheck` 모드와
@@ -48,14 +64,14 @@ Last activity: 2026-08-30 — 03-03-PLAN.md 완료 (`verify_sandbox.sh`: 프로�
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [██████▒▒▒▒] 58% (Phase 3/8 완료, Plan 14/24 누적 추정)
+Progress: [██████▒▒▒▒] 62% (Phase 4/8 진행 중, Plan 15/24 누적 추정)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
-- Average duration: ~15.0 min
-- Total execution time: ~3.5 hours
+- Total plans completed: 15
+- Average duration: ~14.7 min
+- Total execution time: ~3.7 hours
 
 **By Phase:**
 
@@ -64,8 +80,15 @@ Progress: [██████▒▒▒▒] 58% (Phase 3/8 완료, Plan 14/24 누
 | 1 | 6/6 | ~112 min | ~19 min |
 | 2 | 4/4 | ~55 min | ~13.8 min |
 | 3 | 4/4 | ~48 min | ~12 min |
+| 4 | 1/4 | ~10 min | ~10 min |
 
 **Recent Trend:**
+- 04-01 (~10 min, wave 1 — Phase 4's offline foundation plan, zero `cline` invocations by design.
+  Built `phase-04/classify_run.py`'s six-outcome NDJSON classifier reusing Phase 1's nested-error
+  tolerance, mined all five fixtures from real captures (04-RESEARCH.md's live transcripts,
+  phase-01's stored results/fixtures), derived `SANDBOX_WORKDIR` from `ALLOWED_REPOS.json` in
+  `phase-04/config.env`, and froze `phase-04/fixtures/` for the two wave-2 plans to consume
+  read-only. No deviations, no bugs found.)
 - 03-04 (~12 min, wave 3 — Phase 3's final plan. The one budgeted real `cline` invocation under
   the sandbox: first attempt crashed with SIGABRT inside Node's own process bootstrap before any
   cline/Bun code ran (same root cause as 03-03's F8 finding, fixed the same way — capture to an
@@ -348,23 +371,46 @@ Recent decisions affecting current work:
   드리프트(01-04 가 예측한 대로 `check_versions.sh` 자체의 내부 `cline config --json` 호출로 한
   번 더 발생)는 `apply_provider_config.sh` 로 2회 모두 치유, 최종 `verify_config.sh` PASS.
 
+- 04-01: `phase-04/classify_run.py`의 `classify(events, cline_exit_code=None, stderr_text="",
+  allowed_prefixes=None) -> Outcome` 시그니처가 04-02/04-03 이 그대로 의존하는 계약 — 우선순위
+  `crashed > sandbox_denied > context_overflow_terminal > tty_approval_rejected > run_aborted >
+  success > other`, CLI exit code 계약(0/2/3/4/5/6/7, 1=classifier 자체 오류)도 grep 가능하게
+  고정. 모든 outcome 의 boolean 시그널을 독립적으로 계산한 뒤에만 우선순위로 최종 outcome 을
+  고르므로(`signals` 리스트에는 정보 손실 없음), crash 가 실제 EPERM denial 을 덮어써도
+  `signals` 에는 `sandbox_denied` 가 남는다(전용 테스트로 검증).
+- 04-01: `phase-04/fixtures/` 는 이 플랜 종료 시점부터 **frozen** — 04-02/04-03(wave 2) 둘 다
+  `sandbox_denied.ndjson` 을 read-only 로 소비하며 어느 쪽도 이 디렉터리에 쓰지 않는다.
+  `sandbox_denied.ndjson` 자체가 이미 (a) 04-RESEARCH.md Pitfall 3 의 실측 `$HOME/.zshrc` EPERM
+  거부 두 건과 (b) `SANDBOX_INSIDE_CANARY.txt` 에 대한 성공적 in-sandbox `read_files` 양성
+  대조군을 동시에 담고 있어, 04-03 이 이 fixture 하나로 부정/긍정 대조군을 모두 얻는다.
+  provenance 는 `phase-04/fixtures/README.md` 에 파일별로 기록.
+- 04-01: `phase-04/config.env` 는 `phase-03/sandbox/config.env` 관용구를 그대로 복제(BASH_SOURCE
+  기반 PROJECT_ROOT). `SANDBOX_WORKDIR` 는 `workspace/ALLOWED_REPOS.json` 의 `repos[]` 첫 항목을
+  `python3 -c`(jq 미사용)로 파싱해 파생 — 절대 하드코딩하지 않음, 기존 env var 오버라이드는 존중.
+  `EXTRA_ALLOW_PATHS` 무변경(04-01 은 샌드박스를 전혀 확장하지 않음).
+
 ### Pending Todos
 
 없음 (아직 없음)
 
 ### Blockers/Concerns
 
-- **(Phase 4 인계 미해결 항목) `cline` 바이너리는 현재 샌드박스 안에서 기동되지 않는다.** 03-04 의
-  단일 예산 스모크 테스트 결과 = **verdict C (BLOCKED-NEEDS-HUMAN)**: `run_sandboxed.sh -- cline --version`
-  이 경로명이 없는 일반적인 Bun 런타임 오류(`error: An unknown error occurred (Unexpected)`)로
-  비정상 종료한다. 어떤 디렉터리 punch-through 가 부족한지 오류가 말해주지 않아, 플랜이 미리 정한
-  후보 4개 중 무엇도 매칭되지 않았고 따라서 `EXTRA_ALLOW_PATHS` 는 의도적으로 **변경하지 않았다**
-  (경계를 넓히는 것은 사람의 승인 사항). Phase 3 의 로드맵 성공기준 4개는 모두 커널 레벨에서
-  `/bin/cat`·`/bin/sh`·`node` 로 증명됐고 그중 어느 것도 `cline` 을 언급하지 않으므로 이것은 Phase 3
-  의 gap 이 아니다 — 그러나 **Phase 4 성공기준 3("샌드박스 밖 경로를 건드리려는 프롬프트로 실행하면
-  Phase 3 의 화이트리스트에 의해 거부된다")은 실제 에이전트를 이 샌드박스 안에서 돌리는 것을
-  요구하므로, Phase 4 는 이 문제를 먼저 풀어야 한다.** 증거:
-  `phase-03/results/20260829T202633Z-cline-smoke/`, 기록: `docs/sandbox-whitelist.md` §7.
+- **(Phase 4 인계 항목 — 04-RESEARCH.md 가 이미 해결, 04-02/04-03 의 라이브 실행으로 재확인 대기)**
+  03-04 에서 남긴 verdict C(BLOCKED-NEEDS-HUMAN, `cline` 이 샌드박스 안에서 경로명 없는 일반
+  Bun 런타임 오류로 죽던 문제)의 근본 원인이 04-RESEARCH.md 에서 실측으로 확정됐다: **원인은
+  샌드박스 프로파일이 아니라 래퍼 자신의 프로세스 cwd** — `sandbox-exec` 가 `$HOME` 자체에 대한
+  `file-read-metadata` 를 거부하는데, cwd 가 화이트리스트 밖(예: repo 루트)이면 Node/Bun 의 자체
+  startup 이 조상 디렉터리를 stat 하려다 이 deny 에 걸려 cline 코드가 실행되기도 전에 일반
+  오류를 낸다. 고침: 샌드박스 프로세스를 실행하기 *전에* 이미 `ALLOWED_REPOS.json` 안에 있는
+  경로로 실제 `cd`(cline 자신의 `-c/--cwd` 플래그는 별개이며 대체하지 않음) — `EXTRA_ALLOW_PATHS`
+  변경 없이, `workspace/scratch-repo` 에서 `cline --version` → `3.0.53` exit 0 을 라이브로
+  재현 완료. `phase-04/config.env` 의 `SANDBOX_WORKDIR` 가 바로 이 픽스를 위해 존재(04-01 에서
+  구현). **04-01 자신은 `cline` 을 호출하지 않았으므로 이 결론을 재확인하지 않았다** — 04-02(래퍼
+  스크립트)가 실제로 이 cwd 픽스를 적용해 라이브로 재검증해야 한다. 04-RESEARCH.md 는 추가로
+  `--auto-approve false` 헤드리스 모드가 모든 도구 호출을 TTY 게이트로 즉시 거부함(정상 동작,
+  크래시 아님)을 실측했고, criterion 3 증명은 별도의 `--auto-approve true` 전용 검증 스크립트
+  (04-03)로 분리해야 함을 확정했다. 증거: `.planning/phases/04-headless-cli-wrapper/04-RESEARCH.md`
+  Pitfall 1/2/3, `phase-03/results/20260829T202633Z-cline-smoke/`, `docs/sandbox-whitelist.md` §7.
 - (Phase 3 설계 경계, 블로커 아님) 샌드박스는 `(allow default)` + `$HOME` deny + punch-through
   구조라 **`$HOME` 밖은 보호하지 않는다** (`/tmp`, `/opt`, `/usr/local`, 외장 볼륨 등). 전면 차단
   감옥이 아니다. `phase-03/sandbox/config.env`/`run_sandboxed.sh` 헤더와
@@ -387,29 +433,29 @@ Recent decisions affecting current work:
 - (환경 노트, 블로커 아님) Phase 2 가 남긴 상시 게이트 `phase-02/infra/verify_no_regression.sh`
   는 읽기 전용·재실행 가능 — Phase 5(Kanban+Telegram 동시 기동)와 Phase 6(네트워크 노출)은 새
   서비스를 올리기 전/후 이 스크립트를 그대로 호출해 회귀를 잡을 것.
-- **(Phase 4 미해결 항목, 블로커 아님)** 실제 `cline` 바이너리를 `phase-03/sandbox/
-  run_sandboxed.sh` 아래서 그대로 돌리면 일반적인 Bun 런타임 오류("An unknown error occurred
-  (Unexpected)", 경로/errno 미명시)로 실패한다(판정 (C), 03-04). Phase 4 는 이 샌드박스로 실제
-  `cline` 을 감싸기 전에 `dtruss`/`fs_usage`(관리자 권한 필요, 03-04 에서는 시도하지 않음) 등
-  정밀 도구로 어떤 경로가 거부되는지 재현한 뒤, `phase-03/sandbox/config.env` 의
-  `EXTRA_ALLOW_PATHS`(사전 선언된 후보: `$HOME/.npm`, `$HOME/.cache`, `$HOME/.config/cline`,
-  `$HOME/Library/Caches/cline`) 를 좁게 넓힐지 판단할 시간을 예산에 넣어야 한다. ROADMAP 기준
-  2/3 은 `/bin/cat`/`/bin/sh`/`node` 로 커널 수준까지 이미 증명되어 있어 이 항목이 Phase 4
-  착수 자체를 막지는 않는다. 전체 증거: `docs/sandbox-whitelist.md` §7,
-  `phase-03/results/20260829T202633Z-cline-smoke/verdict.txt`.
+- **(SUPERSEDED by 04-RESEARCH.md — kept for history)** 이 항목은 03-04 종료 시점에 "Phase 4 가
+  `dtruss`/`fs_usage` 로 정밀 재현해야 한다"고 남겼던 오픈 아이템이었다. 실제로는 `log stream`
+  (관리자 권한 불필요, `dtruss`/`fs_usage` 불필요)로 04-RESEARCH.md 세션에서 근본 원인을 이미
+  확정했다: 부족한 건 `EXTRA_ALLOW_PATHS` punch-through 가 아니라 래퍼 프로세스의 cwd 였다(위
+  항목 참조). `EXTRA_ALLOW_PATHS` 의 사전 선언된 4개 후보(`$HOME/.npm` 등) 는 격리 테스트에서
+  전부 불필요한 것으로 확인됐고 넓히지 않았다. 남은 작업은 04-02/04-03 이 이 cwd 픽스를 실제
+  래퍼/검증 스크립트에 적용해 라이브로 재확인하는 것뿐이다.
 
 ## Session Continuity
 
-Last session: 2026-08-30
-Stopped at: **03-04-PLAN.md 완료 — Phase 3 전체(03-01~03-04) 종료.** 03-04 는 이 phase 유일의
-budgeted 실제 `cline` 호출을 샌드박스 아래서 실행해 03-RESEARCH.md Open Question 1 에 답했다
-(판정 (C) BLOCKED-NEEDS-HUMAN — 일반적인 Bun startup 오류, 사전 선언된 후보 디렉터리를 명시하지
-않아 경계를 넓히지 않고 Phase 4 로 이월). 첫 시도(플랜 문자 그대로의 리다이렉트 형태)는 03-03 의
-F8 과 동일한 근본 원인으로 Node 부트스트랩 중 SIGABRT 크래시했으나 cline/Bun 코드가 전혀
-실행되지 않아 예산에 포함하지 않았고, 화이트리스트 안 경로로 캡처 대상을 바꿔 재시도한 결과가
-카운트된 유일한 호출이다. `docs/sandbox-whitelist.md` 작성 완료(한계 절이 독립 섹션, Phase 4
-인터페이스 계약 포함). phase-close 6개 게이트 전부 동시 PASS, 서비스 pid 3종(flashnext=46573,
-role-shim=75548, litellm=48525) phase 시작부터 종료까지 불변, 재시작 0회.
-다음 세션은 **Phase 4(헤드리스 CLI 래퍼)** 부터 시작 — `docs/sandbox-whitelist.md` 의 §5(Phase 4
-인터페이스 계약)와 §7(cline 스모크 테스트 미해결 항목)을 먼저 읽을 것.
+Last session: 2026-08-29
+Stopped at: **04-01-PLAN.md 완료.** Phase 4 의 오프라인 기반(wave 1의 유일한 플랜)을 `cline`
+호출 0회로 구축: `phase-04/classify_run.py`(6가지 outcome, 우선순위 고정, Phase 1 의
+nested-error 관용구 재사용), `phase-04/config.env`(`SANDBOX_WORKDIR` 를 `ALLOWED_REPOS.json`
+에서 파생), `phase-04/fixtures/`(5종, 전부 실제 캡처에서 mining, 이제 frozen/read-only),
+`phase-04/tests/test_classify_run.py`(13개 pytest, crash-outranks-denial/nested-vs-flat/
+denial-vs-TTY/model-refusal-is-not-denial 등 phase brief 가 명시한 모든 false-pass 혼동 케이스
+커버). 3개 태스크 모두 개별 커밋, SUMMARY 작성 완료. 04-RESEARCH.md 가 이미 실측으로 밝힌
+"cline 이 샌드박스 안에서 기동되지 않던" Phase 3 인계 블로커의 근본 원인(cwd 픽스, 샌드박스
+확장 불필요)은 이 플랜에서 소비되지 않았다 — 다음 플랜(04-02, 실제 래퍼 스크립트)이 이 cwd 픽스를
+적용해 라이브로 처음 재확인해야 한다.
+다음 세션은 **04-02-PLAN.md(헤드리스 래퍼 스크립트, wave 2)** 부터 시작 — `phase-04/config.env`
+와 `phase-04/classify_run.py` 를 그대로 소비하고, 04-RESEARCH.md Pitfall 1(cwd 픽스)/Pitfall 2
+(`--auto-approve false` 는 헤드리스에서 모든 도구 호출을 즉시 거부함, 정상 동작)를 먼저 읽을 것.
+Phase 4 예산 중 실제 `cline` 호출은 아직 0/2 회 — 04-02/04-03 이 소비할 차례.
 Resume file: None
