@@ -267,7 +267,9 @@ Usage: -k <TELEGRAM_BOT_TOKEN> [options]
   --rpc-address <host:port>   RPC address (env CLINE_RPC_ADDRESS or internal default)
 ```
 
-Recommended real (token-present) invocation shape, for the wrapper to construct once a token is injected: `"$CLINE_BIN" connect telegram -k "$TELEGRAM_BOT_TOKEN" -i --no-tools -P openai-compatible -m flashnext --cwd "$SANDBOX_WORKDIR"`. Env `CLINE_NO_AUTO_UPDATE=1` must still be set (this is still the `cline` binary).
+Recommended real (token-present) invocation shape, for the wrapper to construct once a token is injected: `"$CLINE_BIN" connect telegram -k "$TELEGRAM_BOT_TOKEN" -i --no-tools --provider openai-compatible --model flashnext --cwd "$SANDBOX_WORKDIR"`. Env `CLINE_NO_AUTO_UPDATE=1` must still be set (this is still the `cline` binary).
+
+> **CORRECTION (2026-08-30, plan-check).** An earlier revision of this line read `-P openai-compatible -m flashnext`, copied by analogy from `CLINE_COMMON_FLAGS` in `phase-01/config/cline-invocation.env` — which belongs to the **one-shot `cline <prompt>` surface**, where `-P`/`-m` are genuinely valid. On `cline connect telegram` they are not: verified live that there is **no `-P` short flag at all** (`cline connect telegram -P foobar` → `error: unknown option '-P'`, exit 1, thrown before the `-k` token check is even reached), and **`-m` is bound to `--bot-username`, not `--model`**. The transcribed option table ~20 lines above is authoritative and always was — it lists `--provider <id>` and `--model <id>` with no short aliases. Use the long forms. This mattered: with the short forms, the connector would have hard-failed at argv parsing on the very first launch after a real token was injected, and crash-looped every `ThrottleInterval`.
 
 ## State of the Art
 
