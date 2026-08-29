@@ -1,0 +1,61 @@
+VER-02 hand cross-check: NDJSON `usage.inputTokens` vs flashnext.err `prompt_tokens=`
+=======================================================================================
+
+Decisive results directory: phase-01/results/2026-08-29T095321Z-44990/
+(run 2 of 2 live invocations in Plan 01-06 — FILLER_COUNT=18, run 1 had
+FILLER_COUNT=12 and finished below the trigger, see the sibling results
+directory 2026-08-29T094459Z-42449/ for that run's own evidence)
+
+Oracle A — API/client side (ndjson.log, `--json` stream):
+  Method: max("event.inputTokens") over every agent_event of
+          event.type=="usage" (per-iteration input token count, NOT the
+          cumulative totalInputTokens field).
+  Command:
+    python3 -c "
+    import json
+    peak = 0
+    with open('ndjson.log') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                e = json.loads(line)
+            except Exception:
+                continue
+            if (e.get('type') == 'agent_event'
+                and isinstance(e.get('event'), dict)
+                and e['event'].get('type') == 'usage'):
+                v = e['event'].get('inputTokens')
+                if isinstance(v, (int, float)) and v > peak:
+                    peak = v
+    print(peak)
+    "
+  Result: peak_input_tokens = 30505
+
+Oracle B — server side (flashnext_window.log, a byte-offset slice of the
+live, read-only ~/llm-system/services/logs/flashnext.err bracketing this
+run):
+  Method: max of every `prompt_tokens=<N>` value on `Generation queued:`,
+          `Prefill started:`, `Prefill completed:`, `Request completed:`
+          lines (parse_result.py's own oracle).
+  Command:
+    grep -oE 'prompt_tokens=[0-9]+' flashnext_window.log | sort -t= -k2 -n | tail -1
+  Result: prompt_tokens=30505
+
+Agreement:
+  peak_input_tokens (NDJSON)      = 30505
+  peak_prompt_tokens (server log) = 30505
+  Absolute difference             = 0
+  Difference ratio                = 0.0%  (threshold: 15%)
+  VERDICT: AGREE — well within the 15% disagreement threshold. No oracle
+  "wins" here; both independently confirm the same peak.
+
+Why this matters (VER-02): this number — not Cline's TUI progress bar, which
+this harness never even renders (headless `--json` mode has no bar to read) —
+is what phase-01/parse_result.py's classify() used to reach the
+`server_400_no_compaction` verdict recorded in this directory's verdict.md.
+The peak (30505) exceeded the predicted compaction trigger (26542) by 3,963
+tokens before the server rejected the request at prompt_tokens=31950 (see
+flashnext_window.log's final `Request failed` line) — i.e. Cline had every
+opportunity to auto-compact in that window and did not.
