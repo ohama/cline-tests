@@ -127,9 +127,9 @@
 | SBX-02 | Phase 3 | Complete |
 | SBX-03 | Phase 3 | Complete |
 | SBX-04 | Phase 3 | Complete |
-| HLS-01 | Phase 4 | Pending |
-| HLS-02 | Phase 4 | Pending |
-| HLS-03 | Phase 4 | Pending |
+| HLS-01 | Phase 4 | Complete |
+| HLS-02 | Phase 4 | Complete |
+| HLS-03 | Phase 4 | Complete |
 | SVC-01 | Phase 5 | Pending |
 | SVC-02 | Phase 5 | Pending |
 | SVC-03 | Phase 5 | Pending |
