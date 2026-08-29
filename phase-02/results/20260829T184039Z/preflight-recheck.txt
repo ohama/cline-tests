@@ -1,0 +1,72 @@
+=== timestamp / OS ===
+Sat Aug 29 18:40:39 UTC 2026
+sw_vers -productVersion: 26.3
+uname -r: 25.3.0
+
+=== service state ===
+--- com.ohama.flashnext ---
+	path = /Users/ohama/Library/LaunchAgents/com.ohama.flashnext.plist
+	state = running
+	pid = 8716
+		state = active
+		state = active
+--- com.ohama.role-shim ---
+	path = /Users/ohama/Library/LaunchAgents/com.ohama.role-shim.plist
+	state = running
+	pid = 75548
+		state = active
+		state = active
+--- com.ohama.litellm ---
+	path = /Users/ohama/Library/LaunchAgents/com.ohama.litellm.plist
+	state = running
+	pid = 76864
+		state = active
+		state = active
+
+=== iogpu.wired_limit_mb ===
+iogpu.wired_limit_mb=118784 (expected 118784)
+
+=== listening ports ===
+python3.1  8716 ohama    7u  IPv4  0x9c6ad014e3523d6      0t0  TCP 127.0.0.1:8000 (LISTEN)
+python3.1 75548 ohama    3u  IPv4 0x1ae944cb03fc4653      0t0  TCP 127.0.0.1:8011 (LISTEN)
+python3.1 76864 ohama   13u  IPv4 0x6243d98b2f6adf4a      0t0  TCP *:4000 (LISTEN)
+LITELLM_BIND_MARKER: *:4000 (LAN-exposed)
+
+=== plist sha256 / ProgramArguments / mirror drift ===
+--- com.ohama.flashnext.plist ---
+sha256: efa6d5c479daba479d55cb462c50a1c5b780a937aec23dc2a9583f1178dfa615  /Users/ohama/Library/LaunchAgents/com.ohama.flashnext.plist
+ProgramArguments:
+Array {
+    /Users/ohama/projs/qwen38-flash-next-tests/.venv-mlxvlm-new/bin/python3
+    -m
+    mlx_vlm.server
+    --model
+    /Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4
+    --host
+    127.0.0.1
+    --port
+    8000
+    --draft-model
+    /Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MTP-drafter
+    --draft-kind
+    mtp
+    --max-kv-size
+    32768
+    --log-level
+    INFO
+}
+mirror: identical to /Users/ohama/local-llm-settings/launchagents/com.ohama.flashnext.plist
+
+--- com.ohama.litellm.plist ---
+sha256: 5029e290bf8da975630a9e2d2478e398d713217e67368f294d47bbbe369c372c  /Users/ohama/Library/LaunchAgents/com.ohama.litellm.plist
+ProgramArguments:
+Array {
+    /Users/ohama/agent-stack/venv/bin/litellm
+    --config
+    /Users/ohama/agent-stack/litellm/config.yaml
+    --port
+    4000
+}
+mirror: identical to /Users/ohama/local-llm-settings/launchagents/com.ohama.litellm.plist
+
+PREFLIGHT: PASS

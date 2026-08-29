@@ -5,34 +5,39 @@
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
-**Current focus:** Phase 1 완료 — Phase 2 (인프라 보정) 준비
+**Current focus:** Phase 2 (인프라 보정) 진행 중 — 안전 툴킷 + 사전 베이스라인 완료, 02-02 대기
 
 ## Current Position
 
-Phase: 1 of 8 (Cline 설정 + 압축 검증) — **완료**
-Plan: 06 of 6 in current phase — 전체 완료
-Status: Phase complete
-Last activity: 2026-08-29 — 01-06-PLAN.md 완료 (라이브 회귀 실행 2회, 실측 결과 ②
-server_400_no_compaction 확정, docs/32k-compaction-policy.md 작성). Phase 1 전체 6/6 완료.
+Phase: 2 of 8 (인프라 보정)
+Plan: 01 of 4 in current phase — 완료
+Status: In progress
+Last activity: 2026-08-30 — 02-01-PLAN.md 완료 (config.env/preflight.sh/restart_service.sh/
+verify_queueing.sh 작성, 언캡트 서버 대상 큐잉 베이스라인 실측: interleaved, max_overlap=2).
+라이브 서비스 재시작/부팅/편집 0건 — PID 3개 모두 원본 그대로 유지.
 
-Progress: [██████████] 100% (Phase 1 of 8)
+Progress: [██▒▒▒▒▒▒▒▒] 25% (Phase 2 of 8, Plan 1/4)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: ~19 min
-- Total execution time: ~1.9 hours
+- Total plans completed: 7
+- Average duration: ~17.4 min
+- Total execution time: ~2.05 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 | 6/6 | ~112 min | ~19 min |
+| 2 | 1/4 | ~9 min | ~9 min |
 
 **Recent Trend:**
-- Last 6 plans: 01-06 (~50 min), 01-04 (~35 min), 01-05 (~6 min), 01-02 (~5 min), 01-03 (~5 min), 01-01 (~11 min)
-- Trend: 01-06 ran long for two reasons found live, not scope creep: (1) this session's `cline`
+- Last 7 plans: 02-01 (~9 min), 01-06 (~50 min), 01-04 (~35 min), 01-05 (~6 min), 01-02 (~5 min),
+  01-03 (~5 min), 01-01 (~11 min)
+- Trend: 02-01 ran fast — this plan was deliberately scoped to zero live mutations (scripts +
+  observation only), so there was no restart-wait/poll time and no auth/CLI-drift overhead
+- 01-06 ran long for two reasons found live, not scope creep: (1) this session's `cline`
   binary self-triggers a background auto-update on essentially every invocation regardless of
   `CLINE_NO_AUTO_UPDATE=1`, requiring a tight reinstall-then-immediately-launch pattern to get a
   clean preflight pass at all; (2) the live run surfaced a genuine bug in `parse_result.py`'s
@@ -133,6 +138,24 @@ Recent decisions affecting current work:
   `cline` 호출 없이 바로 `run_regression.sh` 실행"을 한 셸 커맨드로 체이닝하는 패턴을 반복
   사용해 우회. 이후 어떤 플랜이든 `cline` 을 호출할 때 이 재설치-체이닝 오버헤드를 시간 예산에
   포함할 것
+- 02-01: `MAX_NUM_SEQS` 기본값 `1`(완전 직렬화)로 확정 — RESEARCH.md Open Question 1 권고를
+  그대로 채택. 로드맵 성공기준 문구("하나가 즉시 처리되고 다른 하나는 큐잉/지연")를 가장 직접
+  만족하고, 32K 헤드룸이 4.39GB 뿐이라 가장 안전함. `phase-02/infra/config.env` 가 유일한
+  오버라이드 지점이며, `verify_queueing.sh` 의 probe concurrency(`MAX_NUM_SEQS+1`)/cap assertion
+  (`MAX_NUM_SEQS`) 모두 이 값에서 파생되므로 02-02 이후 캡을 2 로 올려도 스크립트 수정 불필요
+- 02-01: 언캡트(현재) 서버 대상 큐잉 베이스라인을 실측 완료 — interleaved 로 확정(`max_overlap=2`
+  == concurrency, `queued_count=0`; 두 번째 요청의 `Prefill started` 가 첫 번째 요청의
+  `Decode completed` 보다 먼저 발생). 증거: `phase-02/results/20260829T183540Z/queueing-before-*`.
+  02-02 의 "after" 실행이 대비할 대상이 확보됨(계획이 허용한 "베이스라인이 이미 직렬화로
+  보일 수도 있다"는 대체 시나리오는 발생하지 않음)
+- 02-01: `restart_service.sh`(bootout→plutil-lint→bootstrap→poll, `CURRENT_STEP` 기반 롤백
+  메시지)를 작성했지만 이 플랜에서는 어떤 서비스에도 호출하지 않음 — 02-02/02-03 이 그대로
+  재사용. `preflight.sh`/`verify_queueing.sh` 실행 전후로 `launchctl print` 를 재확인해
+  flashnext(8716)/role-shim(75548)/litellm(76864) PID 가 전 과정에서 변하지 않았음을 실측 확인
+- 02-01: 플랜 자체의 자동 검증(`grep -cE '\b(kill|pkill|launchctl (load|unload|kickstart))\b'`
+  가 0 이어야 함)이 `restart_service.sh` 상단의 설명 주석에 있던 "kill/pkill" 이라는 단어 자체와
+  매칭되는 것을 발견 — 실제 명령어가 아니라 주석 문구였지만, 검증을 통과시키기 위해 같은 하우스
+  룰을 그 단어들을 쓰지 않는 문장으로 재작성함(동작 변경 없음)
 
 ### Pending Todos
 
@@ -152,10 +175,13 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-08-29
-Stopped at: **Phase 1 전체 완료 (6/6 플랜, 모든 SUMMARY.md 존재).** 01-06 이 마지막 플랜: 라이브
-회귀 2회 실행(12개/18개 filler), parse_result.py 분류기 버그 실측 발견/수정, 최종 결과 ②
-(server_400_no_compaction, peak 30505) 확정, `docs/32k-compaction-policy.md` 작성 완료.
-보호 대상 서비스(flashnext/role-shim/litellm) 는 전 과정에서 재시작 없이 그대로 유지됨.
-다음 세션은 Phase 2(인프라 보정) 시작.
+Last session: 2026-08-30
+Stopped at: **02-01-PLAN.md 완료 (Phase 2, 1/4 플랜).** 안전 툴킷 4개 스크립트
+(`config.env`/`preflight.sh`/`restart_service.sh`/`verify_queueing.sh`) 작성 및 언캡트 서버
+대상 큐잉 베이스라인 실측(interleaved, `max_overlap=2`) 완료. 이 플랜은 라이브 뮤테이션을 전혀
+수행하지 않음 — `restart_service.sh` 는 작성만 되고 호출되지 않았고, 세 보호 대상 서비스
+(flashnext=8716/role-shim=75548/litellm=76864) 는 실행 전후 동일 PID 로 계속 running 확인됨.
+베이스라인 디렉터리: `phase-02/results/20260829T183540Z/` (02-02/02-03/02-04 가 인용해야 함).
+다음 세션은 02-02-PLAN.md(flashnext 플리스트에 `--max-num-seqs 1` 적용 + 실제 재시작 + INF-01
+after 검증)부터 시작.
 Resume file: None
