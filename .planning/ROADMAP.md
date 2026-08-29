@@ -33,10 +33,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 400 으로 막는지를 재실행 가능한 회귀 테스트로 실측 증명한다. 압축이 실제로 돌지 않아도 이
 단계는 실패가 아니다 — "결정적 증거 + 그에 대한 대응 방침 기록"이 목표다.
 **Depends on**: 없음 (첫 단계, Phase 2·3과 병렬 가능)
-**Requirements**: CFG-01, CFG-02, CFG-03, CFG-04, CFG-05, CFG-06, VER-01, VER-02, VER-03, VER-04
+**Requirements**: CFG-01, CFG-02, CFG-03, CFG-04, CFG-05, CFG-06, CFG-07, VER-01, VER-02, VER-03, VER-04
 **Success Criteria** (what must be TRUE):
   1. `providers.json` 에 `flashnext` 프로바이더가 `baseURL: http://localhost:4000/v1`, `models[].contextWindow: 32768`, `maxTokens ≤ 8192` 로 기록돼 있다 (파일을 열어 grep 으로 확인 가능)
-  2. 설정 파일에서 Compact Prompt 가 켜져 있음이 확인된다
+  2. `--compaction` 모드가 명시적으로 고정돼 있고(기본값 의존 아님), Cline 설정이 `flashnext` 만 쓰며 `flashnext-codex` 를 선택할 수 없음이 확인된다
   3. `cline --version` 이 재실행 후에도 `3.0.53` 을 반환하고, 모든 관련 plist 의 `EnvironmentVariables` 에 `CLINE_NO_AUTO_UPDATE=1` 이 존재한다; `kanban` 패키지 버전도 재기동 후 동일 버전으로 확인된다
   4. 재실행 가능한 다중 턴 회귀 테스트 스크립트가 존재하고, 실행하면 서버 로그의 `prompt_tokens` 또는 API `usage`(Cline UI 바가 아님)를 근거로 ① ~26.2k 에서 압축 발동 ② 압축 없이 32,768 에서 서버 400 ③ 그 외, 셋 중 정확히 하나로 판정해 출력한다
   5. 테스트 실행 결과와 그에 대한 대응 방침이 파일로 기록돼 있다 — 결과가 ②(압축 미발동)여도 방침이 문서화돼 있으면 이 기준은 통과한다

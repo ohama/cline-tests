@@ -9,8 +9,13 @@
 
 - [ ] **CFG-01**: Cline 이 `flashnext` 모델을 `http://localhost:4000/v1` 로 호출한다 (`providers.json`, 비대화식 설정)
 - [ ] **CFG-02**: `providers.json` 의 `models[].contextWindow` 가 `32768` 로 기록돼 있다
-- [ ] **CFG-03**: `max_output_tokens` 가 상한(≤ 8192)으로 설정돼, 짧은 프롬프트에서도 `prompt + max_tokens > 32768` 로 400 이 나지 않는다
-- [ ] **CFG-04**: Compact Prompt 가 켜져 있다
+- [ ] **CFG-03**: Cline 이 실제로 보내는 `max_tokens` 값이 서버 로그로 확인되고, `prompt + max_tokens > 32768` 로
+  400 이 나지 않도록 상한이 적용된다 — providers.json 의 `maxTokens` 가 먹지 않는 것으로 관찰됐으므로
+  **먼저 실측하고 대응책을 정한다**
+- [ ] **CFG-04**: `--compaction` 모드가 명시적으로 고정돼 있다 (`agentic|basic|off` 중 택일, 기본값에 기대지 않음)
+  <br>※ 당초의 "Compact Prompt" 는 VS Code 확장 전용이며 CLI 에 존재하지 않음이 확인돼 재정의됨 (2026-08-29)
+- [ ] **CFG-07**: Cline 설정이 `flashnext` 만 쓰고 `flashnext-codex` 별칭을 선택할 수 없다
+  <br>※ 조사 중 codex 별칭 호출이 mlx_vlm.server 를 죽여 29초 다운이 실제 발생
 - [ ] **CFG-05**: `cline` 버전이 `3.0.53` 에 고정되고, 재실행해도 드리프트하지 않는다 (`CLINE_NO_AUTO_UPDATE=1`)
 - [ ] **CFG-06**: `kanban` npm 패키지 버전도 고정되고, 재기동 후 확인 가능하다
 
@@ -110,6 +115,7 @@
 | CFG-04 | Phase 1 | Pending |
 | CFG-05 | Phase 1 | Pending |
 | CFG-06 | Phase 1 | Pending |
+| CFG-07 | Phase 1 | Pending |
 | VER-01 | Phase 1 | Pending |
 | VER-02 | Phase 1 | Pending |
 | VER-03 | Phase 1 | Pending |
@@ -143,9 +149,10 @@
 | DOC-04 | Phase 8 | Pending |
 
 **Coverage:**
-- v1 requirements: 37 total
-- Mapped to phases: 37
+- v1 requirements: 38 total
+- Mapped to phases: 38
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-08-29*
+*Last updated: 2026-08-29 after Phase 1 research — CFG-03 재서술, CFG-04 재정의, CFG-07 신설*
