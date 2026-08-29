@@ -184,6 +184,21 @@ ROADMAP Phase 3 의 네 성공 기준 중 어느 것도 실제 `cline` 이 샌�
 실행되지 않음), config guard 힐 사이클 전체 로그는
 `phase-03/results/20260829T202633Z-cline-smoke/README.md` 와 `verdict.txt` 에 있다.
 
+### 해결됨 (Phase 4)
+
+위 미해결 항목은 Phase 4 에서 해소됐다. 전체 근본 원인, 재현, 고정, 라이브 증거는
+`docs/headless-wrapper.md`(6절 "작업 디렉터리 규칙")에 있다 — 이 절은 그 요약이며, 위 원래
+서술은 지우지 않고 그대로 남긴다.
+
+**실제 근본 원인은 샌드박스 경계가 아니었다.** `An unknown error occurred (Unexpected)` 는
+Bun 런타임이 부트스트랩 도중 죽는 일반 오류였고, 원인은 **샌드박스 프로세스의 OS 수준 작업
+디렉터리(cwd)가 `ALLOWED_REPOS.json` 안에 있지 않았다는 것**이었다 — 추가 punch-through 가
+필요한 문제가 아니었다. `cline -c/--cwd` 는 별개의 추가 플래그일 뿐 실제 프로세스 cwd 를
+대신하지 않는다는 점이 04-RESEARCH.md Pitfall 1 로 확인됐고, 이 cwd 픽스(호출 전에 실제 `cd
+"$SANDBOX_WORKDIR"`)만으로 04-02 의 라이브 실행이 `success`/`run_result` 를 만들어냈다.
+**`EXTRA_ALLOW_PATHS` 는 이 수정 과정에서 전혀 넓혀지지 않았고, 이 phase 종료 시점에도 빈
+값 그대로다** — 고친 것은 초대(invocation) 위생이지 경계 자체가 아니다.
+
 ## 8. 미룬 것
 
 `.planning/research/ARCHITECTURE.md` 가 제안한, Kanban 이 여러 저장소를 다루기 위한
