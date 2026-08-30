@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<!--
+  phase-05/plists/com.ohama.kanban.plist — versioned staging source for
+  ~/Library/LaunchAgents/com.ohama.kanban.plist (installed by
+  phase-05/services/install_services.sh, brought up only by
+  phase-02/infra/restart_service.sh — never hand-loaded).
+
+  Non-obvious choices, recorded here because the dict below must stay
+  plutil-clean and cannot itself carry prose:
+
+  - EnvironmentVariables.PATH includes /opt/homebrew/bin because
+    /opt/homebrew/bin/kanban is a `#!/usr/bin/env node` shebang script —
+    without node reachable on PATH the service dies at exec, before any
+    application code runs.
+  - WorkingDirectory is the sandboxed workdir (workspace/scratch-repo), not
+    the repo root: THE CWD RULE (docs/headless-wrapper.md sec 6) — a
+    launchd-supervised process whose OS-level cwd is not already inside
+    workspace/ALLOWED_REPOS.json dies at Bun/Node startup with a generic,
+    path-less error that looks exactly like a sandbox tightening, not a cwd
+    bug. The wrapper script also `cd`s and asserts this — belt and braces.
+  - StandardOutPath/StandardErrorPath live under ~/.cline/logs/ (NOT the
+    other three house services' ~/llm-system/services/logs/) because
+    launchd opens these fds itself and the sandboxed child inherits them
+    across exec; only ~/.cline is punched read+write through the sandbox
+    profile. Redirecting sandboxed stdio at an unpunched path has produced
+    a bare SIGABRT five separate times in this project — this is the fix,
+    not a style choice.
+  - ThrottleInterval 30 matches THROTTLE_INTERVAL in
+    phase-05/services/config.env, inside the house range (10-60s).
+  - RunAtLoad true is the reboot-persistence mechanism.
+  - Both CLINE_NO_AUTO_UPDATE and KANBAN_NO_AUTO_UPDATE are set —
+    kanban has its own, separate auto-update gate (confirmed via `strings`
+    on the installed binary) that CLINE_NO_AUTO_UPDATE does not cover.
+  - --port 3484 is pinned in ProgramArguments (via the wrapper); kanban's
+    other well-known default port never appears anywhere in this file
+    (ROADMAP Phase 6 criterion 3).
+-->
+<dict>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>CLINE_NO_AUTO_UPDATE</key>
+		<string>1</string>
+		<key>KANBAN_NO_AUTO_UPDATE</key>
+		<string>1</string>
+		<key>PATH</key>
+		<string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+	</dict>
+	<key>KeepAlive</key>
+	<true/>
+	<key>Label</key>
+	<string>com.ohama.kanban</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/bash</string>
+		<string>/Users/ohama/projs/cline-tests/phase-05/services/run_kanban_service.sh</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StandardErrorPath</key>
+	<string>/Users/ohama/.cline/logs/kanban.err</string>
+	<key>StandardOutPath</key>
+	<string>/Users/ohama/.cline/logs/kanban.log</string>
+	<key>ThrottleInterval</key>
+	<integer>30</integer>
+	<key>WorkingDirectory</key>
+	<string>/Users/ohama/projs/cline-tests/workspace/scratch-repo</string>
+</dict>
+</plist>
