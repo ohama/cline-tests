@@ -204,3 +204,89 @@ Bun 런타임이 부트스트랩 도중 죽는 일반 오류였고, 원인은 **
 `.planning/research/ARCHITECTURE.md` 가 제안한, Kanban 이 여러 저장소를 다루기 위한
 `workspace/<repo-name>` 심볼릭 링크 트리는 이 phase 의 네 성공 기준(SBX-01~04) 어디에도
 필요하지 않다. Phase 5 로 미룬다.
+
+## 9. worktree 와 $HOME 메타데이터 결정 (2026-08-31, 08-04)
+
+**재현된 사실 — no-widening 수정은 존재하지 않는다.** Kanban 은 작업(task)마다 `git worktree
+add` 로 별도 워크트리를 만든다. 현재(변경되지 않은) 샌드박스 프로필 아래에서 이건 항상
+`fatal: Invalid path '/Users/ohama': Operation not permitted` 로 실패한다. 세 가지 call-shape
+변형 — 순수 상대경로(이미 허용된 서브패스 안에서도), 이미 허용된 서브패스 아래 여러 단계
+중첩된 경로, 사전에 만들어 둔 빈 타깃 디렉터리 — 을 전부 직접 실행해 동일하게 실패함을
+확인했다. 원인은 `git` 이 관련 경로를 항상 `/Users/ohama` 자체까지 realpath 로 정규화하며,
+이 프로젝트 전체가 `$HOME` 아래에 있는 한 어떤 env var·git 플래그·call-shape 으로도 이
+조상(ancestor) stat 자체를 피할 수 없다는 데 있다.
+
+**정정된 SBPL 규칙.** `gen_sandbox_profile.py` 의 주석과 이 문서 §3 이 지금까지 전제해 온
+"SBPL 은 나중에 쓴 규칙이 이긴다(last-match-wins)"는 절반만 맞다. 같은 연산 키워드끼리는
+여전히 순서가 이긴다. 그러나 `file-read-data` 처럼 더 **구체적인** 연산 키워드에 대한 명시적
+규칙이 있으면, `file-read*` 같은 더 **넓은** wildcard 규칙은 텍스트상 더 나중에 나와도 그
+구체적 연산을 커버하지 못한다 — 순서를 뒤집은 두 실험(둘 다 거부)과 같은 키워드끼리 맞춘 두
+실험(둘 다 허용)을 대조한 4가지 통제 실험으로 직접 증명됐다. 이 프로젝트가 지금까지 실제로
+방출해 온 규칙은 전부 `file-read*`/`file-write*` 같은 넓은 키워드로만 통일돼 있었기 때문에
+이 문제가 이번에 처음 드러났다.
+
+**metadata-only widening 의 정확한 비용(실측, 추정 아님).** `$HOME` 의 deny 를
+`(deny file-read-data (subpath $HOME))` + `(allow file-read-metadata (subpath $HOME))` 로
+바꾸고 `(deny file-write* (subpath $HOME))` 는 그대로 두는 최소 변경을 스크래치 프로필에서
+검증했다: `$HOME` 아래 이름을 이미 아는 모든 경로의 stat 급 메타데이터(존재/크기/권한/소유자/
+세 타임스탬프)가 읽힌다. 반면 파일 **내용**(`cat /Users/ohama/.gitconfig` 은 계속 거부)과
+디렉터리 **나열**(`ls -la /Users/ohama` 도 계속 거부 — 디렉터리 나열은 그 디렉터리 자체에 대한
+`file-read-data` 이므로 이 widening 아래서도 여전히 막힌다. 즉 이미 아는 경로만 stat 할 수 있고
+목록으로 새 경로를 발견할 수는 없다)는 계속 막힌다. 쓰기(`file-write*`)는 이 변경으로 전혀
+건드리지 않는다. 세 가지 `git worktree add` call-shape 변형 전부 이 스크래치 프로필 아래서
+성공했고, 실제로 디스크에 워크트리가 생성됨을 확인했다.
+
+**결정: DECLINED — 경계를 그대로 유지한다.** 사용자가 위 진단과 정확한 비용을 보고 metadata-only
+widening 을 **거절**했다. `phase-03/` 아래 어떤 파일도 이 결정으로 수정되지 않았다(`git diff
+--stat phase-03/` 이 비어 있음으로 확인) — `gen_sandbox_profile.py`, `verify_sandbox.sh`,
+`test_gen_sandbox_profile.py`, `config.env`, `workspace/sandbox.sb` 전부 그대로다.
+`EXTRA_ALLOW_PATHS` 도 계속 비어 있다. 서비스 재시작도 없었다. **결과: `git worktree add` 는 이
+배포에서 계속 사용 불가능하며, Kanban 의 작업별(per-task) 워크트리는 동작하지 않는다.** DOC-02
+(08-05) 는 이걸 명시적으로 "unavailable" 로 기록해야 하고, DOC-02 는 그 결과 **부분적으로만
+충족**된다 — 이 사실은 숨기거나 완화하지 않고 그대로 기록한다.
+
+**적용하지 않은 정확한 변경(재-진단 방지용, 전체 diff).**
+
+`phase-03/sandbox/gen_sandbox_profile.py` 의 `render_profile()` — 현재:
+```python
+lines.append(f'(deny file-read* (subpath "{protected_root}"))')
+lines.append(f'(deny file-write* (subpath "{protected_root}"))')
+for p in allow_paths:
+    lines.append(f'(allow file-read* (subpath "{p}"))')
+    lines.append(f'(allow file-write* (subpath "{p}"))')
+```
+적용하지 않은 대안:
+```python
+lines.append(f'(deny file-read-data (subpath "{protected_root}"))')
+lines.append(f'(allow file-read-metadata (subpath "{protected_root}"))')
+lines.append(f'(deny file-write* (subpath "{protected_root}"))')
+for p in allow_paths:
+    lines.append(f'(allow file-read* (subpath "{p}"))')
+    lines.append(f'(allow file-read-data (subpath "{p}"))')   # 신규 — 없으면 이미 허용된 repo 도 깨진다
+    lines.append(f'(allow file-write* (subpath "{p}"))')
+```
+줄 수 문서화(`Emits exactly 2 + 2 + 2*len(allow_paths) lines`)도 `2 + 3 + 3*len(allow_paths)`
+로 갱신해야 한다.
+
+같이 옮겨가야 할 게이트: `phase-03/sandbox/verify_sandbox.sh:167` 의 `deny_read` 프리체크 —
+현재 `(deny file-read* (subpath "$expected_root"))` 를 그렙(grep)하는데, 위 변경이 적용되면
+이 문자열이 프로필에 더 이상 존재하지 않아 게이트가 매번 하드 실패한다. `deny_read` 를
+`(deny file-read-data (subpath "$expected_root"))` 로 바꾸고, `(allow file-read-metadata
+(subpath "$expected_root"))` 존재 확인을 새로 추가하고, 순서 가드(`deny_line_num` 이후에
+punch-through 라인이 와야 함)를 새 deny 줄과 새 `file-read-data` punch 줄 양쪽에 대해 유지해야
+한다.
+
+같이 깨지는 테스트 네 곳(`phase-03/tests/test_gen_sandbox_profile.py`, 전부 미수정):
+`TestRenderProfile.test_exact_text_and_ordering`(정확한 텍스트를 새 9~11줄 모양으로 다시 써야
+함), `TestRenderProfile.test_allow_punchthroughs_come_after_deny_root`(`lines.index('(deny
+file-read* (subpath "/Users/ohama"))')` 가 `ValueError` 를 던짐 — 새 deny-data 줄을 찾도록
+바꿔야 함), `TestWildcardFormsOnly.test_no_narrow_rule_forms`(`file-read-data` 부재를 단언하는
+현재 로직을 뒤집어야 함), `TestEmptyReposList.test_empty_allow_list_still_denies_root`(새
+deny-data/allow-metadata 쌍을 단언하도록 바꿔야 함). 이 네 곳 외에, 펀치된 각 경로마다
+`(allow file-read-data (subpath "<path>"))` 가 실제로 존재하는지 확인하는 회귀 가드 테스트가
+새로 하나 더 필요하다(없으면 실패 모드가 조용하다 — 예전엔 되던 repo 가 에러 없이 읽기
+거부로 바뀐다).
+
+전체 진단과 4가지 통제 실험의 원문은 `.planning/phases/08-korean-user-manual/08-RESEARCH.md`
+§A6b, 이번 결정의 실행 기록은 `phase-08/results/20260830T193634Z-widening/DECISION.md` 에
+있다.
