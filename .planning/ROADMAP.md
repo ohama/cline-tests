@@ -161,7 +161,7 @@ Plans:
      참고
   2. 각 실행 디렉터리에 프롬프트 원문과 결과가 모두 파일로 저장돼 있다 — `met` (실행된 1개 과제 기준)
   3. 통과/실패와 소요 시간을 정리한 표가 파일로 존재한다 — `met`
-**Plans**: 5 plans
+**Plans**: 10 plans (5 original + 5 gap-closure)
 
 Plans:
 - [x] 07-01-PLAN.md — harbor/cline-bench 설치 + 상시 게이트 프리플라이트 + 과제 인벤토리
@@ -169,6 +169,11 @@ Plans:
 - [x] 07-03-PLAN.md — 스모크 1개 과제 실행 + 분석 + 비용 결정 체크포인트
 - [x] 07-04-PLAN.md — 선택된 과제 순차 실행 + BCH-03 표 + 배치 후 게이트
 - [x] 07-05-PLAN.md — docs/cline-bench.md + phase-close(criteria.md, ROADMAP)
+- [ ] 07-06-PLAN.md — (gap) 주입 실패 원인 진단: 3.0.53 실측 바이너리 + 오프라인 compose 재현 + 컨테이너 프로브 사다리 → DIAGNOSIS.md
+- [ ] 07-07-PLAN.md — (gap) 확인된 메커니즘 적용 + 과제 1개로 증명(flashnext 로그 슬라이스 non-empty, model_turns>0) 또는 terminal 기록 + verify_bench B11
+- [ ] 07-08-PLAN.md — (gap) 실측 비용 제시 + 추가 실행 개수 결정 체크포인트(사람)
+- [ ] 07-09-PLAN.md — (gap) 선택된 과제 순차 실행 + BCH-03 표 재생성 + 배치 후 게이트
+- [ ] 07-10-PLAN.md — (gap) docs/cline-bench.md §4/§9 정정 + criteria2.md + ROADMAP/REQUIREMENTS/STATE 동기화 + 과대주장 감사
 
 ### Phase 8: 한글 사용 매뉴얼
 **Goal**: 실제로 출하된 것을 기준으로 CLI·웹(Kanban)·iPad/iPhone 사용법과 32K 운용 주의사항을
