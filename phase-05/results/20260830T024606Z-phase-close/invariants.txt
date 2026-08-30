@@ -1,0 +1,26 @@
+=== invariants — 2026-08-30T02:48:28Z ===
+
+--- 1. EXTRA_ALLOW_PATHS empty ---
+INVARIANT: PASS extra-allow-paths-empty
+
+--- 2. git diff --stat phase-03/ empty ---
+INVARIANT: PASS git-diff-phase03-empty
+
+--- 3. flashnext/litellm/role-shim pid unchanged (expect 46573/48525/75548) ---
+flashnext pid=46573 litellm pid=48525 role-shim pid=75548
+INVARIANT: PASS core-three-pids-unchanged
+
+--- 4. no launchctl bootstrap helper inside phase-05/{services,plists} (source only; results/ excluded -- it holds this run's own evidence plus prior plans' prose that discusses, but never invokes, this concept) ---
+INVARIANT: PASS no-second-restart-helper
+
+--- 5. port 3000 has neither new service's pid (expect nothing listening) ---
+(nothing listening on 3000)
+INVARIANT: PASS port-3000-empty
+
+--- 6. sync.sh --check exits 0 ---
+  ✅ 실제 시스템과 일치한다
+INVARIANT: PASS sync-check
+
+--- 7. all five phase-05-relevant pids unchanged (kanban 53894, telegram-connect 56669) ---
+kanban pid=53894 telegram-connect pid=56669
+INVARIANT: PASS phase5-pids-unchanged
