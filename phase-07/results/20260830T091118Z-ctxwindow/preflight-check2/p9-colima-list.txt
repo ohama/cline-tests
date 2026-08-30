@@ -1,0 +1,2 @@
+PROFILE    STATUS     ARCH       CPUS    MEMORY    DISK     RUNTIME    ADDRESS
+default    Running    aarch64    4       4GiB      20GiB    docker     

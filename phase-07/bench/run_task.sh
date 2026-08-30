@@ -151,15 +151,43 @@ else
 fi
 mkdir -p "$RUN/meta" "$RUN/prompts/$TASK" "$RUN/logs" "$RUN/jobs" "$RUN/server-log" 2>/dev/null
 
+MANIFEST="$RUN/MANIFEST.txt"
+manifest_add() { printf '%s\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$1" >> "$MANIFEST"; }
+
+# Run-level config.json -- written once per run directory (idempotent:
+# skipped if already present), independent of which task triggers its
+# creation. Names harbor version, cline-bench commit SHA, model spec and
+# BASE_URL so verify_bench.sh (07-02 Task 3, check B1) can confirm this run
+# directory identifies exactly what was run, matching the outer-wrapper
+# shape ARCHITECTURE.md's own layout already anticipated for `bench/runs/`.
+if [ ! -f "$RUN/config.json" ]; then
+  CLINE_BENCH_SHA="$(git -C "$BENCH_REPO" rev-parse HEAD 2>/dev/null || echo unknown)"
+  HARBOR_VERSION_STR="$(harbor --version 2>/dev/null || echo unknown)"
+  python3 - "$RUN/config.json" <<PYEOF
+import json, sys
+data = {
+    "harbor_version": "$HARBOR_VERSION_STR",
+    "cline_bench_commit_sha": "$CLINE_BENCH_SHA",
+    "model_spec": "$HARBOR_MODEL_SPEC",
+    "base_url": "$HARBOR_BASE_URL",
+    "agent": "$HARBOR_AGENT",
+    "cline_version": "$HARBOR_CLINE_VERSION",
+    "cw_injection": "${CW_INJECTION:-unset}",
+    "created_utc": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+}
+with open(sys.argv[1], "w") as f:
+    json.dump(data, f, indent=2)
+    f.write("\n")
+PYEOF
+  manifest_add "config.json (harbor version, cline-bench SHA, model spec, BASE_URL)"
+fi
+
 # Skip-if-done: makes the batch resumable after an interruption without
 # re-burning model time.
 if [ -f "$RUN/meta/$TASK.json" ]; then
   echo "unchanged: $TASK"
   exit 0
 fi
-
-MANIFEST="$RUN/MANIFEST.txt"
-manifest_add() { printf '%s\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$1" >> "$MANIFEST"; }
 
 echo "run_task.sh: RUN=$RUN TASK=$TASK TASK_DIR=$TASK_DIR_FULL"
 
