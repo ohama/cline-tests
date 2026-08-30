@@ -1,0 +1,2 @@
+installed: com.ohama.kanban-proxy
+next: phase-02/infra/restart_service.sh com.ohama.kanban-proxy 18484

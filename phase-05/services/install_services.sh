@@ -71,8 +71,10 @@ if [ "$LABEL" = "$KANBAN_LABEL" ]; then
   PORT="$KANBAN_PORT"
 elif [ "$LABEL" = "$TELEGRAM_LABEL" ]; then
   PORT="none"
+elif [ "$LABEL" = "$KANBAN_PROXY_LABEL" ]; then
+  PORT="$KANBAN_PROXY_PORT"
 else
-  echo "unknown label: $LABEL (expected $KANBAN_LABEL or $TELEGRAM_LABEL)" >&2
+  echo "unknown label: $LABEL (expected $KANBAN_LABEL, $TELEGRAM_LABEL, or $KANBAN_PROXY_LABEL)" >&2
   exit 2
 fi
 

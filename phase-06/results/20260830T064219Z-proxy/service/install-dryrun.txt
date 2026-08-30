@@ -1,0 +1,4 @@
+DRY RUN: would mkdir -p /Users/ohama/projs/cline-tests/workspace/scratch-repo /Users/ohama/.cline/logs /Users/ohama/projs/cline-tests/phase-05/services/backups
+DRY RUN: would plutil -lint /Users/ohama/projs/cline-tests/phase-05/plists/com.ohama.kanban-proxy.plist
+DRY RUN: would cp -p /Users/ohama/projs/cline-tests/phase-05/plists/com.ohama.kanban-proxy.plist /Users/ohama/Library/LaunchAgents/com.ohama.kanban-proxy.plist (no live plist currently installed)
+DRY RUN: next command (not run): phase-02/infra/restart_service.sh com.ohama.kanban-proxy 18484

@@ -1,0 +1,11 @@
+--- phase-06/results/20260830T064219Z-proxy/sync.sh.before	2026-08-30 11:32:10
++++ phase-06/results/20260830T064219Z-proxy/sync.sh.after	2026-08-30 15:48:20
+@@ -26,7 +26,7 @@
+         com.ohama.qwen36-35b com.ohama.qwen122b com.ohama.role-shim-35b
+         com.ohama.claude-proxy com.ohama.hermes-webui com.ohama.hermes-for-web
+         com.openjarvis.gateway com.openjarvis.web
+-        com.ohama.kanban com.ohama.telegram-connect)
++        com.ohama.kanban com.ohama.telegram-connect com.ohama.kanban-proxy)
+ 
+ diffs=0
+ for pair in "${FILES[@]}"; do

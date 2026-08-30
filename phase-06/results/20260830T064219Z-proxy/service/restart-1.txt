@@ -1,0 +1,4 @@
+
+teardown confirmed after 0s
+.
+RESTART OK: com.ohama.kanban-proxy pid=19310 port=18484 waited=2s

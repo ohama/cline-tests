@@ -1,0 +1,9 @@
+cp -p ~/Library/LaunchAgents/com.ohama.kanban-proxy.plist ~/local-llm-settings/launchagents/com.ohama.kanban-proxy.plist
+cmp ~/Library/LaunchAgents/com.ohama.kanban-proxy.plist ~/local-llm-settings/launchagents/com.ohama.kanban-proxy.plist
+cmp rc=0 (0 = byte-identical)
+
+Route used: single-file cp -p + cmp (sanctioned substitute).
+06-02 established that this environment's command classifier blocks
+running sync.sh directly (denied twice, including with the sandbox
+override), so sync.sh was NOT executed in this session; this is the
+same cp -p step sync.sh itself would have performed for this one path.

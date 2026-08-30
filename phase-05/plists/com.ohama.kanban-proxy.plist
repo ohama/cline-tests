@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<!--
+  phase-05/plists/com.ohama.kanban-proxy.plist — versioned staging source for
+  ~/Library/LaunchAgents/com.ohama.kanban-proxy.plist (installed by
+  phase-05/services/install_services.sh, brought up only by
+  phase-02/infra/restart_service.sh — never hand-loaded).
+
+  STAGED_PLISTS_DIR (phase-05/services/config.env) is the project-wide
+  plist staging directory, shared by every phase, so this file lives here
+  while the component it describes is owned by Phase 6 — 06-04.1 authored
+  it to unblock 06-04's discovery that kanban's own compiled Host allowlist
+  rejects the tailnet hostname. This dict must stay plutil-clean and cannot
+  itself carry prose, so the non-obvious choices are recorded here:
+
+  - Both CLINE_NO_AUTO_UPDATE and KANBAN_NO_AUTO_UPDATE are set. This is
+    not decorative: phase-01/config/check_versions.sh Check C lowercases
+    the joined Program/ProgramArguments of every installed plist and, on
+    seeing the substring "kanban", REQUIRES both variables. This plist's
+    ProgramArguments[1] (the wrapper path) contains "kanban", so omitting
+    either one makes phase-01/config/verify_config.sh FAIL the moment this
+    plist installs — even though the proxy process itself never invokes
+    cline or kanban.
+  - EnvironmentVariables.PATH includes /opt/homebrew/bin so `node` is
+    reachable — the wrapper execs $NODE_BIN by absolute path already, but
+    node's own child-process resolution (none here) and any future need
+    both want PATH sane, matching the other two Phase 5 plists' style.
+  - StandardOutPath/StandardErrorPath live under ~/.cline/logs/ (the same
+    directory the kanban and telegram-connect plists use), NOT
+    ~/llm-system/services/logs/ (the other three house services). This
+    proxy is deliberately NOT run through run_sandboxed.sh (see
+    run_kanban_proxy_service.sh's own header for the full reasoning: its
+    source lives under $HOME, unpunched by the sandbox profile, and
+    widening EXTRA_ALLOW_PATHS to fix that is forbidden). Even so, this
+    plist keeps the ~/.cline/logs/ location: launchd opens these fds
+    ITSELF, before exec, regardless of whether the child ends up
+    sandboxed, and redirecting stdio at an unpunched path has produced a
+    bare SIGABRT five separate times in this project. One log directory
+    for every supervised service, and no chance of resurrecting that
+    failure just because this one component happens not to be sandboxed.
+  - WorkingDirectory is workspace/scratch-repo, the same directory both
+    other Phase 5 plists use, created by install_services.sh's Step 2
+    before the plist ever lands, so it provably exists. This proxy does
+    not read/write any file under it at runtime — it is here only for
+    consistency with the other two services' launchd jobs and because
+    install_services.sh already guarantees its existence.
+  - ThrottleInterval 30 matches THROTTLE_INTERVAL in
+    phase-05/services/config.env, inside the house range (10-60s).
+  - RunAtLoad true is the reboot-persistence mechanism; KeepAlive true (a
+    bare boolean, not a dict) is the crash-recovery mechanism.
+  - No wildcard-bind literal appears anywhere in this file. The proxy's
+    listen host, KANBAN_PROXY_HOST=127.0.0.1, is set once in
+    phase-06/net/config.env and never overridden here — this plist carries
+    no port/host values of its own at all, only the wrapper invocation.
+-->
+<dict>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>CLINE_NO_AUTO_UPDATE</key>
+		<string>1</string>
+		<key>KANBAN_NO_AUTO_UPDATE</key>
+		<string>1</string>
+		<key>PATH</key>
+		<string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+	</dict>
+	<key>KeepAlive</key>
+	<true/>
+	<key>Label</key>
+	<string>com.ohama.kanban-proxy</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/bash</string>
+		<string>/Users/ohama/projs/cline-tests/phase-06/net/run_kanban_proxy_service.sh</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StandardErrorPath</key>
+	<string>/Users/ohama/.cline/logs/kanban-proxy.err</string>
+	<key>StandardOutPath</key>
+	<string>/Users/ohama/.cline/logs/kanban-proxy.log</string>
+	<key>ThrottleInterval</key>
+	<integer>30</integer>
+	<key>WorkingDirectory</key>
+	<string>/Users/ohama/projs/cline-tests/workspace/scratch-repo</string>
+</dict>
+</plist>

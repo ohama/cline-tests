@@ -1,0 +1,16 @@
+--- Check A: version pins (CFG-05, CFG-06) ---
+FAIL: cline --version reports '3.0.60', expected '3.0.53'
+OK: kanban --version reports pinned 0.1.70
+FAIL: cline npm package.json reports '3.0.60', expected '3.0.53'
+OK: kanban npm package.json version matches pinned 0.1.70
+--- Check B: no drift across invocations (the actual CFG-05 claim) ---
+FAIL: cline --version drifted to '3.0.60' after an intervening invocation (expected '3.0.53')
+OK: kanban --version still reports 0.1.70 on a second invocation
+--- Check C: plist EnvironmentVariables (CFG-05 for launchd surfaces, both auto-update gates) ---
+OK: plist 'com.ohama.kanban-proxy' (/Users/ohama/Library/LaunchAgents/com.ohama.kanban-proxy.plist) carries CLINE_NO_AUTO_UPDATE=1
+OK: plist 'com.ohama.kanban-proxy' (/Users/ohama/Library/LaunchAgents/com.ohama.kanban-proxy.plist) carries KANBAN_NO_AUTO_UPDATE=1
+OK: plist 'com.ohama.kanban' (/Users/ohama/Library/LaunchAgents/com.ohama.kanban.plist) carries CLINE_NO_AUTO_UPDATE=1
+OK: plist 'com.ohama.kanban' (/Users/ohama/Library/LaunchAgents/com.ohama.kanban.plist) carries KANBAN_NO_AUTO_UPDATE=1
+OK: plist 'com.ohama.telegram-connect' (/Users/ohama/Library/LaunchAgents/com.ohama.telegram-connect.plist) carries CLINE_NO_AUTO_UPDATE=1
+---
+check_versions: FAIL (3 problems)
