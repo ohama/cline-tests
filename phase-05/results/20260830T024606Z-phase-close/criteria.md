@@ -83,5 +83,11 @@ Reboot half (proxy only — see `docs/services.md` §4 for the full honest state
 
 ## Task 3 decision
 
-Decision id: _pending — recorded verbatim here and in `docs/services.md` §4 by the continuation
-agent once the user has chosen._
+Decision id: `accept-proxy`, selected 2026-08-30. The human accepted the proxy evidence recorded
+above for criterion 1's reboot clause; no reboot was performed. What was accepted, what it does
+and does not prove, and why a real reboot was skipped (`iogpu.wired_limit_mb` reset requiring a
+privileged `sysctl` re-apply before `preflight.sh` passes again) is recorded verbatim in
+`docs/services.md` section 4, "Task 3 결정 기록". Criterion 1's reboot half therefore remains
+**proxy-evidenced, not observed** even after this decision — the decision settles how the phase
+proceeds, it does not upgrade the evidence itself. No wording anywhere in this repo claims that
+a reboot actually happened.
