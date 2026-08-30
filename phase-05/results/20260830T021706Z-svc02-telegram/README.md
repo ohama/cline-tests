@@ -60,7 +60,10 @@ via `install_services.sh com.ohama.telegram-connect` (`installed:` then
 
 - `both-up-inf03.txt` / `both-up-inf03/inf03-verdict.txt` — `INF03: PASS`.
 - `both-up-sandbox.txt` — `verify_sandbox.sh`: `CASES 16/16`, `CRASHED 0`,
-  `VERIFY_SANDBOX: PASS`, exit 0.
+  `VERIFY_SANDBOX: PASS`, exit 0. Full run artifacts (fixtures/probes/
+  verdict) captured into `both-up-sandbox/` (moved here from the script's
+  own default `phase-03/results/` output dir, same convention as 05-04's
+  `pre-sandbox/`).
 
 ### SVC-03 pid tables for BOTH services
 
