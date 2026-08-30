@@ -1,0 +1,8 @@
+/Users/ohama/projs/cline-tests/phase-03/fixtures/allowed/canary.txt ALLOWED-CANARY-OK
+/Users/ohama/projs/cline-tests/phase-03/fixtures/allowed/subdir/deep.txt ALLOWED-DEEP-OK
+/Users/ohama/projs/cline-tests/phase-03/fixtures/allowed/escape-link -> /Users/ohama/projs/cline-tests/phase-03/fixtures/forbidden
+/Users/ohama/projs/cline-tests/phase-03/fixtures/allowed_extra_should_not_match/canary.txt PREFIX-TRAP-CANARY
+/Users/ohama/projs/cline-tests/phase-03/fixtures/forbidden/secret.txt FORBIDDEN-SECRET
+/Users/ohama/projs/cline-tests/phase-03/fixtures/symlinked/real/canary.txt CANON-CANARY-OK
+/Users/ohama/projs/cline-tests/phase-03/fixtures/symlinked/link -> /Users/ohama/projs/cline-tests/phase-03/fixtures/symlinked/real
+/Users/ohama/projs/cline-tests/phase-03/fixtures/allowed_repos.test.json {"repos": ["/Users/ohama/projs/cline-tests/phase-03/fixtures/allowed", "/Users/ohama/projs/cline-tests/phase-03/fixtures/symlinked/link"]}
