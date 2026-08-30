@@ -1,0 +1,37 @@
+# candidates.txt -- resolved CANDIDATE_SUFFIXES (07-01 Task 3)
+
+## 왜 이 목록인가
+
+CANDIDATE_SUFFIXES in phase-07/bench/config.env came from 07-RESEARCH.md's
+research-derived preference order (Pitfall 4), written before this task's own
+live measurement of bench/cline-bench/tasks/. Every non-excluded task present
+in the live, measured inventory (tasks.tsv) but absent from that shortlist is
+listed below, with its measured memory_mb/timeout_sec/difficulty and the
+reason: not-shortlisted (no measured disqualifier -- simply outside the
+research-derived preference order). One further task IS excluded on a
+measured disqualifier (a memory_mb figure) -- see README.md's 'Excluded
+task' section in this same inventory directory for that one, rather than
+naming it here.
+
+- v-edit-workspace-tests (dir=01k8mwgj1z6kr0a7q59r6ek2ar-v-edit-workspace-tests, difficulty=hard, memory_mb=2048, timeout_sec=3600.0): not-shortlisted: no measured disqualifier, simply outside the research-derived preference order.
+- orpc-client-migration (dir=01k8251zmv88p0hztas8htr6hw-orpc-client-migration, difficulty=medium, memory_mb=2048, timeout_sec=3600.0): not-shortlisted: no measured disqualifier, simply outside the research-derived preference order.
+- aenet-pytorch-pbc-neighborlist (dir=01k8ywgx6x7swdcse588426wc5-aenet-pytorch-pbc-neighborlist, difficulty=hard, memory_mb=4096, timeout_sec=3600.0): not-shortlisted: no measured disqualifier, simply outside the research-derived preference order.
+
+## Resolved candidates (in CANDIDATE_SUFFIXES preference order)
+
+01k7a12sd1nk15j08e6x0x7v9e-discord-trivia-approval-keyerror <- SMOKE_SUFFIX
+01k6zz0nyj31znwsevx4sn6zb2-telegram-plugin-refactor
+01k6rkmyfgbwpvf7h81gh4pdgd-intercept-axios-error-handling
+01k8tymr1s3ndn1rzsrzy6dnfm-healthchain-prefetch-removal
+01k6n26zm27ffa7qqbcx0prrnw-police-sync-segfault
+01k6kr5hbv8za80v8vnze3at8h-every-plugin-api-migration
+01kbb2wvw29szdjwcs76265t3k-filmarchiver
+01kavebeh9sq8w7veabgyqnksh-suave-http-data-bleeding
+UNRESOLVED orpc-client-workspace
+
+UNRESOLVED count: 1
+SMOKE_SUFFIX resolved: yes
+
+Excluded-task confirmation (present in tasks.tsv, absent from this file's
+candidate list, measured memory_mb reason recorded) lives in README.md.
+

@@ -1,0 +1,21 @@
+TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
+Images          13        8         7.045GB   5.404GB (76%)
+Containers      12        7         676.1MB   675.8MB (99%)
+Local Volumes   11        11        2.848GB   0B (0%)
+Build Cache     10        0         48.4MB    17.44MB
+
+--- colima list ---
+PROFILE    STATUS     ARCH       CPUS    MEMORY    DISK     RUNTIME    ADDRESS
+default    Running    aarch64    4       4GiB      20GiB    docker     
+
+--- alpine:3.20 image size ---
+alpine:3.20 13.7MB
+
+--- disk free (df -g PROJECT_ROOT) ---
+before-this-task's-alpine-pull (captured pre-Task-3, from Task 1's install-time reading): 1186 GiB
+after alpine pull: /dev/disk3s5      1858  634      1186    35% 2505307 12438108640    0%   /System/Volumes/Data
+
+--- expected additional footprint (not yet incurred by this plan) ---
+Each selected cline-bench task builds its own image from environment/Dockerfile
+when actually run (a later plan's harbor run, not this one) -- budget several GiB
+per task beyond the ~10 MB alpine:3.20 base image pulled by this probe.

@@ -1,0 +1,10 @@
+{"data":[{"id":"flashnext","object":"model","created":1677610602,"owned_by":"openai"},{"id":"flashnext-codex","object":"model","created":1677610602,"owned_by":"openai"},{"id":"qwen-local","object":"model","created":1677610602,"owned_by":"openai"},{"id":"qwen-35b","object":"model","created":1677610602,"owned_by":"openai"},{"id":"qwen-122b","object":"model","created":1677610602,"owned_by":"openai"},{"id":"qwen-122b-claude","object":"model","created":1677610602,"owned_by":"openai"},{"id":"qwen-35b-claude","object":"model","created":1677610602,"owned_by":"openai"},{"id":"qwen-122b-codex","object":"model","created":1677610602,"owned_by":"openai"}],"object":"list"}
+HTTP 200
+
+--- probe metadata (recorded by 07-01 Task 3) ---
+wildcard-bind count before: 3
+wildcard-bind count after:  3
+port :4000 bind before: COMMAND     PID  USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+python3.1 48525 ohama   13u  IPv4 0x2c77df9a84349cb7      0t0  TCP 127.0.0.1:4000 (LISTEN)
+port :4000 bind after:  COMMAND     PID  USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+python3.1 48525 ohama   13u  IPv4 0x2c77df9a84349cb7      0t0  TCP 127.0.0.1:4000 (LISTEN)

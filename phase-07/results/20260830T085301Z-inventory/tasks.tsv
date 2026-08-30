@@ -1,0 +1,13 @@
+dir_name	suffix	difficulty	memory_mb	timeout_sec	instruction_lines
+01k6zz0nyj31znwsevx4sn6zb2-telegram-plugin-refactor	telegram-plugin-refactor	easy	2048	1800.0	18
+01kbb2wvw29szdjwcs76265t3k-filmarchiver	filmarchiver	medium	2048	1800.0	18
+01k8mwgj1z6kr0a7q59r6ek2ar-v-edit-workspace-tests	v-edit-workspace-tests	hard	2048	3600.0	20
+01k7a12sd1nk15j08e6x0x7v9e-discord-trivia-approval-keyerror	discord-trivia-approval-keyerror	easy	2048	1800.0	30
+01k6n26zm27ffa7qqbcx0prrnw-police-sync-segfault	police-sync-segfault	medium	2048	1800.0	49
+01k8251zmv88p0hztas8htr6hw-orpc-client-migration	orpc-client-migration	medium	2048	3600.0	60
+01k6rkmyfgbwpvf7h81gh4pdgd-intercept-axios-error-handling	intercept-axios-error-handling	medium	2048	1800.0	67
+01k6kr5hbv8za80v8vnze3at8h-every-plugin-api-migration	every-plugin-api-migration	medium	2048	1800.0	156
+01kavebeh9sq8w7veabgyqnksh-suave-http-data-bleeding	suave-http-data-bleeding	medium	4096	1800.0	15
+01k8tymr1s3ndn1rzsrzy6dnfm-healthchain-prefetch-removal	healthchain-prefetch-removal	medium	4096	1800.0	16
+01k8ywgx6x7swdcse588426wc5-aenet-pytorch-pbc-neighborlist	aenet-pytorch-pbc-neighborlist	hard	4096	3600.0	51
+01k7x8zyeg4nzx6ehdb0fg5gfx-terraform-azurerm-deployment-stacks	terraform-azurerm-deployment-stacks	hard	8192	3600.0	26
