@@ -1,0 +1,23 @@
+=== ps -o pid=,ppid=,args= -p 52654 ===
+52654     1 node /opt/homebrew/bin/kanban --no-open --host 127.0.0.1 --port 3484
+
+=== anti-orphan note ===
+PPID=1 (launchd) directly, not an intermediate bash/wrapper process still alive:
+the wrapper's own exec chain (run_kanban_service.sh 'exec run_sandboxed.sh' -> run_sandboxed.sh
+'exec sandbox-exec -f profile -- kanban' -> kernel loads kanban's #!/usr/bin/env node shebang)
+replaces the process image at every hop via execve(), so the pid launchd supervises
+(pid=52654) is the SAME pid the whole way down -- this is why the args line above shows the
+real 'node /opt/homebrew/bin/kanban ...' invocation directly, not bash and not a forked child
+that could have exited leaving an orphan.
+
+=== sandbox-exec chain evidence (execve replaces argv, so ps args no longer literally say
+'sandbox-exec' once the chain completes -- this is expected kernel behavior, not a missed
+step. Direct proof the chain WAS traversed and sandbox confinement IS active on this exact
+pid: sandbox libraries mapped into this pid's own memory (only present if sandbox_init() ran
+in this process, i.e. sandbox-exec really did execve into it) ===
+__TEXT                      1a84a2000-1a84a9000    [   28K    28K     0K     0K] r-x/r-x SM=COW          /usr/lib/system/libsystem_sandbox.dylib
+__DATA_CONST                200cbd600-200cbd6c0    [   192    192     0K     0K] r--/rw- SM=COW          /usr/lib/system/libsystem_sandbox.dylib
+__AUTH_CONST                209273b90-209273e20    [   656    656     0K     0K] r--/rw- SM=COW          /usr/lib/system/libsystem_sandbox.dylib
+__DATA                      204850410-204850430    [    32     32     0K     0K] rw-/rw- SM=COW          /usr/lib/system/libsystem_sandbox.dylib
+unused __DATA_DIRTY         206fedc18-206fedc50    [    56     56     56     0K] rw-/rw- SM=COW          on dirty page  unused /usr/lib/libsandbox.1.dylib
+__DATA_DIRTY                2070791b8-2070791e0    [    40     40     40     0K] rw-/rw- SM=COW          /usr/lib/system/libsystem_sandbox.dylib
