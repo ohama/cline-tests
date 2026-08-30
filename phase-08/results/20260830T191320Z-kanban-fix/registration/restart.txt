@@ -1,0 +1,4 @@
+o
+teardown confirmed after 2s
+.
+RESTART OK: com.ohama.kanban pid=36175 port=3484 waited=2s

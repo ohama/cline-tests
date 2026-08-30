@@ -1,0 +1,38 @@
+resolved allow list: ['/Users/ohama/projs/cline-tests/workspace/scratch-repo', '/Users/ohama/.cline']
+Cleaning up...
+[kanban] Could not load workspace state for /Users/ohama/projs/cline-tests during shutdown cleanup. No git repository detected at /Users/ohama/projs/cline-tests
+Cleanup done.
+resolved allow list: ['/Users/ohama/projs/cline-tests/workspace/scratch-repo', '/Users/ohama/.cline']
+Cleaning up...
+[kanban] Could not load workspace state for /Users/ohama/projs/cline-tests during shutdown cleanup. No git repository detected at /Users/ohama/projs/cline-tests
+Cleanup done.
+resolved allow list: ['/Users/ohama/projs/cline-tests/workspace/scratch-repo', '/Users/ohama/.cline']
+Cleaning up...
+[kanban] Could not load workspace state for /Users/ohama/projs/cline-tests during shutdown cleanup. No git repository detected at /Users/ohama/projs/cline-tests
+Cleanup done.
+resolved allow list: ['/Users/ohama/projs/cline-tests/workspace/scratch-repo', '/Users/ohama/.cline']
+Cleaning up...
+Cleanup done.
+resolved allow list: ['/Users/ohama/projs/cline-tests/workspace/scratch-repo', '/Users/ohama/.cline']
+
+=== kanban.log ===
+Binding to host 127.0.0.1.
+Using runtime port 3484.
+Cline Kanban running at http://127.0.0.1:3484/cline-tests
+Press Ctrl+C to stop.
+Binding to host 127.0.0.1.
+Using runtime port 3484.
+Cline Kanban running at http://127.0.0.1:3484/cline-tests
+Press Ctrl+C to stop.
+Binding to host 127.0.0.1.
+Using runtime port 3484.
+Cline Kanban running at http://127.0.0.1:3484/cline-tests
+Press Ctrl+C to stop.
+Binding to host 127.0.0.1.
+Using runtime port 3484.
+Cline Kanban running at http://127.0.0.1:3484/cline-tests
+Press Ctrl+C to stop.
+Binding to host 127.0.0.1.
+Using runtime port 3484.
+Cline Kanban running at http://127.0.0.1:3484/scratch-repo
+Press Ctrl+C to stop.

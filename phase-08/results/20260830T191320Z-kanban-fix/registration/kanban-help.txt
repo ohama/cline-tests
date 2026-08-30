@@ -1,0 +1,123 @@
+=== kanban --help ===
+Usage: kanban [options] [command]
+
+Local orchestration board for coding agents.
+
+Options:
+  -v, --version            Output the version number
+  --host <ip>              Host IP to bind the server to (default: 127.0.0.1).
+  --port <number|auto>     Runtime port (1-65535) or auto.
+  --no-open                Do not open browser automatically.
+  --skip-shutdown-cleanup  Do not move sessions to done or delete task worktrees
+                           on shutdown.
+  --https                  Enable HTTPS. Requires both --cert and --key.
+  --cert <path>            Path to a TLS certificate PEM file (implies HTTPS).
+  --key <path>             Path to a TLS private key PEM file (implies HTTPS).
+  --update                 Update Kanban to the latest published version and
+                           exit.
+  --no-passcode            Disable auto-generated passcode for remote access
+                           (for advanced users behind a reverse proxy).
+  -h, --help               display help for command
+
+Commands:
+  task|tasks               Manage Kanban board tasks from the CLI.
+  hooks                    Runtime hook helpers for agent integrations.
+  mcp                      Deprecated compatibility command.
+  update                   Update Kanban to the latest published version.
+
+Runtime URL: http://127.0.0.1:3484
+=== kanban project --help ===
+Usage: kanban [options] [command]
+
+Local orchestration board for coding agents.
+
+Options:
+  -v, --version            Output the version number
+  --host <ip>              Host IP to bind the server to (default: 127.0.0.1).
+  --port <number|auto>     Runtime port (1-65535) or auto.
+  --no-open                Do not open browser automatically.
+  --skip-shutdown-cleanup  Do not move sessions to done or delete task worktrees
+                           on shutdown.
+  --https                  Enable HTTPS. Requires both --cert and --key.
+  --cert <path>            Path to a TLS certificate PEM file (implies HTTPS).
+  --key <path>             Path to a TLS private key PEM file (implies HTTPS).
+  --update                 Update Kanban to the latest published version and
+                           exit.
+  --no-passcode            Disable auto-generated passcode for remote access
+                           (for advanced users behind a reverse proxy).
+  -h, --help               display help for command
+
+Commands:
+  task|tasks               Manage Kanban board tasks from the CLI.
+  hooks                    Runtime hook helpers for agent integrations.
+  mcp                      Deprecated compatibility command.
+  update                   Update Kanban to the latest published version.
+
+Runtime URL: http://127.0.0.1:3484
+=== kanban task --help ===
+Usage: kanban task|tasks [options] [command]
+
+Manage Kanban board tasks from the CLI.
+
+Options:
+  -h, --help            display help for command
+
+Commands:
+  list [options]        List Kanban tasks for a workspace.
+  create [options]      Create a task in backlog.
+  update [options]      Update an existing task.
+  trash|done [options]  Move a task or an entire column to done and clean up
+                        task workspaces.
+  delete [options]      Permanently delete a task or every task in a column.
+  link [options]        Link two tasks so one task waits on another.
+  unlink [options]      Remove an existing dependency link.
+  start [options]       Start a task session and move task to in_progress.
+  help [command]        display help for command
+=== kanban task create --help ===
+Usage: kanban task create [options]
+
+Create a task in backlog.
+
+Options:
+  --title <text>                    Task title.
+  --prompt <text>                   Task prompt text.
+  --project-path <path>             Workspace path. Defaults to current
+                                    directory workspace.
+  --base-ref <branch>               Task base branch/ref.
+  --start-in-plan-mode [value]      Set plan mode (true|false). Flag-only
+                                    implies true.
+  --auto-review-enabled [value]     Enable auto-review behavior (true|false).
+                                    Flag-only implies true.
+  --auto-review-mode <mode>         Auto-review mode: commit | pr.
+  --agent-id <id>                   Agent override: cline | claude | codex |
+                                    droid | gemini | opencode | default.
+  --cline-provider <id>             Cline provider override (e.g. anthropic,
+                                    openai, cline). Use "default" for workspace
+                                    default.
+  --cline-model <id>                Cline model override (e.g.
+                                    claude-sonnet-4-20250514). Use "default" for
+                                    workspace default.
+  --cline-reasoning-effort <level>  Cline reasoning effort override: default |
+                                    low | medium | high | xhigh.
+  -h, --help                        display help for command
+=== kanban task start --help ===
+Usage: kanban task start [options]
+
+Start a task session and move task to in_progress.
+
+Options:
+  --task-id <id>         Task ID.
+  --project-path <path>  Workspace path. Defaults to current directory
+                         workspace.
+  -h, --help             display help for command
+=== kanban task list --help ===
+Usage: kanban task list [options]
+
+List Kanban tasks for a workspace.
+
+Options:
+  --project-path <path>  Workspace path. Defaults to current directory
+                         workspace.
+  --column <column>      Filter column: backlog | in_progress | review | done.
+                         trash is also accepted.
+  -h, --help             display help for command

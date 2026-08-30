@@ -1,0 +1,1 @@
+REGISTERED: kanban task create succeeded (task id=9bf8f, workspacePath=/Users/ohama/projs/cline-tests/workspace/scratch-repo), kanban task list confirms the task with no 'is not added to Kanban yet' error, HTTP 200, no post-restart gitconfig denial in logs.

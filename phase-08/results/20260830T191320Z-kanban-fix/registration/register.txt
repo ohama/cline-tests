@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "task": {
+    "id": "9bf8f",
+    "column": "backlog",
+    "workspacePath": "/Users/ohama/projs/cline-tests/workspace/scratch-repo",
+    "title": "08-01 registration probe",
+    "prompt": "phase-08 plan 01 registration probe",
+    "baseRef": "main",
+    "startInPlanMode": false,
+    "autoReviewEnabled": false,
+    "autoReviewMode": "commit"
+  }
+}
+register exit=0
