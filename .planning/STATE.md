@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
-**Current focus:** **Phase 6 (네트워크 노출) 진행 중 — 06-02 완료(2/6 plans).** Phase 5 는 7개
+**Current focus:** **Phase 6 (네트워크 노출) 진행 중 — 06-03 완료(3/6 plans).** Phase 5 는 7개
 플랜 전부 완료 — wave 1(05-01/05-02, 병렬: launchd 래퍼+readiness 게이트,
 check_versions.sh/restart_service.sh 확장), wave 2(05-03: 등록 전 포그라운드 증명), wave
 3(05-04: kanban 최초 등록), wave 4(05-05: telegram-connect 등록, 빈 토큰), wave 5(05-06: SVC-05
@@ -32,14 +32,53 @@ Tailscale 핸들러 3개 + `AllowFunnel` 키 1개) 기록, `phase-06/net/config.
 결정적으로 kill, exec cline 절대 도달 안 함) + 실제 launchd 기동 실패 실증(임시 라이브 plist 로
 토큰 있음/id 없음 유도 → `restart_service.sh --timeout 90` RC=1 → 90초/9샘플 전부
 connect-telegram 프로세스 0, `ABORT-NET04` 1→4 로 누적) → 원복(byte-identical 확인, `RESTART OK
-pid=99162`) → 네 상시 게이트 전부 재통과. 다음은 **06-03**.
+pid=99162`) → 네 상시 게이트 전부 재통과. **06-03 완료**: `setup_tailscale_serve.sh`(355줄,
+--check 기본값/--apply, P1-P6 사전점검(P4 가 베이스라인 정확 일치를 강제하는 fail-closed 핵심) +
+정확히 한 개 변경 명령 + Q1-Q5 사후단언, 롤백을 헤더+모든 실패 경로에 인쇄) +
+`verify_network.sh`(472줄, house `CHECK:`+0/1/2 계약, NET-01~04 를 아우르는 15개 체크, 상시
+게이트로 Phase 7/8 이 상속) 작성. Task 3 오프라인 자가검증: (A) `--check` 순수 no-op 실측(전후
+`serve-status` byte-identical), (B) 닫힌 상태에서 게이트 실행 시 exit 1·`CASES 13/15`·FAIL id
+집합이 정확히 `{kanban-serve-entry-present, tailnet-https-200}` 두 개뿐임을 실측(비공허성
+증명), (C) 안전-critical 체크 두 개(`no-new-public-exposure`/`preexisting-serve-entries-
+untouched`)에 가짜 기댓값을 주입해 각각 FAIL 을 실측 유도한 뒤 실제 config/베이스라인 무변경
+확인, (D) 핀 고정된 롤백 구문(`serve --https=<port> off`)을 스크래치 포트(59999, 미점유 재확인)
+대상으로 실제 실행 — "handler does not exist" (성공 신호, 파싱 에러 아님) 확인, 전후
+`serve-status` byte-identical(기존 핸들러 3개+공용키 1개 생존). 편차 1건(Rule 1 — Task 1 자체
+검증 중 `set +e`/`set -e` 토글이 스크립트 나머지 구간의 errexit 를 의도치 않게 재점화해 P3 의
+정상적인 `lsof` 논제로 종료가 스크립트를 조용히 죽이던 버그 발견 — 토글 전부 제거하고 `$?` 직접
+캡처로 수정). 라이브 tailscale 변경 명령은 이 플랜 전체에서 스크래치 포트 롤백 프로브 1회뿐(무변경
+byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `verify_services.sh` 15/15
+재확인, `EXTRA_ALLOW_PATHS` 빈 값, `cline` 호출 0회. 세 커밋(`36fdb61`/`776f4b2`/`2ffbc20`) 모두
+개별, SUMMARY 작성 완료(`06-03-SUMMARY.md`). 다음은 **06-04**.
 
 ## Current Position
 
 Phase: 6 of 8 (네트워크 노출) — **진행 중**
-Plan: 02 of 6 in current phase — 완료 (SUMMARY 작성 완료). **Phase 5(7/7 플랜) 완전 종료 후
-Phase 6 시작, 06-01/06-02 완료.**
-Status: 06-02 완료 — **NET-04: run_telegram_service.sh 프리플라이트 가드 + 실제 launchd 기동
+Plan: 03 of 6 in current phase — 완료 (SUMMARY 작성 완료). **Phase 5(7/7 플랜) 완전 종료 후
+Phase 6 시작, 06-01/06-02/06-03 완료.**
+Status: 06-03 완료 — **`setup_tailscale_serve.sh`/`verify_network.sh` 오프라인 저작 + 자가검증,
+네트워크 상태 무변경.** Task 1: `setup_tailscale_serve.sh`(355줄) — `--check`(기본값, no-op)/
+`--apply`, 사전점검 P1-P6(P4=베이스라인 정확 일치 강제하는 fail-closed 핵심, P6=멱등성
+단락), 정확히 한 개 변경 명령(`serve --bg --https=8444 http://127.0.0.1:3484`), 사후단언
+Q1-Q5(Q1=신규 공용노출 키 금지, Phase 6 최우선 단언), 롤백(`$TS_SERVE_ROLLBACK_CMD`, `reset`
+아님)을 헤더+모든 실패 경로에 인쇄. Task 2: `verify_network.sh`(472줄) — house `CHECK:`+0/1/2
+계약, NET-01~04 를 아우르는 15개 체크(공용노출 미신규/기존 핸들러 3개 byte-identical/kanban
+Serve 엔트리·tailnet HTTPS 200/loopback 바인드·LAN 거부/포트 3000 미바인딩/NET-04 가드 정적+행동
+증명/repo 전역 와일드카드·공용노출 서브커맨드 스윕/4종 pid 안정성), Phase 7/8 이 상속할 상시
+게이트. Task 3 오프라인 자가검증(`phase-06/results/20260830T055744Z-authoring/`): (A) `--check`
+순수 no-op 실측(전후 `serve-status` byte-identical), (B) 닫힌 상태에서 게이트 실행 시 exit
+1·`CASES 13/15`·FAIL id 집합이 정확히 `{kanban-serve-entry-present, tailnet-https-200}` 두 개뿐
+(비공허성 증명), (C) 안전-critical 체크 두 개에 가짜 기댓값 주입해 각각 FAIL 실측 유도 후 실제
+config/베이스라인 무변경 확인, (D) 핀 고정 롤백 구문을 스크래치 포트(59999)에 실제 실행 —
+"handler does not exist"(성공 신호) 확인, 전후 `serve-status` byte-identical. 편차 1건(Rule 1 —
+`set +e`/`set -e` 토글이 스크립트 나머지 구간 errexit 를 의도치 않게 재점화해 P3 의 정상적인
+`lsof` 논제로 종료가 스크립트를 조용히 죽이던 버그를 Task 1 자체 검증 중 발견, 토글 전부 제거하고
+`$?` 직접 캡처로 수정). 라이브 tailscale 변경 명령은 스크래치 포트 롤백 프로브 1회뿐(무변경
+byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `verify_services.sh` 15/15
+재확인, `EXTRA_ALLOW_PATHS` 빈 값, `cline` 호출 0회. 세 커밋(`36fdb61`/`776f4b2`/`2ffbc20`) 모두
+개별, SUMMARY 작성 완료(`06-03-SUMMARY.md`).
+
+이전: 06-02 완료 — **NET-04: run_telegram_service.sh 프리플라이트 가드 + 실제 launchd 기동
 실패 실증 후 원복.** Task 1: `run_telegram_service.sh`에 가드(빈 토큰 idle 분기 뒤,
 `wait_for_upstream.sh` 앞 — 토큰 있음+`TELEGRAM_ALLOWED_USER_ID` 없음/빈값/비숫자면
 `ABORT-NET04` + exit 1) 삽입, exec 줄에 `--allowed-user-id "$ALLOWED_ID"`(풀네임) 추가,
@@ -307,7 +346,21 @@ read/write/subprocess/escape-symlink 5건 전부 `DENIED EPERM`으로, `ENOENT` 
 deny-less 프로파일 거부, precheck 우회 시 Group F 4건 전부 `FAIL not-denied`, `--no-canonicalize`
 아래서 F6 실패)이 모두 사양대로 동작. `launchctl print .../com.ohama.flashnext` pid 46573 로
 플랜 전체에서 불변, `cline` 호출 0회.
-Last activity: 2026-08-30 — 06-01-PLAN.md 완료 (`phase-06/net/config.env` +
+Last activity: 2026-08-30 — 06-03-PLAN.md 완료 (`phase-06/net/setup_tailscale_serve.sh` +
+`phase-06/net/verify_network.sh` + `phase-06/results/20260830T055744Z-authoring/`: 06-04 가 실행할
+라이브 저작/정책 스크립트 두 개를 오프라인으로 저작하고 자가검증, 네트워크 상태 무변경. Task 1:
+`setup_tailscale_serve.sh` — `--check`(기본값)/`--apply`, P1-P6 사전점검(P4=베이스라인 정확
+일치 fail-closed 핵심, P6=멱등성), 정확히 한 개 변경 명령, Q1-Q5 사후단언(Q1=신규 공용노출 키
+금지, Phase 6 최우선 단언), 롤백을 헤더+모든 실패 경로에 인쇄. Task 2: `verify_network.sh` —
+NET-01~04 아우르는 15개 체크, house `CHECK:`+0/1/2 계약, Phase 7/8 상속용 상시 게이트. Task 3:
+(A) `--check` no-op 실측, (B) 닫힌 상태 게이트 실행 시 exit 1·FAIL id 정확히 2개(비공허성
+증명), (C) 안전-critical 체크 2개 강제 FAIL 유도 후 실제 파일 무변경 확인, (D) 핀 고정 롤백
+구문을 스크래치 포트(59999)에 실제 실행해 "handler does not exist"(성공 신호) 확인, 전후
+`serve-status` byte-identical. 편차 1건(Rule 1 — `set +e`/`set -e` 토글이 errexit 를 의도치
+않게 재점화하던 버그, Task 1 자체 검증 중 발견/수정). 세 커밋(`36fdb61`/`776f4b2`/`2ffbc20`)
+모두 개별, SUMMARY 작성 완료(`06-03-SUMMARY.md`).)
+
+이전 활동: 2026-08-30 — 06-01-PLAN.md 완료 (`phase-06/net/config.env` +
 `phase-06/net/expected_serve_baseline.json` + `phase-06/results/20260830T051403Z-baseline/`:
 Phase 6 의 첫 플랜, 변경 전 베이스라인 + 상수 고정. Task 1: 네 상시 게이트
 (`verify_services.sh` 15/15, `verify_no_regression.sh` INF03:PASS, `verify_sandbox.sh` 4/4
@@ -428,8 +481,8 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [█████████▒] 87% (Phase 5/8 완료, Phase 6/8 진행 중 — 06-01/06-02(2/6 plans) 완료, Plan
-27/31 누적 추정 — 다음은 06-03)
+Progress: [█████████▒] 90% (Phase 5/8 완료, Phase 6/8 진행 중 — 06-01/06-02/06-03(3/6 plans) 완료,
+Plan 28/31 누적 추정 — 다음은 06-04)
 
 ## Performance Metrics
 
@@ -1317,7 +1370,30 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **06-02-PLAN.md 완료 — NET-04 wrapper 프리플라이트 가드 + 실제 launchd 기동 실패
+Stopped at: **06-03-PLAN.md 완료 — `setup_tailscale_serve.sh`/`verify_network.sh` 오프라인 저작 +
+자가검증, 네트워크 상태 무변경.** Task 1: `setup_tailscale_serve.sh`(355줄) — `--check`(기본값)/
+`--apply`, P1-P6 사전점검(P4=베이스라인 정확 일치 fail-closed 핵심, P6=멱등성 단락), 정확히 한 개
+변경 명령, Q1-Q5 사후단언(Q1=신규 공용노출 키 금지), 롤백을 헤더+모든 실패 경로에 인쇄(`36fdb61`).
+Task 2: `verify_network.sh`(472줄) — NET-01~04 아우르는 15개 체크, house `CHECK:`+0/1/2 계약,
+Phase 7/8 상속용 상시 게이트(`776f4b2`). Task 3: (A) `--check` no-op 실측, (B) 닫힌 상태 게이트
+실행 시 exit 1·FAIL id 정확히 `{kanban-serve-entry-present, tailnet-https-200}` 두 개뿐(비공허성
+증명), (C) 안전-critical 체크 2개 강제 FAIL 유도 후 실제 config/베이스라인 무변경 확인, (D) 핀
+고정 롤백 구문을 스크래치 포트(59999)에 실제 실행 — "handler does not exist"(성공 신호) 확인,
+전후 `serve-status` byte-identical, 기존 핸들러 3개+공용키 1개 생존(`2ffbc20`). 편차 1건(Rule 1
+— `set +e`/`set -e` 토글이 스크립트 나머지 구간 errexit 를 의도치 않게 재점화해 P3 의 정상적인
+`lsof` 논제로 종료가 스크립트를 조용히 죽이던 버그, Task 1 자체 검증 중 발견, 토글 전부 제거 +
+`$?` 직접 캡처로 수정). 라이브 tailscale 변경 명령은 스크래치 포트 롤백 프로브 1회뿐, pid 5종
+불변, 포트 3000/8444 미바인딩, `verify_services.sh` 15/15 재확인, `EXTRA_ALLOW_PATHS` 빈 값,
+`cline` 호출 0회. 세 커밋(`36fdb61`/`776f4b2`/`2ffbc20`) 모두 개별, SUMMARY 작성
+완료(`06-03-SUMMARY.md`), STATE.md 갱신 완료.
+**다음: 06-04(라이브 --apply — 이 프로젝트에서 가장 위험한 단일 동작).** Phase 6 인계 항목:
+`setup_tailscale_serve.sh --apply`/`verify_network.sh` 두 스크립트 모두 저작+오프라인 검증 완료,
+핀 고정 롤백 구문이 이 tailscale 버전(1.96.4)에서 실제로 수락됨이 스크래치 포트로 증명됨(재파생
+불필요), port 3000 은 계속 미바인딩 상태를 유지해야 함(기존 :8443 Funnel 이 여전히 그쪽으로
+포워딩), 토큰/id 두 슬롯 모두 여전히 빈 값.
+
+이전 세션: 2026-08-30
+정지 지점: **06-02-PLAN.md 완료 — NET-04 wrapper 프리플라이트 가드 + 실제 launchd 기동 실패
 실증 후 원복.** Task 1: `run_telegram_service.sh`에 가드(빈 토큰 idle 분기 뒤,
 `wait_for_upstream.sh` 앞 — 토큰 있음+`TELEGRAM_ALLOWED_USER_ID` 없음/빈값/비숫자면
 `ABORT-NET04`+exit 1) 삽입, exec 줄에 `--allowed-user-id "$ALLOWED_ID"` 추가,
