@@ -54,12 +54,59 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 
 ## Current Position
 
-Phase: 6 of 8 (네트워크 노출) — **진행 중, BLOCKED**
-Plan: 04 of 6 in current phase — **BLOCKED, 사람 결정 대기.** Task 1 완료(커밋), Task 2 는
-계획대로 즉시 롤백 후 리포트(커밋), Task 3 는 미도달(네트워크가 열려 있어야 실행 가능한
-플랜이라 전제조건 미충족). 네트워크는 06-01 베이스라인과 byte-identical 하게 닫혀 있고 네
-상시 게이트 전부 재통과 — 안전한 정지 상태.
-Status: 06-04 시도 — **`tailscale serve` 엔트리를 실제로 열어 NET-01/02/03 서버측 실측을
+Phase: 6 of 8 (네트워크 노출) — **진행 중**
+Plan: 04.1 of ~8 in current phase (누적 계획: 01/02/03/04/04.1/04.2/05/06) — **완료(3/3
+tasks, 개별 커밋).** 06-04 가 발견한 빠진 연결고리(kanban 자체 Host 화이트리스트)를
+loopback 전용 Host/Origin 재작성 프록시로 메꿈. **이 플랜 전체에서 네트워크는 CLOSED 유지 —
+`tailscale serve` 변경성 명령 0회.**
+Status: 06-04.1 완료 — **kanban 자체 컴파일된 Host 화이트리스트(`getAllowedHostHeaders()`,
+오버라이드 플래그/env 전혀 없음)를 우회하는 작은 loopback 프록시 `com.ohama.kanban-proxy`
+(node 빌트인만 사용, npm 의존성 0, `127.0.0.1:18484`)를 저작·등록·전 과정 loopback 증명
+완료.** Task 1(커밋 `3c50158`): `phase-05/services/config.env`에 `KANBAN_PROXY_LABEL`/
+`KANBAN_PROXY_PORT`(정체성, additive), `phase-06/net/config.env`에 프록시 행동 상수(허용
+Host 4개/Origin 3개 목록, 업스트림 재작성 타깃) 추가하고 `TS_SERVE_TARGET` 을 프록시로
+재조준(단 한 줄 수정으로 `setup_tailscale_serve.sh`/`verify_network.sh` check 4 양쪽 다
+갱신). `kanban_host_proxy.js` 작성 — Host **와** Origin 둘 다 재작성(설치된 `dist/cli.js`
+직접 읽어 `evaluateCors` 가 모든 non-GET 요청과 모든 WebSocket 업그레이드에서 Origin 불일치를
+거부함을 확인, Host 만으로는 불충분함을 실측으로도 재확인 — 헤더 하나만 재작성한
+direct-to-kanban 호출은 여전히 403), `upgrade` 이벤트 명시적 처리(kanban UI 가
+`/api/runtime/ws` 등을 WebSocket 으로 여는 것을 번들에서 확인), kanban 자체
+`rejectRequest`/`rejectSocket` 과 byte-compatible 한 403 을 **직접** 반환(업스트림 전달 없음).
+loopback 바인드를 3중 계층으로 강제(JS 자체가 host env 가 정확히 127.0.0.1 아니면 기동 거부
++ wrapper 가 exec 전에 재확인 + verify_network.sh 자체 lsof 체크). 스크래치 포트(18485)
+핸드런 스모크 테스트: tailnet Host 로 200(실제 board markup), 잘못된 Host/Origin 각각 403,
+`UPGRADE status=101`, LAN 거부(curl rc=7), 종료 후 포트 완전 해제 — 5종 라이브 pid 전부 무관.
+Task 2(커밋 `fae7e3b`): `run_kanban_proxy_service.sh`(의도적으로 `run_sandboxed.sh` 미사용 —
+소스가 `$HOME` 아래 sandbox.sb 미펀치 경로라 EXTRA_ALLOW_PATHS 확장 필요해짐, 금지; 의도적으로
+업스트림 준비 대기 없음 — 프록시는 kanban 다운 중에도 포트를 잡아야 함)와
+`com.ohama.kanban-proxy.plist`(`plutil -lint` OK, 양쪽 `*_NO_AUTO_UPDATE` 전부, 로그는
+`~/.cline/logs/`) 작성. `install_services.sh` 에 세 번째 라벨 분기 additive 추가, dry-run→실제
+설치→멱등 재실행(`unchanged:`) 3단 증명. `restart_service.sh` 로만 기동(`RESTART OK`),
+포트-바인드 경로는 자체 pid-안정성 샘플링을 안 하므로 이 태스크가 독자적으로 10초+ 간격 두
+샘플 동일 pid 확인, `lsof` 로 loopback 단일 라인·와일드카드 0건 확인, 실제 서비스 포트(18484)
+대상 프로브 매트릭스 재실행(200/403×2/101 전부 재확인). `launchctl bootout` → 직접 폴링으로
+teardown 확인(비동기이므로) → `restart_service.sh` 재기동 → 새 pid 도 10초+ 안정 — 5종 라이브
+pid 전 과정 불변. SVC-05: `~/local-llm-settings/sync.sh` 의 `LABELS` 배열에 라벨 추가(additive,
+before/after/diff 캡처) — 06-02 가 이미 확인한 명령 분류기 차단 때문에 `sync.sh` 자체는 실행
+안 하고 승인된 대체 경로(단일 파일 `cp -p` + `cmp`)로 대신함. `verify_config.sh` exit 0.
+Task 3(커밋 `50e7932`): `verify_network.sh` 를 15→24개 체크로 확장(16-24: 프록시 정착
+상태·loopback 바인드·Host/Origin 재작성·자체 403 거부 2종·WebSocket 101·LAN 거부·pin-gate·
+서버측 tailnet-websocket-101 네거티브 컨트롤), check 13 에 `--include='*.js'` 추가(기존
+이스케이프된 니들은 byte-identical 유지). `setup_tailscale_serve.sh` 에 preflight P5b 추가
+(프록시가 이미 tailnet Host 로 200 을 반환하지 않으면 apply 자체를 거부). `verify_network.sh`
+연속 2회 실행 — `CHECK:` 라인 집합 완전 동일, 양쪽 다 **`CASES 21/24`**, FAIL 집합 정확히
+`{kanban-serve-entry-present, tailnet-https-200, tailnet-websocket-101}`(06-04.2 가 엔트리를
+열어야만 PASS 가능한 세 개) — 계획서가 예측한 시그니처와 정확히 일치. 기존 닫힌-상태
+시그니처였던 `CASES 13/15` 는 이제 역사적 값, **`CASES 21/24` 가 새 기준.** 4개 상시 게이트
+전부 재통과(`verify_services.sh` 15/15 — 의도적으로 미확장, `verify_no_regression.sh`
+INF03:PASS, `verify_sandbox.sh` 16/16 CRASHED 0, `verify_config.sh` exit 0), pid 5종 불변(신규
+프록시 pid 는 예상된 추가분), `EXTRA_ALLOW_PATHS` 빈 값, `git diff phase-01..04` 없음, 포트
+3000/8444 미바인딩, `tailscale serve status` 여전히 베이스라인과 content-equal(8444 매치
+0건), `cline` 호출 0회. 편차 0건(Rule 1-4 해당 없음) — 계획대로 완전 실행. 다음: 06-04.2 가
+이 이미 검증된 프록시 앞에서 `setup_tailscale_serve.sh --apply` 한 번만 실행하면 됨(P5b 가
+이미 자동으로 사전 검증). 3개 커밋 모두 개별, SUMMARY 작성 완료(`06-04.1-SUMMARY.md`).
+
+이전: 06-04 BLOCKED — **`tailscale serve` 엔트리를 실제로 열어 NET-01/02/03 서버측 실측을
 시도했으나, kanban 자체의 Host-헤더 화이트리스트가 tailnet 호스트명을 거부(HTTP 403
 `Host not allowed.`)함을 발견해 즉시 롤백.** Task 1(커밋 `f94f3bd`): 변경 직전 재확인(모두
 OK) 후 `setup_tailscale_serve.sh --apply` 로 정확히 한 개 명령(`serve --bg --https=8444
@@ -386,7 +433,29 @@ read/write/subprocess/escape-symlink 5건 전부 `DENIED EPERM`으로, `ENOENT` 
 deny-less 프로파일 거부, precheck 우회 시 Group F 4건 전부 `FAIL not-denied`, `--no-canonicalize`
 아래서 F6 실패)이 모두 사양대로 동작. `launchctl print .../com.ohama.flashnext` pid 46573 로
 플랜 전체에서 불변, `cline` 호출 0회.
-Last activity: 2026-08-30 — 06-04-PLAN.md BLOCKED (`phase-06/results/20260830T060638Z-opening/`:
+Last activity: 2026-08-30 — 06-04.1-PLAN.md 완료 (`phase-06/net/kanban_host_proxy.js` +
+`phase-06/net/probe_proxy.js` + `phase-06/net/run_kanban_proxy_service.sh` +
+`phase-05/plists/com.ohama.kanban-proxy.plist` + `phase-06/results/20260830T064219Z-proxy/`:
+06-04 가 발견한 kanban 자체 Host 화이트리스트 블로커를 loopback 전용 Host/Origin 재작성
+프록시(`com.ohama.kanban-proxy`, node 빌트인만, `127.0.0.1:18484`)로 우회, 전 과정 loopback
+증명, 네트워크는 플랜 내내 CLOSED. Task 1(`3c50158`): config.env 확장 + `TS_SERVE_TARGET`
+프록시로 재조준, Host **와** Origin 둘 다 재작성(직접 실측: 헤더 하나만 재작성해도 여전히
+403), `upgrade` 명시 처리, kanban 자체와 byte-compatible 한 403 을 직접 반환(업스트림
+미전달), loopback 바인드 3중 계층 강제, 스크래치 포트 스모크(200/403×2/101/LAN 거부) 전부
+확인. Task 2(`fae7e3b`): 의도적 미샌드박스+무-업스트림-대기 wrapper 와 plist 작성,
+`install_services.sh` additive 3번째 라벨, `restart_service.sh` 로만 기동 후 독자적 10초+
+pid-안정성 2회 샘플(포트-바인드 경로는 자체 미제공), 실제 포트(18484) 프로브 재확인,
+`bootout`→자체 폴링 teardown→재기동 전 과정 5종 pid 불변, SVC-05 sync.sh LABELS additive
+확장(명령분류기 차단으로 `cp -p`+`cmp` 대체 경로). Task 3(`50e7932`): `verify_network.sh`
+15→24 체크(16-24, 프록시 8종 + 서버측 네거티브 컨트롤), `setup_tailscale_serve.sh` preflight
+P5b 추가. 연속 2회 실행 `CHECK:` 라인 완전 동일, **`CASES 21/24`** 양쪽, FAIL 집합 정확히
+`{kanban-serve-entry-present, tailnet-https-200, tailnet-websocket-101}` — 계획 예측과 정확
+일치, 기존 `CASES 13/15` 는 이제 역사적 값. 4개 상시 게이트 전부 재통과, pid 5종 불변(신규
+프록시 pid 는 예상된 추가), `EXTRA_ALLOW_PATHS` 빈 값, `git diff phase-01..04` 없음, 포트
+3000/8444 미바인딩, `tailscale serve status` content-equal, `cline` 0회. 편차 0건. 세 커밋
+모두 개별, SUMMARY 작성 완료(`06-04.1-SUMMARY.md`).)
+
+이전 활동: 2026-08-30 — 06-04-PLAN.md BLOCKED (`phase-06/results/20260830T060638Z-opening/`:
 네트워크를 실제로 열었으나 kanban 자신의 Host-헤더 화이트리스트가 tailnet 호스트명을 거부(HTTP
 403 `Host not allowed.`)함을 발견, 계획의 명시적 지시대로 즉시 롤백 후 정지·보고 — 사람 결정
 대기. Task 1(`f94f3bd`): 변경 직전 재확인 전부 OK → `setup_tailscale_serve.sh --apply` 로 정확히
@@ -537,16 +606,19 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [█████████▒] 90% (Phase 5/8 완료, Phase 6/8 진행 중 — 06-01/06-02/06-03(3/6 plans) 완료,
-06-04 는 BLOCKED(Task 1/2 실행·커밋됨, 네트워크는 안전하게 닫힌 채 사람 결정 대기, plan 자체는
-미완료로 카운트), Plan 28/31 누적 추정 — 다음은 06-04 재개(결정 후) 또는 병행 가능한 다른 작업)
+Progress: [████████▊·] 88% (Phase 5/8 완료, Phase 6/8 진행 중 — 06-01/06-02/06-03/06-04.1(4/8
+plans, 06-04.1 이 04.2 를 위해 04 와 05 사이에 새로 삽입됨) 완료, 06-04 는 BLOCKED 상태로
+plan-count 에서는 미완료 취급(사람이 이미 host-rewrite-proxy 선택 완료, 06-04.1 이 그 결정을
+구현), 06-04.2/06-05/06-06 미착수, Plan 29/33 누적 추정 — 다음은 06-04.2(이미 검증된 프록시
+앞에서 Serve 엔트리 실제 개통))
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 27
+- Total plans completed: 29 (06-04 excluded — BLOCKED, not counted as completed; its 35 min is
+  tracked separately below)
 - Average duration: ~15.0 min
-- Total execution time: ~6.7 hours
+- Total execution time: ~7.25 hours
 
 **By Phase:**
 
@@ -557,9 +629,24 @@ Progress: [█████████▒] 90% (Phase 5/8 완료, Phase 6/8 진�
 | 3 | 4/4 | ~48 min | ~12 min |
 | 4 | 4/4 | ~42 min | ~10.5 min |
 | 5 | 7/7 | ~116 min | ~16.6 min |
-| 6 | 2/6 | ~31 min | ~15.5 min |
+| 6 | 4/8 | ~64 min (+35 min BLOCKED 06-04, uncounted above) | ~16 min |
 
 **Recent Trend:**
+- 06-04.1 (~13 min, Phase 6's inserted plan — the Host/Origin-rewriting loopback proxy that
+  unblocks 06-04. Built `kanban_host_proxy.js` (node builtins only, zero deps) rewriting both
+  Host and Origin (confirmed live: rewriting only one still 403s), handling WebSocket `upgrade`
+  explicitly (101 proven at both the scratch port and the real service port), and self-issuing
+  kanban-byte-compatible 403s without ever forwarding upstream. Registered `com.ohama.kanban-proxy`
+  exclusively through `restart_service.sh`, independently proved a >=10s same-pid stability window
+  (the port-bound restart path doesn't sample this itself), and proved a full take-down/restore
+  cycle. Extended `verify_network.sh` from 15 to 24 checks and re-established the closed-state
+  negative-control signature at `CASES 21/24` (up from the historical `CASES 13/15`), with the
+  FAIL set landing exactly on the three checks that can only pass once 06-04.2 opens the entry.
+  Zero deviations. Three commits (`3c50158`/`fae7e3b`/`50e7932`) all individual.)
+- 06-03 (~20 min, Phase 6's third plan — offline authoring of `setup_tailscale_serve.sh` and
+  `verify_network.sh`, the live-apply and standing-gate scripts 06-04/06-04.2 would go on to run,
+  with zero live network changes beyond one scratch-port rollback-syntax probe. Three commits
+  (`36fdb61`/`776f4b2`/`2ffbc20`) all individual.)
 - 06-02 (~16 min, Phase 6's second plan — the NET-04 wrapper pre-flight guard. Added the guard to
   `run_telegram_service.sh` (after the empty-token idle branch, before `wait_for_upstream.sh`:
   refuses with `ABORT-NET04`/exit 1 when a token is present but `TELEGRAM_ALLOWED_USER_ID` is
@@ -1427,7 +1514,44 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **06-04-PLAN.md BLOCKED — 실제로 네트워크를 열어봤으나 kanban 자체의 Host-헤더
+Stopped at: **06-04.1-PLAN.md 완료 (3/3 tasks, 개별 커밋) — kanban 자체 Host 화이트리스트를
+우회하는 loopback 전용 Host/Origin 재작성 프록시 `com.ohama.kanban-proxy` 저작·등록·전 과정
+loopback 증명 완료. 네트워크는 플랜 전체에서 CLOSED 유지.** Task 1(`3c50158`): config.env 2곳
+(정체성 additive/행동 상수) 확장, `TS_SERVE_TARGET` 프록시로 재조준, `kanban_host_proxy.js`
+(node 빌트인만, npm 의존성 0) — Host **와** Origin 둘 다 재작성(설치된 `dist/cli.js` 확인:
+`evaluateCors` 가 모든 non-GET/모든 WebSocket 업그레이드에서 Origin 불일치 거부, 헤더 하나만
+재작성한 direct-to-kanban 호출은 여전히 403 실측 재확인), `upgrade` 이벤트 명시 처리, kanban
+자체 403 과 byte-compatible 한 거부를 직접 반환(업스트림 미전달), loopback 바인드 3중 계층
+강제. 스크래치 포트(18485) 핸드런 스모크: 200(board markup)/403×2/`UPGRADE status=101`/LAN
+거부/포트 완전 해제, 5종 라이브 pid 무관. Task 2(`fae7e3b`): `run_kanban_proxy_service.sh`
+(의도적 미샌드박스 — 소스가 `$HOME` 아래 sandbox.sb 미펀치 경로; 의도적 업스트림 대기 없음)와
+plist 작성(`plutil -lint` OK, 양쪽 `*_NO_AUTO_UPDATE`). `install_services.sh` 세 번째 라벨
+additive, dry-run→실제→멱등 3단 증명. `restart_service.sh` 로만 기동, 독자적 10초+ pid 안정성
+2회 샘플링(포트-바인드 경로는 자체 미제공), 실제 서비스 포트(18484) 프로브 매트릭스 재확인.
+`launchctl bootout`→자체 폴링 teardown 확인→재기동, 새 pid 도 10초+ 안정 — 5종 pid 전 과정
+불변. SVC-05: `sync.sh` LABELS 배열 additive 확장(sync.sh 자체는 06-02 가 확인한 명령분류기
+차단으로 미실행, 승인된 `cp -p`+`cmp` 대체 경로 사용). Task 3(`50e7932`): `verify_network.sh`
+15→24개 체크(16-24: 프록시 정착/loopback 바인드/Host·Origin 재작성/자체 403 거부 2종/
+WebSocket 101/LAN 거부/pin-gate/서버측 tailnet-websocket-101 네거티브 컨트롤), check 13 에
+`--include='*.js'` 추가(기존 이스케이프 니들 byte-identical 유지). `setup_tailscale_serve.sh`
+에 preflight P5b(프록시가 이미 200 아니면 apply 자체 거부) 추가. 연속 2회 실행 — `CHECK:` 라인
+집합 완전 동일, **`CASES 21/24`** 양쪽 다, FAIL 집합 정확히
+`{kanban-serve-entry-present, tailnet-https-200, tailnet-websocket-101}`(06-04.2 가 열어야만
+PASS 가능한 세 개, 계획 예측과 정확 일치) — 기존 `CASES 13/15` 는 이제 역사적 값. 4개 상시
+게이트 전부 재통과, pid 5종 불변(신규 프록시 pid 는 예상된 추가분), `EXTRA_ALLOW_PATHS` 빈
+값, `git diff phase-01..04` 없음, 포트 3000/8444 미바인딩, `tailscale serve status` 여전히
+베이스라인과 content-equal, `cline` 호출 0회. 편차 0건. 3개 커밋 모두 개별, SUMMARY 작성
+완료(`06-04.1-SUMMARY.md`), STATE.md 갱신 완료.
+**다음: 06-04.2 가 이 이미 검증된 프록시 앞에서 `setup_tailscale_serve.sh --apply` 한 번만
+실행하면 됨(P5b 가 이미 자동 사전 검증). 그 뒤 06-05/06-06 진행 가능.**
+Phase 6 인계 항목: 네트워크는 06-01 베이스라인과 byte-identical 하게 닫힌 채 안전, port 3000 은
+계속 미바인딩 상태를 유지해야 함(기존 :8443 Funnel 이 여전히 그쪽으로 포워딩), 토큰/id 두 슬롯
+모두 여전히 빈 값. `com.ohama.kanban-proxy` 는 이미 살아서 loopback 으로만 응답 중(18484),
+`TS_SERVE_TARGET` 은 이미 프록시를 가리킴 — 06-04.2 는 새 컴포넌트를 만들 필요 없이 Serve
+엔트리 개통만 하면 됨.
+
+이전 세션: 2026-08-30
+정지 지점: **06-04-PLAN.md BLOCKED — 실제로 네트워크를 열어봤으나 kanban 자체의 Host-헤더
 화이트리스트가 tailnet 호스트명을 거부해 즉시 롤백, 사람 결정 대기.** Task 1(`f94f3bd`): 변경
 직전 재확인 전부 OK → `setup_tailscale_serve.sh --apply` 로 정확히 한 개 명령 실행(`serve --bg
 --https=8444 http://127.0.0.1:3484`), 스크립트 Q1-Q5 + 독립 재검증 전부 통과(`AllowFunnel` 여전히
