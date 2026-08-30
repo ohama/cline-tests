@@ -57,12 +57,50 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 ## Current Position
 
 Phase: 6 of 8 (네트워크 노출) — **진행 중**
-Plan: 04.2 of ~8 in current phase (누적 계획: 01/02/03/04/04.1/04.2/05/06) — **완료(3/3
-tasks, 개별 커밋).** 06-04 가 발견하고 06-04.1 이 loopback 으로 증명한 Host/Origin 재작성
-프록시 앞에서, 06-04 와 정확히 동일한 단일 명령을 프록시 대상으로 재적용 — **네트워크가
+Plan: 05 of ~8 in current phase (누적 계획: 01/02/03/04/04.1/04.2/05/06) — **완료(3/3
+tasks — Task 1 auto, Task 2 checkpoint:decision, Task 3 auto — 2개 개별 커밋).** NET-05
+(Kanban·Telegram 상태 표시)를 다룬 플랜. Task 1(커밋 `ef8db88`): Kanban 보드가
+loopback(`http://127.0.0.1:3484/`)과 tailnet 주소(`https://ohama-2.tail318f12.ts.net:8444/`)
+양쪽에서 byte-identical 하게 200 을 반환함을 실측 증명(NET-05 의 Kanban 쪽 서버측 절반 =
+proven). `kanban task list --column in_progress` 가 계획이 가정한 exit 0 이 아니라 exit 1 로
+나온 것을 3단계까지 근본원인 추적 — **이 kanban 설치는 이 프로젝트 역사상 단 한 번도 프로젝트가
+등록된 적이 없고, 등록 시도 시 라이브 kanban 서버가 `phase-03/sandbox/run_sandboxed.sh` 샌드박스
+아래에서 실행되며 그 샌드박스가 `~/.gitconfig` 파일-읽기를 거부해 git 자체가
+`rev-parse --is-inside-work-tree` 조차 실패시킨다 — 경로에 무관한 시스템적 차단으로, 이
+프로젝트의 어떤 git 저장소도 지금 상태로는 kanban 에 등록될 수 없다.** Rule 4(아키텍처/보안
+경계 변경)로 판단해 고치지 않고 문서화만 함(고치려면 phase-03 이 소유한 하드닝된 샌드박스
+allowlist 를 완화하거나 라이브 서비스를 다른 `GIT_CONFIG_GLOBAL` 로 재기동해야 하는데, 둘 다 이
+플랜의 선언된 범위(`phase-06/results/` 전용) 와 하우스룰(이 플랜에서 서비스/plist 변경 금지)
+밖임). 탐색 중 발생한 쓰기 부작용(gitignored `workspace/scratch-repo/` 안 `git init`,
+`~/.cline/kanban/workspaces/index.json` 의 고아 항목)은 byte-for-byte 원복 확인 완료 — 순
+발자국 0. **이 발견은 Phase 6 의 다른 어떤 기준과도 무관하며 네트워크 posture 를 전혀 건드리지
+않음 — Phase 7/8 인계 항목으로 명시적으로 플래그됨(밑에서 다시 표시), 재발견되지 않도록 여기
+보존.** Telegram 쪽 정적 분석 결과(88MB 바이너리 안에 반복 없는 `sendChatAction("typing")`
+호출 지점 정확히 1곳, 수신 메시지당 1회 발화, Telegram 자체 프로토콜이 ~5초 후 typing 을
+소멸시킴, 재발화 루프 전혀 없음, 리치-드래프트 스트리밍은 출력 토큰이 생긴 뒤에만 — 즉 요구사항이
+묻는 prefill 대기 이후에만 — 작동)는 열린 질문으로 그대로 기록(어느 쪽으로도 단정하지 않음).
+Task 2(체크포인트): 이 프로젝트 최초의 실토큰 Telegram 트라이얼을 실행할지 사용자에게 물음 —
+**사용자가 `decline` 선택.** 봇 토큰을 요청/생성/조작한 적 전혀 없음, 라이브 봇 시작 안 함.
+Task 3(커밋 `a67e790`): `decision.md` 에 사용자 답변 원문 그대로 타임스탬프와 함께 기록.
+**NET-05 의 Telegram 쪽 절반은 `human_needed` 이자 동시에 열린 질문으로 확정 — 정적 증거상
+"64초 대기를 버티지 못할 가능성이 높다(probable)"는 명시하되, 이것이 관측된 사실인 것처럼는
+절대 쓰지 않음(아무도 실제로 지켜본 적 없음).** 사용자가 원하면 나중에 직접 트라이얼을 실행할
+수 있도록 7단계 체크리스트(BotFather 토큰 → 숫자 user id → plist 주입 → 첫 기동 argv 파싱
+에러 감시 → t=10/30/64초 관측 → 정리)를 `decision.md` 안에 남김. 드리프트 0 확인: 토큰 슬롯
+여전히 명시적 빈 문자열(양쪽 plist), `pgrep -f 'connect telegram'` = 0,
+`git diff --stat phase-05/plists/` 빈 결과, `cline` 호출 0회. 양쪽 상시 게이트 재통과
+(`verify_services.sh` 15/15, `verify_network.sh --baseline` 24/24). 6종 라이브 pid·네트워크
+posture(tailnet OPEN via `:8444`, 포트 3000 미바인딩, `AllowFunnel` 단일 `:8443` 키) 전부
+불변. 두 커밋 모두 개별, SUMMARY 작성 완료(`06-05-SUMMARY.md`). **다음: 06-06(iPad
+체크리스트+`docs/network-exposure.md`+phase-close) — 06-06 의 `IPAD-CHECKLIST.md` 4b 항목은
+이 decline 결과를 정확히 반영해야 하고("아직 아무도 확인하지 않았다"), 미리 결과를 예측하는
+문장을 쓰면 안 됨.**
+
+이전: 06-04.2 완료 — **06-04 가 발견하고 06-04.1 이 loopback 으로 증명한 Host/Origin 재작성
+프록시 앞에서, 06-04 와 정확히 동일한 단일 명령을 프록시 대상으로 재적용 — 네트워크가
 OPEN 으로 전환됨. 이 플랜에서 `tailscale serve` 변경성 명령 정확히 1회
 (`serve --bg --https=8444 http://127.0.0.1:18484`), `tailscale funnel`/`reset` 0회.**
-Status: 06-04.2 완료 — **두 번째이자 마지막 개통 시도, 실측 성공, 롤백 불필요.** Task
+두 번째이자 마지막 개통 시도, 실측 성공, 롤백 불필요. Task
 1(커밋 `cdbdbf8`): 변경 직전 재확인(P5b 프리플라이트 포함 — 프록시가 이미 tailnet Host 로
 200 을 반환하지 않으면 apply 자체가 거부되는 안전장치, PASS) 후
 `setup_tailscale_serve.sh --apply` 로 정확히 한 개 명령 실행, exit 0, 스크립트 자체
@@ -92,8 +130,8 @@ telegram 여전히 inert. `README.md` 에 개통 명령/전후 diff/롤백 원�
 "고치지 않고 기록" 하기로 결정)에 세 번째 hit 를 추가하는 것을 피하려 자신의 헤더 문구만
 재작성(기존 2건은 06-04/06-04.1 자신의 이미 닫힌 README 안 self-referential 산문이라
 그대로 둠 — 과거 결정 기록을 다시 쓰는 것과 같다는 06-04.1 의 논리 재사용). 세 커밋 모두
-개별, SUMMARY 작성 완료(`06-04.2-SUMMARY.md`). **다음: 06-05/06-06 진행 가능. iPad 클라이언트
-측 NET-01 검증은 여전히 human_needed 로 남음(이 플랜 범위 밖).**
+개별, SUMMARY 작성 완료(`06-04.2-SUMMARY.md`). iPad 클라이언트 측 NET-01 검증은 여전히
+human_needed 로 남음(이 플랜 범위 밖).
 
 이전: 06-04.1 완료 — **kanban 자체 컴파일된 Host 화이트리스트(`getAllowedHostHeaders()`,
 오버라이드 플래그/env 전혀 없음)를 우회하는 작은 loopback 프록시 `com.ohama.kanban-proxy`
@@ -1466,6 +1504,39 @@ Recent decisions affecting current work:
   `mirror-plists-byte-identical` 체크는 어차피 같은 두 경로의 `cmp` 이므로 이 대체로 정확히 같은
   것을 증명한다. STATE.md 재생성(`sync.sh` 의 부수 효과)은 이 대체로 얻지 못하지만 이 플랜의 어떤
   게이트도 그것에 의존하지 않았다.
+- **06-05 — 사용자가 이 프로젝트 최초의 실토큰 Telegram 트라이얼을 명시적으로 `decline`
+  했다(2026-08-30, 06-05 Task 2 체크포인트).** 봇 토큰을 요청/생성/조작한 적 전혀 없음,
+  라이브 봇을 시작한 적 없음, telegram-connect 는 계속 빈 토큰으로 inert. **이것은 durable
+  decision 이며 Phase 6/7/8 전체에 그대로 넘어간다: NET-05 의 Telegram 쪽 절반은
+  `human_needed` 이자 동시에 열린 질문(open question)으로 확정됐다** — 정적 증거(88MB
+  cline 3.0.53 바이너리 안 반복 없는 `sendChatAction("typing")` 호출 지점 정확히 1곳, 수신
+  메시지당 1회 발화, Telegram 프로토콜상 ~5초 후 typing 소멸, 재발화 루프 없음, 리치-드래프트
+  스트리밍은 출력 토큰이 생긴 뒤에만 작동 즉 요구사항이 묻는 prefill 대기 이후에만 작동)에
+  근거해 "64초급 대기를 버티지 못할 가능성이 높다(probable)"고만 명시하고, **이것이 실제로
+  관측된 사실인 것처럼는 절대 쓰면 안 된다** — 아무도 실제 Telegram 클라이언트로 지켜본 적이
+  없다. 사용자가 나중에 직접 트라이얼을 실행하고 싶을 경우를 위한 7단계 체크리스트가
+  `phase-06/results/20260830T071532Z-net05/decision.md`에 남아 있다(BotFather 토큰 → 숫자
+  user id → plist 주입 → 첫 기동 argv 파싱 에러 감시 → t=10/30/64초 관측 → 정리). **06-06 의
+  `IPAD-CHECKLIST.md` 4b 항목과 Phase 8 매뉴얼은 이 decline 결과와 "probable-but-unobserved"
+  표현을 정확히 반영해야 하며, 미리 결과를 예측하거나 "확인됨"으로 격상시키면 안 된다.**
+- **06-05 — kanban 의 라이브 CLI task 관리 표면(`kanban task list`/`create` 등)은 현재
+  샌드박스 프로파일 아래에서는 어떤 git 저장소도 등록할 수 없다.** Task 1 에서 발견·근본원인
+  3단계까지 추적: (1) 이 kanban 설치는 프로젝트 역사상 프로젝트가 등록된 적이 전혀 없음, (2)
+  `workspace/scratch-repo` 자체가 자신의 git 저장소가 아님(Phase 5 Pitfall 6, 이미 문서화),
+  (3) 그 한 줄 픽스(`git init`) 후에도 라이브 kanban 서버가 `phase-03/sandbox/
+  run_sandboxed.sh` 아래에서 실행되며 그 샌드박스가 `~/.gitconfig` 파일-읽기를 허용목록에
+  넣지 않아 git 자신의 `rev-parse --is-inside-work-tree` 조차 `exit=128`로 거부됨 —
+  **경로에 무관한 시스템적 차단.** Rule 4(아키텍처/보안 경계 변경)로 판단해 **고치지 않고
+  문서화만 함** — 고치려면 phase-03 이 소유한 하드닝된 샌드박스 allowlist 를 완화하거나(보안
+  경계를 여는 결정, drive-by 로 할 일이 아님) 라이브 kanban 서비스를 다른
+  `GIT_CONFIG_GLOBAL` 로 재기동해야 하는데, 둘 다 이 플랜의 선언된 범위(`phase-06/results/`
+  전용)와 하우스룰(서비스/plist 변경 금지) 밖. 탐색 중 쓰기 부작용(gitignored
+  `workspace/scratch-repo/` 안 `git init`, `~/.cline/kanban/workspaces/index.json` 의 고아
+  항목)은 byte-for-byte 원복 확인 완료 — 순 발자국 0. **NET-05 나 Phase 6 의 다른 어떤
+  기준과도 무관하며 네트워크 posture 를 전혀 건드리지 않는다 — Phase 7/8 인계 항목으로
+  명시적으로 플래그됨(root-cause transcript:
+  `phase-06/results/20260830T071532Z-net05/kanban-registration-blocker.txt`), 재발견되지
+  않도록 여기 보존.**
 
 ### Pending Todos
 
@@ -1500,6 +1571,17 @@ Recent decisions affecting current work:
   어떤 자동화 플랜도 실제 iOS Tailscale 앱에서 방문해 확인했다고 주장하지 않는다. 포트
   3000 은 기존 `:8443` 공용 Funnel 이 여전히 그쪽으로 포워딩하므로 앞으로도 영구히
   미바인딩 상태를 유지해야 한다.
+- **(Phase 7/8 인계, 06-05 발견, 고치지 않고 문서화만 함) kanban 의 라이브 CLI task 관리
+  표면은 현재 샌드박스 프로파일 아래에서 어떤 git 저장소도 등록할 수 없다** —
+  `phase-03/sandbox/run_sandboxed.sh` 의 allowlist 가 `~/.gitconfig` 를 거부해 git 자신의
+  `rev-parse --is-inside-work-tree` 가 `exit=128`. 고치려면 phase-03 이 소유한 하드닝된
+  샌드박스 allowlist 를 완화하거나 kanban 을 다른 `GIT_CONFIG_GLOBAL` 로 재기동해야 함(둘 다
+  사람이 결정할 별도 항목). NET-05/네트워크 posture 와 무관. root-cause:
+  `phase-06/results/20260830T071532Z-net05/kanban-registration-blocker.txt`.
+- **(Phase 7/8 인계, 06-05 결정) NET-05 의 Telegram 쪽 절반은 사용자가 실토큰 트라이얼을
+  `decline` 해 열린 질문으로 남았다** — "probable-but-unobserved"(64초 대기를 버티지 못할
+  가능성이 높지만 관측된 적 없음)로만 기록됨, "확인됨"으로 격상 금지. 나중에 사용자가 직접
+  실행할 7단계 체크리스트: `phase-06/results/20260830T071532Z-net05/decision.md`.
 
 - 🔴 **2026-08-30 — Phase 1 의 결론이 정정됨.** 32k 압축은 **정상 작동한다.**
   `contextWindow` 를 `providers.json` 의 `settings` **최상위**에 넣어야 하며(`models[]` 아님),
@@ -1571,7 +1653,29 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **06-04.2-PLAN.md 완료 (3/3 tasks, 개별 커밋) — 네트워크 개통, 두 번째이자
+Stopped at: **06-05-PLAN.md 완료 (3/3 tasks — Task 1 auto, Task 2 checkpoint:decision, Task
+3 auto — 2개 개별 커밋), STATE.md 갱신 완료.** Task 1(`ef8db88`): Kanban 보드가 loopback 과
+tailnet 양쪽에서 byte-identical 200 을 반환함을 실측(NET-05 Kanban 절반 = proven
+server-side). `kanban task list --column in_progress` 가 exit 1 인 근본원인을 3단계까지
+추적해 **kanban 의 라이브 CLI task 관리 표면이 샌드박스의 `~/.gitconfig` 거부 때문에 현재
+어떤 git 저장소도 등록할 수 없음**을 발견 — Rule 4 로 판단해 고치지 않고 문서화(root-cause:
+`phase-06/results/20260830T071532Z-net05/kanban-registration-blocker.txt`), 탐색 부작용
+전부 byte-for-byte 원복 확인(순 발자국 0), **Phase 7/8 인계 항목으로 명시 플래그.** Telegram
+정적 분석(반복 없는 typing 호출 1곳, ~5초 소멸, 재발화 루프 없음, 스트리밍은 출력 토큰 이후만)
+을 열린 질문으로 기록(단정 없음). Task 2 체크포인트: 실토큰 Telegram 트라이얼 여부를 물음 —
+**사용자가 `decline` 선택**(토큰 요청/생성/조작 없음, 라이브 봇 시작 안 함). Task
+3(`a67e790`): `decision.md` 에 답변 원문 타임스탬프와 함께 기록, **NET-05 의 Telegram 절반을
+`human_needed` + 열린 질문("probable-but-unobserved", 관측된 적 없음을 명시)으로 확정**,
+사용자가 나중에 직접 실행할 7단계 체크리스트를 남김. 드리프트 0 확인(토큰 슬롯 여전히 빈
+문자열, `pgrep` 0, `git diff --stat phase-05/plists/` 빈 결과, `cline` 호출 0회), 양쪽 상시
+게이트 재통과(`verify_services.sh` 15/15, `verify_network.sh` 24/24), 6종 pid·네트워크
+posture 전부 불변.
+**다음: 06-06(iPad 체크리스트 + `docs/network-exposure.md` + phase-close). Phase 6 는 6/8
+plans 완료(누적 31/33). 06-06 의 `IPAD-CHECKLIST.md` 4b 항목은 이 decline 결과를 정확히
+반영해야 하며 결과를 미리 예측하면 안 됨.**
+
+이전 세션: 2026-08-30
+정지 지점: **06-04.2-PLAN.md 완료 (3/3 tasks, 개별 커밋) — 네트워크 개통, 두 번째이자
 마지막 시도가 첫 실측에서 완전 성공.** Task 1(`cdbdbf8`): 변경 직전 재확인(P5b 프리플라이트
 PASS — 프록시가 이미 200 응답 중임을 재확인) 후 `setup_tailscale_serve.sh --apply` 로
 정확히 한 개 명령(`serve --bg --https=8444 http://127.0.0.1:18484`) 실행, exit 0, 스크립트
