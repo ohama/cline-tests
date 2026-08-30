@@ -92,9 +92,52 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 
 ## Current Position
 
-Phase: 8 of 8 (한글 사용 매뉴얼) — 진행 중, plan 수 TBD (08-01/08-02 완료, wave 1 병렬 종료).
-Plan: 02 of TBD in current phase — **완료(2/2 tasks — Task 1 auto, Task 2 auto — 개별 커밋,
+Phase: 8 of 8 (한글 사용 매뉴얼) — 진행 중, 6개 plan 확정(08-01~08-06). wave 1(08-01/08-02)
+완료, wave 2(08-03) 완료.
+Plan: 03 of 6 in current phase — **완료(2/2 tasks — Task 1 auto, Task 2 auto — 개별 커밋,
 별도 메타데이터 커밋 없음).**
+
+**08-03(DOC-01 CLI 사용법 + DOC-03 iPad·iPhone 사용법, 이번 플랜) — 완료**: 08-04(샌드박스
+widening 체크포인트)와 병렬 진행, 서로 다른 파일 집합(`docs/manual/01-cli.md`+
+`docs/manual/03-mobile.md`+`phase-08/results/` vs 08-04 의 `phase-03/sandbox/*`+
+`docs/sandbox-whitelist.md`)만 건드려 충돌 없음. Task 1(커밋 `1d18b18`): `docs/manual/01-cli.md`
+(145줄, 한글) 작성 — 헤더 `근거 문서:` 가 `docs/headless-wrapper.md` §2·§3·§4·§6/
+`docs/cline-config-pins.md` §2/`docs/manual/04-32k-operations.md` 를 가리킴. 기동 확인
+(`verify_services.sh`, `00-getting-started.md` 로 위임), `phase-04/run_headless.sh` 실제
+호출부·env 노브 표(`HEADLESS_DRY`/`DRY_FIXTURE`/`RESULTS_ROOT`/`SKIP_SANDBOX_GATE`/
+`WRAPPER_TIMEOUT`, `SKIP_SANDBOX_GATE=1` 라이브 금지 경고 포함)·결과 디렉터리 레이아웃,
+6종 outcome/exit 표(`crashed`="판정 불가 — 절대 '차단 성공'으로 보고하지 말 것"), THE CWD RULE
+(`cline -c/--cwd` 는 실제 프로세스 cwd 를 대신 못함), `[GAP-READONLY]`(읽기·대화 전용, 원격
+트리거 에이전트는 파일 수정 불가), Plan/Act 를 정확히 증거 수준에서 헤지(`--mode <act|plan>`
+은 바이너리 리터럴로 실재 확인됐다고 서술하되, `[GAP-PLANMODE]` — 이 프로젝트의 헤드리스
+원샷 커맨드가 이걸 지원하는지는 정적 분석의 한계로 미확인, Plan 모드는 이 프로젝트에서 한
+번도 실행된 적 없음, 작동한다/안 한다 어느 쪽도 안 씀), 체크포인트 두 가지를 분리
+(`[GAP-CHECKPOINT-CLINE]`=cline 자신의 세션 파일 체크포인팅, 런타임 동작 미검증 vs kanban
+의 태스크 단위 커밋은 `02-kanban.md`(08-05 소관, 아직 없음 — 08-02 가 이미 쓴 것과 동일한
+패턴으로 접두사 없는 맨 파일명으로만 참조) 소관이라고 한 문장으로 명시), `[GAP-CLINE-VERSION]`
+(3.0.60 드리프트, `cline --version`/`check_versions.sh` 둘 다 쓰지 말고
+`/opt/homebrew/lib/node_modules/cline/package.json` 로 확인). 첫 게이트 실행에서
+`00-getting-started.md` 를 `docs/` 접두사로 참조해 C4-links FAIL(dangling) — 접두사 없는
+맨 파일명으로 재작성해 즉시 수정(커밋 전에 해소, 편차로 집계 안 함). Task 2(커밋 `a219505`):
+`docs/manual/03-mobile.md`(115줄, 한글) 작성 — 헤더 `근거 문서:` 가
+`docs/network-exposure.md` §2·§4a·§4b·§4c·§5·§6/`docs/services.md` §6/
+`phase-06/IPAD-CHECKLIST.md` 를 가리킴. 유일한 진입점
+`https://ohama-2.tail318f12.ts.net:8444/` + 3단 체인(serve→kanban-proxy 18484→kanban 3484),
+`[GAP-IPAD]`(두 iPad 모두 오프라인 관측, 검증 절차는 재작성 없이 `phase-06/IPAD-CHECKLIST.md`
+로 위임), LAN "가는 길 자체가 없음"이 성공 조건(거부됨이 아님), `[GAP-PORT3000]`(기존 공용
+Funnel `:8443`→`:3000`, 영구 금지), Telegram 대화·승인/거부(`[GAP-TELEGRAM-TOKEN]` 빈 토큰,
+`docs/services.md` §6 로 레시피 위임하되 `unknown option` 감시·`--provider`/`--model` 풀네임
+필수·토큰+id 동시 필요 세 경고만 재게재, `--no-tools` 로 읽기·대화 전용이라 승인 UI 자체가
+없음을 명시), `[GAP-TELEGRAM-INDICATOR]`(타이핑 표시기 관측 안 됨, 정적 추정만 존재,
+`phase-06/results/20260830T071532Z-net05/decision.md` 7단계 체크리스트로 위임), 터치 제약
+(⌘+클릭 불가, `04-32k-operations.md` §6 참조), 문제 해결(`verify_network.sh --baseline`,
+롤백 한 줄, `tailscale serve reset` 절대 금지). 두 번째 게이트는 첫 시도에서 바로 통과.
+`check_manual_claims.sh --file 01-cli.md --file 03-mobile.md` exit 0(`CASES 8/8`). 호스트
+`cline` 호출 0회, 라이브 서비스/샌드박스/화이트리스트 무변경, 6개 pid
+(46573/75548/48525/**36175**/99162/19669) 전후 불변 확인. SUMMARY 작성 완료
+(`08-03-SUMMARY.md`). **다음:** 08-04(샌드박스 widening 결정 체크포인트, 다른 세션/에이전트가
+진행 중일 수 있음), 08-05(DOC-02 웹/Kanban 사용법 — 08-01 의 실제 등록 플로우 + 08-04 판정에
+의존), 08-06(00-시작하기 + README 인덱스 + phase-close, phase 마지막).
 
 **08-02(매뉴얼 클레임 게이트 + DOC-04, 이번 플랜) — 완료**: 08-01 과 wave 1 병렬로 진행, 서로
 다른 파일 집합(`phase-08/manual/`, `docs/manual/04-32k-operations.md` vs 08-01 의
@@ -1188,6 +1231,11 @@ ROADMAP 다섯 기준 중 NET-02/03/04 `met`, NET-01/05 정직하게 `human_need
 Phase 7 은 gap-closure 07-06~10 포함 10개) + Phase 8 의 08-01/08-02 2개). 08-01(Kanban 등록
 블로커 라이브 수정) 완료, 08-02(매뉴얼 클레임 게이트)도 병렬로 이미 완료 — 남은 Phase 8:
 08-03~08-06.
+
+**갱신 (08-03 완료 시점):** 완료 plan 수 **46**(위 45 + 08-03). 08-03(DOC-01 CLI 사용법 +
+DOC-03 iPad·iPhone 사용법) 완료 — 08-04 와 병렬(파일 집합 겹치지 않음). 남은 Phase 8:
+08-04(샌드박스 widening 체크포인트), 08-05(DOC-02 웹/Kanban 사용법), 08-06(00-시작하기 +
+README 인덱스 + phase-close). 전체 진행률 46/49(Phase 8 이 6/6 이 되면 49/49).
 
 ## Performance Metrics
 
@@ -2285,33 +2333,26 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-31
-Stopped at: **08-02-PLAN.md 완료 (2/2 tasks) — wave 1 두 플랜(08-01/08-02) 모두 종료,
-`.planning/STATE.md` 최신 커밋 기준 이 저장소의 가장 최근 완료 작업.** 08-02: 커밋
-`4ce7bbc`(Task 1: `phase-08/manual/check_manual_claims.sh` — 필수-마커+링크-무결성 게이트,
-`--negative-control` 로 fail-open 아님을 실증, fixture 자체 저작 결함 1건 발견·수정), `42433af`
-(Task 2: `docs/manual/04-32k-operations.md` — DOC-04, 8개 필수 내용 전부, 게이트 exit 0).
-SUMMARY: `08-02-SUMMARY.md`. 08-01(같은 wave, 병렬): Kanban 등록 블로커를 라이브에서
-no-widening 으로 수정·증명(VERDICT: REGISTERED). 신규 kanban pid **36175**(이전 53894), 나머지
-5개 서비스 pid 무변경(46573/75548/48525/99162/19669). 커밋: `3c61132`(Task 1: 사전 게이트+양쪽
-수정 적용, 재시작 전), `5b1dba7`(Task 2: 재시작+등록 증명), `4964d54`(Task 3: 사후 게이트+
-DELTA.txt+`docs/services.md` §5a). SUMMARY: `08-01-SUMMARY.md`. 두 플랜은 서로 다른 파일
-집합만 건드려 충돌 없음(08-02 는 `phase-08/manual/`+`docs/manual/04-32k-operations.md` 만,
-08-01 은 `phase-05/services/run_kanban_service.sh`+`phase-08/blocker/`+`docs/services.md` 만).
-알려진, 무해한 잔여물(08-01 소관): `phase-06/results/20260830T051403Z-baseline` 와
-`phase-07/bench/config.env` 의 `LIVE_PIDS_STR` 이 여전히 구 kanban pid 53894 를 기대하므로,
-향후 그 두 게이트(`verify_network --baseline .../20260830T051403Z-baseline`,
-`verify_bench.sh`)를 돌리면 각각 `live-pids-stable`/`B10` 딱 1개 체크만 하락한다 —
-`phase-08/results/20260830T191320Z-kanban-fix/gates-post/DELTA.txt` 에 이미 설명 기록됨, 새
-결함 아님. Resume file: None.
+Stopped at: **08-03-PLAN.md 완료 (2/2 tasks) — Phase 8 wave 2 의 절반(08-03), `.planning/
+STATE.md` 최신 커밋 기준 이 저장소의 가장 최근 완료 작업.** 08-03: 커밋 `1d18b18`(Task 1:
+`docs/manual/01-cli.md` — DOC-01, CLI 사용법, Plan/Act·체크포인트 두 종류를 증거 수준대로
+헤지/분리), `a219505`(Task 2: `docs/manual/03-mobile.md` — DOC-03, iPad·iPhone 사용법, iPad
+검증은 `phase-06/IPAD-CHECKLIST.md` 로 위임·Telegram 주입 레시피는 `docs/services.md` §6 으로
+위임, 둘 다 재작성하지 않음). SUMMARY: `08-03-SUMMARY.md`. `check_manual_claims.sh --file
+01-cli.md --file 03-mobile.md` exit 0(`CASES 8/8`). 08-04(샌드박스 widening 체크포인트)와
+병렬 진행(파일 집합 겹치지 않음 — 이 플랜은 `docs/manual/01-cli.md`+`docs/manual/03-mobile.md`+
+`phase-08/results/` 만). 6개 pid(46573/75548/48525/**36175**/99162/19669) 전후 불변, 호스트
+`cline` 호출 0회, 라이브 서비스/샌드박스/화이트리스트 무변경. Resume file: None.
 
-**다음 세션은 Phase 8 의 08-03(또는 다음 미완료 plan)부터.** 넘겨줄 것: Kanban 프로젝트 등록이
-이제 라이브에서 실제로 동작하므로, DOC-02(웹/Kanban 사용법) 매뉴얼 콘텐츠는 가상의 플로우가
-아니라 이 실제 등록 플로우(`workspace/scratch-repo` 안에서 `kanban task create` 실행)를 근거로
-작성할 수 있다. `phase-08/manual/check_manual_claims.sh` 는 이제 상시로 존재하며
-`--file <name>` 스코프로 각 후속 플랜이 자기 문서만 게이트할 수 있다 — 08-03 이
-`docs/manual/03-mobile.md` 를 쓰고 나면, `04-32k-operations.md` §6 이 이미 걸어둔 접두사 없는
-맨 파일명 참조(`03-mobile.md`, `docs/` 로 시작하지 않아 C4-links 가 검사하지 않음)가 자연스러운
-형제 링크가 된다 — 파일명이 정확히 일치하는지만 08-03 쪽에서 확인할 것.
+**다음 세션은 Phase 8 의 08-05(또는 아직 안 됐다면 08-04) 부터.** 넘겨줄 것: Kanban 프로젝트
+등록이 라이브에서 실제로 동작하므로(08-01), DOC-02(웹/Kanban 사용법) 매뉴얼 콘텐츠는 가상의
+플로우가 아니라 이 실제 등록 플로우(`workspace/scratch-repo` 안에서 `kanban task create`
+실행)를 근거로 작성할 수 있다. `phase-08/manual/check_manual_claims.sh` 는 이제 상시로 존재
+하며 `--file <name>` 스코프로 각 후속 플랜이 자기 문서만 게이트할 수 있다. `01-cli.md` §7 이
+접두사 없는 맨 파일명(`02-kanban.md`)으로 걸어둔 전방 참조는 08-05 가 그 파일을 실제로 쓰고
+나면 자연스러운 형제 링크가 된다 — 파일명이 정확히 일치하는지만 08-05 쪽에서 확인할 것.
+08-04(샌드박스 widening 결정 체크포인트)의 진행 상태는 이 세션에서 관측하지 않았다 — 병렬
+플랜이므로 별도로 확인할 것.
 
 이전: **07-10-PLAN.md 완료 — Phase 7 전체 종료(gap-closure 포함 10/10 plans).** Task 1
 (커밋 `5458259`): `docs/cline-bench.md` 를 gap-closure 결과에 맞춰 양방향 정정(173→260줄) —
