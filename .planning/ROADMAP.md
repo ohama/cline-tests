@@ -187,11 +187,22 @@ Plans:
   1. CLI 사용법 문서에 기동·태스크 실행·Plan/Act·체크포인트 절차가 실제 명령어와 함께 기술돼 있다
   2. 웹(Kanban) 사용법 문서에 카드·worktree·diff 리뷰·의존 체인 절차가 기술돼 있다
   3. iPad·iPhone 사용법 문서에 Tailscale 접속과 Telegram 대화/승인·거부 절차가 기술돼 있다
-  4. 32K 운용 주의 문서에 64초 대기, 26k 작업 예산, 태스크 쪼개기, ⌘+클릭 터치 불가, 그리고 Phase 1 VER 실측 결론이 반영돼 있다
-**Plans**: TBD
+  4. 32K 운용 주의 문서에 64초 대기, **압축이 자동으로 도는 것과 그때의 지연**,
+     **`contextWindow` 는 `settings` 최상위에 넣어야 한다는 점**, ⌘+클릭 터치 불가, 그리고
+     Phase 1 VER 실측 결론이 반영돼 있다
+     <br>※ **2026-08-31 정정** — 원 문구에 있던 두 항목(토큰 예산 상한, 태스크 분할)은
+     REQUIREMENTS DOC-04 의 2026-08-30 정정과 정면으로 충돌해 제거했다: 압축이 정상 작동해
+     대역을 유지하므로 둘 다 불필요하다. 근거: `docs/32k-compaction-policy.md` §5·§7.
+     매뉴얼은 이 폐기된 조언을 다시 실어서는 안 된다.
+**Plans**: 6 plans
 
 Plans:
-- [ ] 08-01: TBD
+- [ ] 08-01-PLAN.md — Kanban 등록 블로커 no-widening 수정 + 라이브 확인 (DOC-02 선행조건)
+- [ ] 08-02-PLAN.md — 매뉴얼 클레임 게이트(음성 대조군 포함) + DOC-04 32K 운용주의
+- [ ] 08-03-PLAN.md — DOC-01 CLI 사용법 + DOC-03 iPad·iPhone 사용법
+- [ ] 08-04-PLAN.md — 샌드박스 widening 결정 체크포인트 + 조건부 적용 (worktree)
+- [ ] 08-05-PLAN.md — DOC-02 웹(Kanban) 사용법 (08-01·08-04 판정에 따라 기술)
+- [ ] 08-06-PLAN.md — 00-시작하기 + README 인덱스 + ROADMAP/REQUIREMENTS/STATE 정합 + 종료 스윕
 
 ## Progress
 
