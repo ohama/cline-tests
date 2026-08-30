@@ -5,8 +5,20 @@
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
-**Current focus:** **Phase 6 (네트워크 노출) 완료 — 06-06(docs/network-exposure.md + iPad
-체크리스트 + phase-close) 로 8/8 plans 종료.** kanban 은
+**Current focus:** **Phase 7 (cline-bench 동작 검증) 완료 — 07-05(docs/cline-bench.md +
+phase-close) 로 5/5 plans 종료, ROADMAP criterion 1 은 정직하게 `not_met`.** cline-bench 공식
+과제 12개 중 실제로 실행된 것은 **1개**(`discord-trivia-approval-keyerror`, 사용자가 07-03
+체크포인트에서 `stop-at-one` 선택), 통과 0개, 검증 `fail-infra`(flashnext 서버 로그 슬라이스
+0바이트 — 컨테이너의 cline 이 실제 OpenAI API 를 호출하고 인증 실패). 07-02 의
+`CLINE_PROVIDER_SETTINGS_PATH` 주입 판정(`INJECTABLE`, 소스만으로 도출, 라이브 미검증)이
+harbor 의 실제 호출 형태에서는 **적용되지 않는다**는 것이 이 실행으로 확정됐다(하네스 버그
+아님 — compose 머지/exec env 상속 둘 다 격리 재검증 완료). 증명된 것은 파이프라인 전체(설치→
+컨테이너 빌드→호출→검증→증거 번들)가 끝까지 동작한다는 것뿐, cline-bench 가 이 스택
+(flashnext)을 검증했다는 것은 아니다 — `docs/cline-bench.md` §9 가 Phase 8 매뉴얼에 이 문장을
+쓰지 말라고 명시적으로 못박음. 다음은 Phase 8(한글 사용 매뉴얼).
+
+이전(Phase 6 완료): Phase 6 (네트워크 노출) 완료 — 06-06(docs/network-exposure.md + iPad
+체크리스트 + phase-close) 로 8/8 plans 종료. kanban 은
 이제 `https://ohama-2.tail318f12.ts.net:8444/` 로 tailnet 멤버(`ohama100@`)에게만 실측
 도달 가능(LAN/공용 인터넷 아님). `verify_network.sh` 상시 시그니처는 `CASES 24/24`(연속
 2회 재현). Phase 6 은 06-06 에서 `docs/network-exposure.md`+`phase-06/IPAD-CHECKLIST.md`+
@@ -59,9 +71,33 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 
 ## Current Position
 
-Phase: 7 of 8 (cline-bench 동작 검증) — 진행 중
-Plan: 04 of 5 in current phase — **완료(3/3 tasks, 전부 auto — 3개 개별 커밋).**
-Phase 7 넷째 플랜(07-04): `SELECTED_TASKS` 빈 파일(stop-at-one 경로) → 추가 `harbor run` 0회,
+Phase: 7 of 8 (cline-bench 동작 검증) — ✓ Complete (5/5 plans)
+Plan: 05 of 5 in current phase — **완료(2/2 tasks, 전부 auto — 2개 개별 커밋).** Phase 7 은
+이걸로 종료.
+
+Phase 7 다섯째(마지막) 플랜(07-05): Task 1(커밋 `46e6423`): `docs/cline-bench.md`(173줄) 작성 —
+결론/실행 내역/재현/⚠️ 한계(독립 최상위 섹션)/보안 태세/운영 부작용/제거 방법/증거 인덱스/Phase
+8 인계 9개 섹션. 모든 숫자(과제 풀 12, 실행 1, 통과 0, 232초, 141.5/57.3/5.3/12.4초 내역)를
+`bench/runs/20260830T093657Z-phase07/summary.md` 와 대조 확인. 하우스 룰 9 그렙 셋 다 통과:
+`funnel`/`tailscale` 같은 줄 0건, `EXTRA_ALLOW_PATHS=` 0건, "통과" 문장은 전부 "0개 통과" 또는
+"돌았다≠통과했다" 구분 문장뿐. `docs/services.md` §11 애디티브 전용 크로스레퍼런스 추가(`git
+diff` 삭제 0줄). Task 2(커밋 `339efbe`): `phase-07/results/20260830T103307Z-phase-close/` 로 8개
+게이트 전부 재실행 — `preflight.sh` 11/11, `verify_bench.sh` 10/10, `verify_services.sh` 15/15,
+`verify_no_regression.sh` INF03:PASS, `verify_network.sh` 24/24, `verify_sandbox.sh` SBX-04
+PASS, `verify_config.sh` exit 0(clean → `check_versions.sh` SKIPPED, 07-04 선례와 동일),
+`pytest phase-03 phase-04` 24/24 — 전부 exit 0. `criteria.md`: ROADMAP criterion 1
+`not_met`(사용자의 `stop-at-one` 결정 원문 인용, 1개↔5~8개 승격 없음), criterion 2·3 `met`(실행된
+1개 과제 기준). `handoff.md`: host-posture `--auto-approve` 에스컬레이션 질문은 "이 phase 에
+적용 대상 아님"(harbor 컨테이너가 호스트 샌드박스/`cline` 바이너리를 아예 거치지 않음), kanban
+`~/.gitconfig` 블로커는 재발 없이 그대로 열린 채 남음. `.planning/ROADMAP.md` Phase 7 5/5 `[x]`,
+criterion 1 의 `not_met` 사유를 Success Criteria 목록 안에 직접 기입(진행률 표 셀에만 두지
+않음), 진행률 표 "0/TBD Not started" → "5/5 ◆ 완료". 6종 pid·포트 3000·카나리아·
+`EXTRA_ALLOW_PATHS` 전부 무변경, 벤치 실행 0회, 모델 지출 0. SUMMARY 작성 완료
+(`07-05-SUMMARY.md`). **다음: Phase 8(한글 사용 매뉴얼) — 이 스택이 실제로 무엇을
+증명했고(파이프라인) 무엇을 증명하지 못했는지(cline-bench 가 flashnext 를 검증했다는 것) 를
+그대로 옮겨 써야 한다.**
+
+이전(07-04 완료): Phase 7 넷째 플랜(07-04): `SELECTED_TASKS` 빈 파일(stop-at-one 경로) → 추가 `harbor run` 0회,
 추가 모델 지출 0. Task 1(커밋 `0de5bb4`): `SELECTED_TASKS` 가 빈 것을 확인하고 Task 2 로 직행
 (계획 자신의 `<action>` 이 명시한 경로), `phase-07/results/20260830T101803Z-batch/README.md` 에
 07-03 의 `decision.md` 원문을 그대로 인용해 "이 플랜의 실패가 아님" 을 기록. `meta/*.json` 개수
@@ -861,23 +897,24 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [██████████] Phase 1-6/8 완료, Phase 7 진행 중 (알려진 37/38 plans 완료 —
+Progress: [██████████] Phase 1-7/8 완료 (알려진 38/38 plans 완료 —
 Phase 1(6) + Phase 2(4) + Phase 3(4) + Phase 4(4) + Phase 5(7) + Phase 6(8, 06-04.1/06-04.2
-삽입 포함) + Phase 7(4/5, 07-04 완료). Phase 6 는 8/8 plans 로 종료 — **네트워크 OPEN,
+삽입 포함) + Phase 7(5/5, 07-05 완료로 종료). Phase 6 는 8/8 plans 로 종료 — **네트워크 OPEN,
 ROADMAP 다섯 기준 중 NET-02/03/04 `met`, NET-01/05 정직하게 `human_needed`.** Phase 7 은
-5개 plan 문서(07-01~07-05)가 이미 작성돼 있고 07-01~07-04 실행 완료 — 사용자가 07-03 체크포인트에서
-`stop-at-one` 을 선택해 추가 벤치 태스크 실행 없이 07-04 가 빈 `SELECTED_TASKS` 경로로 진행,
-추가 `harbor run` 0회로 BCH-02/03 완결(`verify_bench.sh` CASES 10/10) + 상시 게이트 7종 재통과,
-criterion 1(5~8개)은 07-04 에서도 그대로 `NOT MET` 유지. Phase 8 은 아직 plan 수가 확정되지
-않음(TBD) — 다음은 07-05(`docs/cline-bench.md` + phase-close, Phase 7 마지막 plan))
+5/5 plans 전부 완료 — 07-01~07-04 실행(harbor/cline-bench 설치, contextWindow 주입 판정,
+스모크 1개 과제 실행 + 사용자 `stop-at-one` 결정, 빈 `SELECTED_TASKS` 배치)에 이어 07-05 가
+`docs/cline-bench.md` + phase-close(criteria.md/handoff.md/ROADMAP)로 종료. ROADMAP criterion
+1(5~8개)은 정직하게 `not_met`(1개만 실행, 승격 없음), criterion 2·3 은 `met`(실행된 1개 과제
+기준). Phase 8(한글 사용 매뉴얼)은 아직 plan 수가 확정되지 않음(TBD) — 다음은 Phase 8 착수,
+`docs/cline-bench.md` §9 의 "쓰면 안 되는 문장" 목록을 먼저 확인할 것)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 36 (06-04 excluded — BLOCKED, not counted as completed; its 35 min is
+- Total plans completed: 38 (06-04 excluded — BLOCKED, not counted as completed; its 35 min is
   tracked separately below)
-- Average duration: ~15.5 min
-- Total execution time: ~9.4 hours
+- Average duration: ~16 min
+- Total execution time: ~10.1 hours
 
 **By Phase:**
 
@@ -889,9 +926,28 @@ criterion 1(5~8개)은 07-04 에서도 그대로 `NOT MET` 유지. Phase 8 은 �
 | 4 | 4/4 | ~42 min | ~10.5 min |
 | 5 | 7/7 | ~116 min | ~16.6 min |
 | 6 | 8/8 | ~70 min (+35 min BLOCKED 06-04, uncounted above) | ~14 min |
-| 7 | 3/5 (known) | ~82 min | ~27.3 min |
+| 7 | 5/5 | ~125 min | ~25 min |
 
 **Recent Trend:**
+- 07-05 (~35 min, Phase 7's fifth and final plan — `docs/cline-bench.md` (173 lines, house
+  style, limits and removal as their own top-level sections) + phase-close. Every number
+  cross-checked against `summary.md`; house-rule-9 greps (funnel/tailscale adjacency,
+  `EXTRA_ALLOW_PATHS=`) all clean. Eight standing gates re-run fresh, all exit 0 (preflight
+  11/11, verify_bench 10/10, verify_services 15/15, verify_no_regression INF03:PASS,
+  verify_network 24/24, verify_sandbox SBX-04 PASS, verify_config exit 0, pytest 24/24).
+  `criteria.md` maps ROADMAP criterion 1 to `not_met` (quoting the user's `stop-at-one`
+  decision verbatim) and criteria 2/3 to `met`; `handoff.md` answers both inherited open
+  questions (host-posture escalation not applicable, kanban blocker unrecurred and still
+  open) rather than dropping them silently. ROADMAP Phase 7 marked 5/5 complete with
+  criterion 1's `not_met` qualification written inline, mirroring `criteria.md` exactly.
+  Zero bench runs, zero model spend. Two commits (`46e6423`/`339efbe`) both individual.)
+- 07-04 (~8 min, Phase 7's fourth plan — the `stop-at-one`/empty-`SELECTED_TASKS` path: zero
+  additional `harbor run` invocations, the existing smoke-run bundle turned into a complete
+  BCH-03 table + BCH-02 prompt/result index, `verify_bench.sh` CASES 10/10, full seven-gate
+  post-batch sweep with one honestly-reported host-state mismatch (`docker ps -q` non-zero
+  due to seven unrelated pre-existing containers, zero harbor trace). ROADMAP criterion 1
+  recorded `NOT MET`, not rounded up. Three commits (`0de5bb4`/`021cafa`/`f759867`) all
+  individual.)
 - 07-03 (~42 min total across Tasks 1-3, Phase 7's third plan — one smoke task run foreground
   under `harbor run --env docker`, measured wall-clock 232s, verdict `fail-infra` (0 bytes in
   flashnext's server-log slice; container's cline hit the real OpenAI API default endpoint
@@ -1899,7 +1955,37 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **07-04-PLAN.md 완료 (3/3 tasks, 전부 auto — 3개 개별 커밋), STATE.md 갱신 완료.**
+Stopped at: **07-05-PLAN.md 완료 (2/2 tasks, 전부 auto — 2개 개별 커밋), STATE.md 갱신 완료.
+Phase 7 전체 종료(5/5 plans).** Resume file: None.
+
+Task 1(`46e6423`): `docs/cline-bench.md`(173줄, 9개 최상위 섹션) 작성 — 결론(1개 실행/0개
+통과)/실행 내역(harbor 0.22.0, cline-bench SHA, 과제 풀 12, 모델 스펙)/재현 3커맨드+상시
+게이트/⚠️ 한계(독립 최상위 — 5~8→1개 승격 없음(사용자 결정 원문 인용), flashnext 미도달(0바이트
+서버로그), 07-02 INJECTABLE 판정이 실제로는 미발동, 32K 압축 문서는 호스트 전용이라 컨테이너에
+안 적용, 온와이어 시스템 프롬프트 미캡처, pass 행 하나는 미실행 과제에 대해 아무것도 말 안 함)/
+보안 태세(host-posture 에스컬레이션 "적용 대상 아님", kanban 블로커 재발 안 함/그대로 열림)/운영
+부작용/제거 방법(uv tool uninstall harbor 등, bench/runs/ 는 제외)/증거 인덱스/Phase 8 인계(써서는
+안 되는 문장 목록, 최중요: cline-bench 가 이 스택을 검증했다고 쓰면 안 됨). 모든 숫자
+`summary.md` 와 대조 확인. 하우스 룰 9 그렙 3종 전부 통과(funnel/tailscale 동일 줄 0,
+EXTRA_ALLOW_PATHS= 0, "통과" 문장 전부 정직). `docs/services.md` §11 애디티브 전용 추가.
+
+Task 2(`339efbe`): `phase-07/results/20260830T103307Z-phase-close/` 로 8개 게이트 전부 재실행,
+전부 exit 0(preflight 11/11, verify_bench 10/10, verify_services 15/15, verify_no_regression
+INF03:PASS, verify_network 24/24, verify_sandbox SBX-04 PASS, verify_config exit 0 →
+check_versions SKIPPED, pytest 24/24). `criteria.md`: ROADMAP criterion 1 `not_met`(사용자
+stop-at-one 결정 원문 인용, 승격 없음), criterion 2·3 `met`(실행된 1개 과제 기준, 온와이어
+프롬프트 미캡처가 강등 사유는 아님을 명시). BCH-01/02/03 동일 매핑. `handoff.md`: 두 인계 질문
+모두 서면 응답(host-posture 적용 대상 아님, kanban 블로커 재발 없이 열린 채). `.planning/
+ROADMAP.md` Phase 7 5/5 `[x]`, criterion 1 의 `not_met` 사유를 Success Criteria 목록 안에
+직접 기입(진행률 표 셀에만 두지 않음 — criteria.md 와 완전히 미러링), 진행률 표 갱신. 6종
+pid·포트 3000·카나리아·`EXTRA_ALLOW_PATHS` 전부 무변경, 벤치 실행 0회, 모델 지출 0.
+
+**다음: Phase 8(한글 사용 매뉴얼).** DOC-01~04, 전체 완료(Phase 1-7) 후 최종 단계. Phase 8
+작성자는 `docs/cline-bench.md` §9(Phase 8 인계)의 "쓰면 안 되는 문장" 목록을 먼저 읽을 것 —
+특히 cline-bench 가 flashnext 를 검증했다는 문장은 절대 금지.
+
+이전 세션: 2026-08-30
+정지 지점: **07-04-PLAN.md 완료 (3/3 tasks, 전부 auto — 3개 개별 커밋), STATE.md 갱신 완료.**
 Task 1(`0de5bb4`): `SELECTED_TASKS` 빈 파일 확인 → Task 2 로 직행(계획 자신의 지정 경로),
 `README.md` 에 07-03 `decision.md` 원문 인용, `meta/*.json` 개수 1 재확인(= 1+0). Task
 2(`021cafa`): `make_summary.sh` 재실행(1개 시도·11개 not-run 유지), `prompts/INDEX.md` 신규(BCH-02
