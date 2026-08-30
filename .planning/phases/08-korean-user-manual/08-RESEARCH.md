@@ -458,3 +458,347 @@ docs/
 **Research date:** 2026-08-31
 **Valid until:** 라이브 kanban 서비스에 `GIT_CONFIG_GLOBAL` 이 실제 적용되거나 `EXTRA_ALLOW_PATHS`
 가 바뀌는 즉시 §A 재검증 필요. 나머지는 Phase 8 착수 시점까지 유효.
+
+---
+
+## A6b. worktree 생성 차단 — 정밀 진단
+
+**결론부터 (재현 vs 추론 구분은 아래 §A6b-0 표를 볼 것):**
+
+1. **No-widening 수정은 존재하지 않는다 — 이건 재현으로 확인됐다, 추정이 아니다.** call-shape
+   을 바꾼 세 가지 시도(상대경로 타깃, 이미 존재하는 서브디렉터리 안의 상대경로 타깃, 사전
+   생성된 빈 디렉터리) 전부 **완전히 동일한** 치명적 실패로 끝났다 — `git worktree add` 는
+   내부적으로 관련 절대경로를 realpath 류 방식으로 정규화하면서 `/Users/ohama` 자체를 항상
+   통과해야 하고, 이 프로젝트의 전체 작업 트리가 `$HOME` 아래에 있는 한 이건 우회할 방법이
+   없다.
+2. **최소 widening 후보를 실측으로 확정했다: `(allow file-read-metadata (subpath $HOME))`
+   만으로 충분하다 — `file-read-data`/`file-write*` 는 여전히 거부된 채로.** 단일 레벨·중첩
+   레벨·사전 생성된 디렉터리 세 변형 모두 실제로 worktree 를 만드는 데 성공했다(디스크에서
+   직접 확인).
+3. **하지만 이 widening 은 "config.env 값 하나 바꾸기"가 아니라 `gen_sandbox_profile.py` 의
+   코드 변경을 요구한다** — 이번 진단에서 새로 발견한 macOS Seatbelt 의 성질 때문이다:
+   연산(operation) 키워드가 더 구체적인 규칙(`file-read-data`)은, 나중에 나오고 경로가 더
+   좁더라도, 더 넓은 연산 키워드의 규칙(`file-read*`)에 의해 **덮어써지지 않는다** — 이
+   프로젝트의 `gen_sandbox_profile.py` 자신의 주석("SBPL is last-match-wins")이 전제하는
+   것과 다르다(같은 연산 키워드끼리는 여전히 last-match-wins 가 맞다 — 이건 §A6b-3 에서
+   직접 대조 실험으로 증명했다). 즉 `PROTECTED_ROOT` 의 거부를 `file-read-data` 로 좁히면,
+   지금 존재하는 모든 `ALLOWED_REPOS.json` 엔트리 · `~/.cline` 의 file-read-data 접근도
+   함께 끊어진다 — `render_profile()` 이 각 허용 경로마다 `file-read-data` 를 명시적으로
+   다시 허용하는 줄을 추가로 방출하도록 고쳐야 망가지지 않는다(§A6b-5 에 정확한 diff).
+4. **비용은 정확히 이렇다:** `$HOME` 아래 어디든(허용된 서브패스 밖 포함) 이미 경로를 아는
+   개별 파일/디렉터리의 **stat 급 메타데이터**(존재 여부, 크기, 권한, 소유자, 세 가지
+   타임스탬프, inode)는 읽을 수 있게 된다. **내용은 여전히 읽을 수 없다**(`cat` 계속 거부),
+   **디렉터리 나열도 여전히 안 된다**(`ls` 는 디렉터리에 대한 `file-read-data` 라서 여전히
+   거부 — 즉 `$HOME` 밑을 통째로 훑어 뭐가 있는지 찾아낼 수는 없다, 경로를 이미 알아야
+   stat 할 수 있다), **쓰기는 전혀 안 된다**(`file-write*` 는 손대지 않음). 이건 §A6 이 후보
+   (b)로 이미 예상했던 정확히 그 절충이고, 이번 진단이 그걸 실측으로 확정했다.
+5. **DOC-02("worktree") 는 이 widening 이 실제로 적용된 뒤에만 시연 가능하다.** 사람이
+   Phase 3 의 `PROTECTED_ROOT` 정책과 §A6b-5 의 generator 코드 변경을 승인하지 않는 한
+   worktree 생성은 여전히 안 된다 — 매뉴얼은 이걸 gap 으로 정직하게 적어야 한다.
+6. **부수 발견 — 지난 세션 §A2 의 "git 자체 커널 로그가 안 잡히는 원인 불명" 미스터리가
+   풀렸다.** 이 쉘(zsh)에는 `log` 라는 **빌트인 명령**이 있어서(`/System` 의 `log(1)` 과
+   무관), `log stream ...` 을 그냥 쓰면 조용히 `(eval):log:N: too many arguments` 로 실패하고
+   `> logfile` 로 리다이렉트된 그 에러 문구만 파일에 남는다 — 실제 커널 로그는 단 한 줄도
+   캡처되지 않은 채 "로그가 비었다"로 오인하기 쉽다. `/usr/bin/log` 처럼 **전체 경로로
+   호출해야** 진짜 `log(1)` 이 실행된다. 이번 세션 §A6b-2 의 재현은 전부 `/usr/bin/log stream`
+   으로 다시 하고 나서야 git 자신의 커널 로그 줄을 직접 잡을 수 있었다.
+
+### A6b-0. 재현/추론 구분표
+
+| # | 주장 | 상태 | 증거 |
+|---|------|------|------|
+| 1 | zsh 의 `log` 빌트인이 `/usr/bin/log` 를 가려서 `log stream` 이 조용히 실패한다 | **재현함** | §A6b-1 |
+| 2 | `GIT_CONFIG_GLOBAL=/dev/null` + 독립 저장소로 gitconfig/git-root 두 문제를 우회해도, `git worktree add` 는 이미 허용된 서브패스 안의 새 경로에서도 실패한다(단일/중첩/사전생성 세 변형) | **재현함**(3변형 모두, 커널 로그로 확인) | §A6b-2 |
+| 3 | 그 실패의 실제 커널 신호는 `file-read-data`·`file-read-metadata` 둘 다 여러 조상 경로(`/Users/ohama`, `/Users/ohama/projs/cline-tests`)에서 발생하지만, 최종 fatal 은 metadata 쪽 거부다 | **재현함**(커널 로그 원문 확보) | §A6b-2 |
+| 4 | 상대경로 타깃/이미 존재하는 하위 디렉터리 안 타깃/사전 생성된 빈 디렉터리 — call-shape 을 바꿔도 전부 동일하게 실패한다(no-widening 후보 소진) | **재현함**(세 가지 모두 직접 실행) | §A6b-2, §A6 원본(사전생성 변형은 원 진단에서도 이미 확인됨) |
+| 5 | `(allow file-read-metadata (subpath $HOME))` 만으로(file-read-data/file-write* 는 계속 거부) `git worktree add` 세 변형이 전부 성공한다 | **재현함**(디스크에 실제 worktree 생성 확인, `.git` gitdir 포인터·파일 내용까지 검증) | §A6b-4 |
+| 6 | SBPL 은 "나중에 쓴 규칙이 이긴다"가 아니라, 연산 키워드가 더 구체적인 규칙이 더 넓은 wildcard 규칙을 순서와 무관하게 이긴다(같은 구체성끼리는 순서가 이긴다) | **재현함**(4가지 순서 조합 통제 실험으로 직접 대조) | §A6b-3 |
+| 7 | metadata-only widening 아래서도 `$HOME` 의 내용 읽기(`cat`)와 디렉터리 나열(`ls`)은 허용된 서브패스 밖에서 여전히 거부된다 — 즉 이 widening 이 실제로 "메타데이터만" 좁혀졌다 | **재현함** | §A6b-4 |
+| 8 | cline 바이너리에 `--mode <act|plan>` CLI 플래그(디폴트 `"act"`)가 실재한다 | **재현함(정적 문자열 대조)** — 컴파일된 바이너리를 `strings` 로 직접 읽어 `.option("--mode <act|plan>","Agent mode","act")` 리터럴 확인. cline 실행은 안 함 | §A6b-6 |
+| 9 | 이 프로젝트가 실제로 쓰는 순수 헤드리스 1회성 프롬프트 커맨드(=Phase 1 이 `--help` 전문을 캡처한 그 커맨드)도 `--mode` 를 지원하는가 | **미확인 — 정적 분석의 한계로 남김** | §A6b-6 |
+| 10 | cline 자신도(kanban 과 별개로) 자체 체크포인트 기능(파일 체크포인팅, git ref 기반)을 갖고 있다 | **재현함(정적 문자열 대조)** — `createCheckpoint`/`restoreCheckpoint`/`cline-checkpoint-`/`CLAUDE_CODE_*_FILE_CHECKPOINTING` 리터럴 확인. 런타임 동작(언제 자동 생성되는지, 헤드리스에서도 켜지는지)은 미검증 | §A6b-7 |
+
+모든 명령은 실제 생성 로직(`phase-03/sandbox/run_sandboxed.sh --profile-out <스크래치 경로>` 및
+동일 코드 경로를 쓰는 `gen_sandbox_profile.py --extra-allow`)으로 만든 프로파일, 또는 이번
+진단의 가설을 검증하기 위해 손으로 쓴 스크래치 SBPL 파일로 실행했다 — 전부 스크래치 디렉터리
+(`/private/tmp/.../scratchpad/`, 그리고 실제 저장소 안의 `workspace/.tmp-wt-diag/`, 진단 종료
+시 삭제)를 대상으로 했다. `workspace/ALLOWED_REPOS.json`, `workspace/sandbox.sb`,
+`phase-03/sandbox/gen_sandbox_profile.py`, `phase-05/services/*`, 어떤 plist 도 수정하지
+않았다(`git diff --stat` 로 0 변경 확인). 여섯 개 라이브 pid 는 진단 시작·끝에서 동일함을
+확인했다.
+
+### A6b-1. 방법론 버그: zsh 의 `log` 빌트인이 `log stream` 을 가린다
+
+```
+$ log stream --style compact --predicate 'eventMessage CONTAINS "deny"' > logfile &
+$ cat logfile
+(eval):log:8: too many arguments
+```
+`log` 이 실제 `/usr/bin/log` 가 아니라 zsh 빌트인으로 해석돼서 즉시 실패하고, 그 에러 한 줄만
+로그 파일에 남는다 — "커널 로그에 아무것도 안 잡혔다"처럼 보이지만 사실은 캡처 프로세스 자체가
+시작도 못 했다. `/usr/bin/log stream ...` 처럼 절대경로로 불러야 한다:
+```
+$ /usr/bin/log stream --style compact --predicate 'eventMessage CONTAINS "deny"' > logfile &
+```
+이걸로 바꾸자 이번 세션의 모든 이후 캡처에서 git 자신의 커널 로그 줄이 직접 잡혔다(§A6b-2).
+이건 04-RESEARCH.md Pitfall 7 이 확립한 레시피 자체는 옳았다는 뜻이고, 08-RESEARCH.md §A2 가
+"git 프로세스 자신의 커널 로그 줄이 이번 세션에서 안 잡힌" 이유로 남겼던 "원인 불명"은 이제
+설명된다: 그 세션에서도 같은 쉐도잉이 원인이었을 가능성이 매우 높다(사후 확인은 불가능하지만,
+이번 세션에서 100% 재현되는 동일 증상이었다). 향후 이 프로젝트에서 `log stream`/`log show`
+를 쓰는 모든 스크립트·연구는 반드시 `/usr/bin/log` 절대경로를 써야 한다.
+
+### A6b-2. 정밀 재현 — 어떤 연산이, 어떤 경로에서 거부되는가
+
+실제 generator 로직으로 만든(수정 없음) 프로파일에 스크래치 디렉터리 하나만
+`--extra-allow` 로 추가해 격리 재현했다:
+```
+$ EXTRA_ALLOW_PATHS=.../workspace/.tmp-wt-diag \
+    phase-03/sandbox/run_sandboxed.sh --dry-run --profile-out <scratch>.sb -- true
+resolved allow list: ['.../workspace/scratch-repo', '/Users/ohama/.cline',
+                       '.../workspace/.tmp-wt-diag']
+```
+`.tmp-wt-diag/main-repo` 를 독립 `.git` 저장소로 만들고, `GIT_CONFIG_GLOBAL=/dev/null` 로
+gitconfig 문제를 우회한 뒤, `/usr/bin/log stream` 을 트리거 **이전에** 먼저 띄워두고
+`git worktree add ../wt-varA -b wt-varA-branch` 를 실행했다:
+```
+$ env GIT_CONFIG_GLOBAL=/dev/null /usr/bin/sandbox-exec -f <scratch>.sb -- \
+    git -C workspace/.tmp-wt-diag/main-repo worktree add ../wt-varA -b wt-varA-branch
+Preparing worktree (new branch 'wt-varA-branch')
+fatal: Invalid path '/Users/ohama': Operation not permitted
+exit=128
+```
+동시에 캡처된 커널 로그 원문(발췌, 실제 pid 다름 — 같은 실행 안에서 git 이 최소 3개의
+서브프로세스를 스폰함):
+```
+kernel[...] (Sandbox) Sandbox: git(23986) deny(1) file-read-data /Users/ohama/projs/cline-tests
+kernel[...] (Sandbox) Sandbox: git(23986) deny(1) file-read-metadata /Users/ohama/projs/cline-tests
+kernel[...] (Sandbox) Sandbox: git(23987) deny(1) file-read-metadata /Users/ohama
+kernel[...] (Sandbox) Sandbox: git(23987) deny(1) file-read-metadata /Users/ohama/projs/cline-tests
+kernel[...] (Sandbox) Sandbox: git(23986) deny(1) file-read-metadata /Users/ohama/projs/cline-tests
+kernel[...] (Sandbox) 1 duplicate report for Sandbox: git(23986) deny(1) file-read-metadata ...
+kernel[...] (Sandbox) Sandbox: git(23986) deny(1) file-read-metadata /Users/ohama
+kernel[...] (Sandbox) Sandbox: git(23986) deny(1) file-read-metadata /Users/ohama/projs/cline-tests
+kernel[...] (Sandbox) 4 duplicate reports for Sandbox: git(23986) deny(1) file-read-metadata ...
+kernel[...] (Sandbox) Sandbox: git(23988) deny(1) file-read-metadata /Users/ohama
+```
+**정리:** `git(23986)` 한 번은 `/Users/ohama/projs/cline-tests`(프로젝트 루트, 조상)에 대해
+`file-read-data` 로도 거부됐다 — 즉 조상 경로에 대한 거부는 metadata 하나가 아니다,
+data(읽기/나열류) 거부도 실재한다. 그러나 이건 이 특정 호출에서 fatal 하지 않았다(§A6b-4 가
+metadata 만 허용해도 성공함을 보여준다 — 즉 이 file-read-data 거부는 git 이 관대하게 넘어가는
+비필수 프로브였던 것으로 보인다). 나머지는 전부 `file-read-metadata` — `/Users/ohama` 자신과
+`/Users/ohama/projs/cline-tests` 양쪽에 반복적으로.
+
+**no-widening 후보 소진 — call-shape 을 바꿔도 안 된다(이번 세션에서 직접 실행):**
+```
+# (1) 절대경로 대신 순수 상대경로, 심지어 이미 존재하는 저장소 자신의 서브디렉터리 밑
+$ cd workspace/.tmp-wt-diag/main-repo && mkdir sub
+$ env GIT_CONFIG_GLOBAL=/dev/null /usr/bin/sandbox-exec -f <원본 미수정 shape 프로파일> -- \
+    git worktree add sub/wt-rel -b wt-relbranch
+fatal: Invalid path '/Users/ohama': Operation not permitted     # 동일하게 실패
+
+# (2) 타깃 디렉터리를 미리 만들어 둔 경우 (원 진단 §A6 이 이미 확인, 이번 세션도 재확인)
+# (3) 중첩 레벨 (nested/deep/...)
+```
+셋 다 완전히 동일한 실패다. **결론: git 이 관련 경로를 절대·정규화(realpath 류)하면서
+`/Users/ohama` 자체를 항상 stat 해야 하고, 이 프로젝트 전체가 `$HOME` 아래 있는 한 어떤
+호출 형태·env var·git 플래그로도 이 조상 stat 자체를 피할 수 없다 — no-widening 수정은
+존재하지 않는다.**
+
+### A6b-3. SBPL 발견 — "나중에 쓴 규칙이 이긴다"는 절반만 맞다
+
+문제 (2)의 후보 (b)를 검증하려고 손으로 쓴 최소 프로파일(`(deny file-read-data (subpath
+$HOME))` + `(allow file-read-metadata (subpath $HOME))` + 기존과 동일한 `(allow file-read*
+(subpath <repo>))` 식 punch-through)을 만들었더니, **허용된 서브패스 안에서도** `ls`/`git
+status` 가 깨졌다:
+```
+$ cd .../main-repo && /usr/bin/sandbox-exec -f <metadata-only-v1>.sb -- /bin/ls -la .
+ls: .: Operation not permitted
+→ kernel log: Sandbox: ls(24462) deny(1) file-read-data /Users/ohama/projs/cline-tests/workspace/.tmp-wt-diag/main-repo
+```
+이 디렉터리는 punch-through 목록에 있는데도 거부됐다. 네 가지 순서 조합으로 통제 실험했다
+(전부 이번 세션에 직접 실행, `$HOME` 에 좁은 deny, `<repo>` 서브패스에 넓은/좁은 allow):
+
+| 실험 | 규칙 순서(요약) | `ls .`(repo 안) |
+|---|---|---|
+| order-test-1 | `deny file-read-data(HOME)` → `allow file-read*(repo)` | **거부** |
+| order-test-2 | `allow file-read*(repo)` → `deny file-read-data(HOME)`(반대 순서) | **거부** |
+| order-test-3 | `deny file-read-data(HOME)` → `allow file-read-data(repo)`(같은 연산 키워드끼리) | **허용** |
+| order-test-4 | order-test-1 규칙 + 추가로 `allow file-read-data(repo)` 명시 | **허용** |
+
+order-test-1/2 가 **순서와 무관하게** 둘 다 거부라는 게 핵심이다 — 순서를 바꿔도 결과가
+똑같으므로 이건 "line order" 문제가 아니라 "연산 키워드 구체성" 문제다: `file-read-data`
+라는 **구체적** 연산에 대해 명시적 규칙이 존재하면, `file-read*` 라는 **넓은 wildcard**
+규칙은(설령 경로가 더 좁고 텍스트상 더 나중에 나와도) 그 구체적 연산을 커버하지 못한다.
+order-test-3(같은 키워드끼리)과 order-test-4(넓은 규칙 + 명시적으로 같은 키워드 규칙 추가)가
+둘 다 성공한 게 이걸 증명한다. **이 프로젝트의 `gen_sandbox_profile.py` 자체 주석("SBPL is
+last-match-wins")은 지금까지 이 generator 가 실제로 방출해 온 규칙 모양(모든 rule 이 항상
+`file-read*`/`file-write*` 같은 넓은 키워드로만 통일돼 있음)에서는 참이지만, 서로 다른
+구체성의 연산 키워드를 섞으면 깨진다 — 이건 이 프로젝트가 지금까지 실제로 시도해 본 적 없는
+규칙 모양이라 이번에 처음 드러났다.**
+
+### A6b-4. 최소 widening 실측 성공 — metadata-only, 세 변형 전부
+
+order-test-4 의 교훈(넓은 wildcard punch-through 를 유지하면서 같은 키워드로 명시적
+`file-read-data` allow 를 추가)을 반영한 v2 프로파일로 재시도:
+```sbpl
+(allow default)
+(deny file-read-data (subpath "/Users/ohama"))
+(allow file-read-metadata (subpath "/Users/ohama"))
+(deny file-write* (subpath "/Users/ohama"))
+(allow file-read* (subpath "<repo>"))
+(allow file-read-data (subpath "<repo>"))   ; ← 없으면 §A6b-3 처럼 repo 안도 깨진다
+(allow file-write* (subpath "<repo>"))
+```
+세 변형 전부 exit 0, 실제로 디스크에 worktree 생성됨:
+```
+$ env GIT_CONFIG_GLOBAL=/dev/null /usr/bin/sandbox-exec -f <v2>.sb -- git worktree add ../wt-v2test -b wt-v2test-branch
+Preparing worktree (new branch 'wt-v2test-branch')
+warning: unable to access '/Users/ohama/.config/git/ignore': Operation not permitted   # §A5 에 이미 기록된 것과 같은 비치명적 warning
+HEAD is now at ec7b1d4 init
+exit=0
+
+$ git worktree add ../nested/deep/wt-nested -b wt-nested-branch     → exit=0 (중첩 레벨)
+$ mkdir -p ../wt-precreated && git worktree add ../wt-precreated -b wt-precreated-branch   → exit=0 (사전 생성)
+
+$ git worktree list
+.../main-repo             ec7b1d4 [main]
+.../nested/deep/wt-nested ec7b1d4 [wt-nested-branch]
+.../wt-precreated         ec7b1d4 [wt-precreated-branch]
+.../wt-v2test             ec7b1d4 [wt-v2test-branch]
+```
+디스크에서 직접 확인(샌드박스 밖):
+```
+$ cat workspace/.tmp-wt-diag/wt-v2test/.git
+gitdir: /Users/ohama/projs/cline-tests/workspace/.tmp-wt-diag/main-repo/.git/worktrees/wt-v2test
+$ cat workspace/.tmp-wt-diag/wt-v2test/f.txt
+hi
+```
+**보호 경계가 실제로 metadata 로만 좁혀졌는지 검증(같은 v2 프로파일 아래):**
+```
+$ /usr/bin/sandbox-exec -f <v2>.sb -- /bin/cat /Users/ohama/.gitconfig          → 거부 (내용은 여전히 안 읽힘)
+$ /usr/bin/sandbox-exec -f <v2>.sb -- /usr/bin/stat /Users/ohama/.gitconfig     → 성공, 실제 크기/권한/타임스탬프 반환
+$ /usr/bin/sandbox-exec -f <v2>.sb -- /bin/ls -la /Users/ohama                  → 거부 ($HOME 나열도 여전히 안 됨)
+$ /usr/bin/sandbox-exec -f <v2>.sb -- /bin/cat .../cline-tests/cline-analysis.md → 거부 (다른 무관 프로젝트 파일 내용도 안 읽힘)
+```
+**결론: 후보 (b)가 정확히 의도한 대로 동작한다** — `$HOME` 아래 어디든 stat 급 메타데이터
+(존재/크기/권한/소유자/타임스탬프)는 노출되지만, 내용(`file-read-data`)과 디렉터리 나열은
+punch-through 되지 않은 곳에서는 여전히 완전히 막혀 있다.
+
+### A6b-5. 정확한 최소 코드 변경 (적용하지 않음 — 사람 결정 사항)
+
+`phase-03/sandbox/gen_sandbox_profile.py` 의 `render_profile()`(현재 "정확히 2 + 2 +
+2*len(allow_paths) 줄을 방출한다"고 스스로 문서화한 그 함수)을 이렇게 바꿔야 한다:
+
+```python
+# 현재:
+lines.append(f'(deny file-read* (subpath "{protected_root}"))')
+lines.append(f'(deny file-write* (subpath "{protected_root}"))')
+for p in allow_paths:
+    lines.append(f'(allow file-read* (subpath "{p}"))')
+    lines.append(f'(allow file-write* (subpath "{p}"))')
+
+# 제안(최소 widening, §A6b-4 로 실측 검증됨 — 적용 안 함):
+lines.append(f'(deny file-read-data (subpath "{protected_root}"))')
+lines.append(f'(allow file-read-metadata (subpath "{protected_root}"))')
+lines.append(f'(deny file-write* (subpath "{protected_root}"))')
+for p in allow_paths:
+    lines.append(f'(allow file-read* (subpath "{p}"))')
+    lines.append(f'(allow file-read-data (subpath "{p}"))')   # 신규 — 없으면 §A6b-3 처럼 이미 허용된 repo 도 깨진다
+    lines.append(f'(allow file-write* (subpath "{p}"))')
+```
+줄 수 문서화(`Emits exactly 2 + 2 + 2*len(allow_paths) lines`)도 같이 갱신해야 한다. 이건
+`EXTRA_ALLOW_PATHS`에 값 하나 넣는 것과 **차원이 다른** 변경이다 — `PROTECTED_ROOT` 자체가
+보호하는 연산의 범위를 바꾸는 것이고, `config.env` 헤더가 "SBX-01/02/03 override point" 라고
+부르는 그 지점보다 한 단계 더 깊은, generator 코드 자체의 변경이다. **이번 진단에서는
+`gen_sandbox_profile.py` 를 건드리지 않았다 — 전부 스크래치 사본에서 검증했다.**
+
+### A6b-6. Open Question 1 해소 (저비용) — Plan/Act 모드는 실재한다
+
+`docs/cline-config-pins.md` §2 가 캡처한 `cline --help` 전문(11개 플래그)에는 `--mode` 가
+없다 — 이게 원래 open question 의 근거였다. cline 을 직접 실행하지 않고, 이미 설치된 바이너리
+(`/opt/homebrew/lib/node_modules/cline/bin/.cline`, Phase 1 이 CFG-04 재정의 때 쓴 것과 같은
+`strings` 정적 스캔 기법)를 다시 읽어 확인했다:
+
+```
+$ strings .cline | grep -F '.option("--mode'
+.option("--mode <act|plan>","Agent mode","act")
+```
+그리고 내부 5-모드 도구-허용 테이블(리터럴로 확인):
+```js
+Ja = {
+  act:     {enableReadFiles:true, enableSearch:true, enableBash:true, enableWebFetch:true,
+            enableApplyPatch:false, enableEditor:true,  enableSkills:true, ...},
+  plan:    {enableReadFiles:true, enableSearch:true, enableBash:true, enableWebFetch:true,
+            enableApplyPatch:false, enableEditor:false, enableSkills:true, ...},   // ← editor 만 다름
+  search:  {..., enableBash:false, enableWebFetch:false, ...},
+  minimal: {enableReadFiles:false, enableSearch:false, enableBash:true, ...},
+  ...
+}
+```
+그리고 `CLAUDE_CODE_PLAN_MODE_REQUIRED`, `CLAUDE_CODE_ACT_DONT_REDERIVE` 라는 이름의 env
+var 도 존재한다(`CLAUDE_CODE_*` 접두사 — Claude Agent SDK 자체의 명명 규칙과 동일, cline 이
+그 SDK 의 plan/act 기능을 그대로 물려받았다는 정황).
+
+**결론:** Plan/Act 는 실재하는 개념이고, 최소 한 커맨드(`discord` 커넥터의 `createCommand()`)
+에서 `--mode <act|plan>`(디폴트 `"act"`) CLI 플래그로 노출된다 — CLI 플래그이므로 원천적으로
+TTY 와 무관하게(헤드리스에서도) 동작하도록 설계됐다. **미확인으로 남는 것:** 이 프로젝트가
+실제로 쓰는 순수 헤드리스 1회성 프롬프트 커맨드(Phase 1 이 `--help` 전문을 캡처한 바로 그
+커맨드)도 `--mode` 를 지원하는지는 이 정적 문자열 대조만으로는 단정할 수 없다(컴파일된
+바이너리의 제어 흐름 분석이 필요한데, 이건 이번 진단 범위를 넘고 cline 실행 없이는 확정하기
+어렵다). **DOC-01 권고 문장:** "Plan/Act 는 실재하는 기능이고 최소 하나의 커넥터 커맨드는
+`--mode` 플래그로 지원한다(디폴트 act). 이 프로젝트의 기본 헤드리스 호출은 `--mode` 를 명시한
+적이 없으므로 지금까지 전부 디폴트인 act 모드로만 실행돼 왔다 — Plan 모드는 이 프로젝트에서
+한 번도 실제로 실행된 적이 없다는 뜻이고, 매뉴얼은 이걸 정직한 gap 으로 적어야 한다."
+
+### A6b-7. Open Question 2 해소 (저비용) — "체크포인트"는 둘 다 있고, 서로 다르다
+
+kanban 쪽은 §A4 에서 이미 확인됨(`createWorkingTreeCheckpointCommit`, 태스크 단위,
+`GIT_AUTHOR_NAME` 등 직접 주입). cline 자신도 별도의, 훨씬 방대한 자체 체크포인트 기계장치를
+갖고 있다는 게 이번에 `strings` 스캔으로 확인됐다(cline 실행 없이):
+
+```
+createCheckpoint, restoreCheckpoint, getCheckpointData, fileCheckpointingEnabled,
+enableFileCheckpointing, readSessionCheckpointHistory, compareCheckpointToWorkspace,
+buildCheckpointWorkspaceDiff, deleteCheckpointRefs, restoredCheckpointMetadata
+cline-checkpoint-                                    ← git ref 접두사로 보이는 리터럴
+CLAUDE_CODE_ENABLE_SDK_FILE_CHECKPOINTING            ← env var
+CLAUDE_CODE_DISABLE_FILE_CHECKPOINTING               ← env var
+```
+`CLAUDE_CODE_*` 접두사 명명 규칙이 Plan/Act(§A6b-6)와 동일하다 — cline 이 Claude Agent SDK
+자체의 파일 체크포인팅 기능을 그대로 물려받았다는 합리적 추론이지만, 이건 정적 문자열
+증거일 뿐 런타임 동작(언제 자동 생성되는지, 헤드리스 `--auto-approve true` 에서도 기본으로
+켜지는지, `--id` 세션 재개와 어떻게 연결되는지)은 검증하지 않았다.
+
+**결론: 둘 다 있고, 서로 다른 것이다.** cline 자체 체크포인트는 **세션(에이전트 실행) 단위**
+파일 상태 스냅샷/복원(`cline-checkpoint-*` 이름의 git ref 로 추정, `--id` 세션 재개와 같은
+레이어), kanban 체크포인트는 **태스크 단위** 로 남기는 명시적 작업 커밋(kanban 웹 UI 의 diff
+리뷰에서 보임, §A4). **DOC-01 은 전자, DOC-02 는 후자를 문서화해야 하고, 매뉴얼이 둘을 같은
+개념으로 뭉뚱그리면 안 된다** — 이게 정확히 원래 open question 이 우려했던 지점이다.
+
+### A6b-8. 종합 권고 (§A7 표의 worktree 행을 이 표로 갱신)
+
+| 항목 | 권고 | widening 필요? | 확신도 |
+|---|---|---|---|
+| `git worktree add` 가 새 디렉터리를 못 만듦 | no-widening 수정 없음(재현으로 확인). 최소 widening: `PROTECTED_ROOT` 를 `file-read-data` deny + `file-read-metadata` allow 로 분리하고, `gen_sandbox_profile.py` 의 `render_profile()` 이 각 punch-through 경로마다 `file-read-data` 를 명시적으로 재허용하도록 수정(§A6b-5, 코드 변경, config 값 아님) | **예 — 정확히 이 범위로 확정** | HIGH(3변형 실측 성공 + 보호 경계 유지 확인) |
+| Plan/Act 모드가 헤드리스에 적용되는가 | 실재함, 최소 한 커맨드는 `--mode` 로 지원(디폴트 act). 이 프로젝트의 기본 헤드리스 호출은 항상 디폴트(act)로만 동작해왔다 | 해당 없음(순수 조사 질문) | MEDIUM(정적 문자열 증거, 런타임 미검증) |
+| DOC-01 "체크포인트"가 무엇을 가리키는가 | cline 자체 세션 체크포인트(파일 스냅샷)와 kanban 태스크 체크포인트 커밋 **둘 다 실재하며 다르다** — DOC-01 은 전자, DOC-02 는 후자 | 해당 없음(순수 조사 질문) | MEDIUM(cline 쪽은 정적 증거만, kanban 쪽은 §A4 소스 대조로 HIGH) |
+
+**DOC-02(worktree) 가능 여부, 명확히:** 사람이 §A6b-5 의 `gen_sandbox_profile.py` 코드 변경과
+그에 따른 정확한 비용(§A6b-4: `$HOME` 전체의 stat 급 메타데이터 노출, 내용·나열·쓰기는 계속
+막힘)을 승인하기 전까지는 **불가능하다**. 승인하면 이 진단이 검증한 그대로 동작한다. 승인하지
+않으면 매뉴얼은 "worktree 생성은 이 배포에서 지원되지 않는다"를 정직한 gap 으로 적어야 한다.
+
+### A6b Sources
+
+- 이번 세션 라이브 실행 트랜스크립트(§A6b-1~7의 모든 명령·커널 로그) — 스크래치 프로파일은
+  `/private/tmp/.../scratchpad/`, 스크래치 저장소는 `workspace/.tmp-wt-diag/`(진단 종료 후
+  삭제, `git status --porcelain` 로 0 변경 확인)
+- `phase-03/sandbox/config.env`, `run_sandboxed.sh`, `gen_sandbox_profile.py` — 직접 읽음,
+  미수정 확인(§A6b-5 는 제안일 뿐 미적용)
+- `/opt/homebrew/lib/node_modules/cline/bin/.cline`(설치된 컴파일 바이너리) — `strings` 정적
+  스캔으로 `--mode`/`Ja` 모드 테이블/`checkpoint*` 리터럴 확보. cline 프로세스는 이번 진단에서
+  단 한 번도 실행하지 않았다(제약 준수)
+- `docs/cline-config-pins.md` §2(`cline --help` 전문 캡처), `docs/headless-wrapper.md`
+  §"검증된 CLI 플래그 표면" — Open Question 1 의 기존 근거로 재확인
+- `.planning/phases/04-headless-cli-wrapper/04-RESEARCH.md` Pitfall 7 — `log stream` 선(先)기동
+  레시피의 출처, §A6b-1 이 그 레시피 자체는 옳았음을 재확인
