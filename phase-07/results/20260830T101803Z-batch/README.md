@@ -71,3 +71,56 @@ state at the top of this plan's execution was identical to the values already st
 **NOT MET.** One task was run in this phase (07-03's smoke run), not five to eight. This is
 recorded honestly and is not rounded up, reinterpreted, or described as satisfying the 5-8 range
 in this document or in `07-04-SUMMARY.md`. See the quoted decision above for the reasoning.
+
+---
+
+# Task 3: post-batch gate sweep and drift assertions
+
+Generated: 2026-08-30T10:23:00Z. Full evidence in `./gates/`.
+
+## What ran
+
+Seven standing gates, re-run fresh against this plan's final state (`./gates/*.txt`):
+
+| gate | expected | observed |
+| --- | --- | --- |
+| `phase-07/bench/preflight.sh` | `CASES 11/11` | `CASES 11/11`, PASS |
+| `phase-05/services/verify_services.sh` | 15/15 | `CASES 15/15`, `CRASHED 0`, PASS |
+| `phase-02/infra/verify_no_regression.sh` | `INF03:PASS` | `INF03: PASS` |
+| `phase-06/net/verify_network.sh --baseline phase-06/results/20260830T051403Z-baseline` | `CASES 24/24` | `CASES 24/24`, `CRASHED 0`, PASS |
+| `phase-03/sandbox/verify_sandbox.sh` | exit 0, SBX-04 PASS | exit 0, `CASES 16/16`, `CRITERION 4 ... PASS` |
+| `phase-01/config/verify_config.sh` | exit 0 | exit 0, clean |
+| `phase-01/config/check_versions.sh` | conditional | **SKIPPED** (`verify_config.sh` clean, no drift to investigate) -- exactly one gate line, `cline` budget consumed: 0 |
+
+All seven exit codes: 0.
+
+## Drift assertions
+
+- Six pids (46573/75548/48525/53894/99162/19669) unchanged, same command lines.
+- Port 3000 unbound (`lsof` empty, rc=1).
+- `git diff --stat phase-01 phase-02 phase-03 phase-04 phase-05 phase-06 workspace` empty.
+- `git diff --exit-code workspace/ALLOWED_REPOS.json` exits 0.
+- `bench/runs/CANARY.txt` unchanged.
+- `tailscale serve status --json` byte-identical to the 07-01 preflight capture
+  (`phase-07/results/20260830T084629Z-preflight/p5-network/serve-status.json`) -- no network
+  surface moved. Only the benign, already-documented `Warning: client version ...` stderr line
+  present.
+- `docker ps -a -q --filter status=exited` and harbor-launched containers: **zero** harbor
+  containers exist, running or exited -- this plan invoked `harbor run` zero times (see Task 1
+  above). `docker ps -q` itself is **not** empty (7 containers) but every one is a long-running,
+  pre-existing container from entirely unrelated projects on this shared host
+  (`nextcloud-*`, `safestacktutorial-db-1`; created 4 weeks / 2 months ago, weeks before this
+  entire phase began) -- none carries any cline-bench/harbor trace. This is reported as a
+  literal mismatch against this plan's own `<verify>` wording (`docker ps -q | wc -l` is 0), not
+  reconciled silently; full detail and the per-container table are in `./gates/README.md`. The
+  substantive invariant the check exists to protect -- no leaked harbor container -- holds fully.
+
+## "The bench ran" vs "the bench passed"
+
+The bench mechanism ran completely and correctly for the one task attempted in this phase; that
+is not the same claim as the task passing. Its verdict is `fail-infra` -- the container's cline
+never reached this stack's model server, hitting the real OpenAI API instead and failing before
+generating a token -- so no claim is made that this stack can or cannot complete a real
+cline-bench coding task. The pipeline (install -> preflight -> container -> harbor invocation ->
+evidence capture -> verifier -> gate sweep -> BCH table) is proven end to end across three plans
+now; the model-reaching path for a real task is not.

@@ -1,0 +1,3 @@
+INF03: PASS
+RESULTS_DIR=phase-02/results/20260830T102248Z-inf03
+verify_no_regression.sh EXIT=0

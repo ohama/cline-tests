@@ -1,0 +1,2 @@
+INF03: PASS
+RESULTS_DIR=/Users/ohama/projs/cline-tests/phase-07/results/20260830T102009Z-preflight/p4-no-regression
