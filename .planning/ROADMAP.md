@@ -137,10 +137,15 @@ Plans:
   3. `lsof -i :3000` 결과, 이 프로젝트가 만든 어떤 서비스도 포트 3000 을 점유하지 않는다
   4. `--allowed-user-id` 없이 Telegram 커넥터를 기동하면 즉시 기동 실패한다
   5. 32K 근처 요청 중 Kanban 카드와 Telegram 대화 양쪽 모두에서 "작업 중" 상태가 시각적으로 확인된다
-**Plans**: TBD
+**Plans**: 6 plans
 
 Plans:
-- [ ] 06-01: TBD
+- [ ] 06-01-PLAN.md — 변경 전 베이스라인(4개 상시 게이트 + 네트워크 인벤토리) + Phase 6 상수 고정(8444) + 기존 Tailscale 핸들러 3개 동결
+- [ ] 06-02-PLAN.md — NET-04: run_telegram_service.sh 래퍼 프리플라이트 가드 + 실제 기동 실패 실증 후 원복
+- [ ] 06-03-PLAN.md — setup_tailscale_serve.sh + verify_network.sh 오프라인 저작·자가검증(음성 대조군), 네트워크 무변경
+- [ ] 06-04-PLAN.md — 네트워크 개방 1회(serve :8444 → 127.0.0.1:3484) + NET-01 서버측/NET-02/NET-03 실증 + 사후 게이트 스윕
+- [ ] 06-05-PLAN.md — NET-05 서버측 증거 + 실토큰 Telegram 라이브 트라이얼 결정 체크포인트
+- [ ] 06-06-PLAN.md — docs/network-exposure.md + iPad 체크리스트 + phase-close 게이트 스윕/criteria.md
 
 ### Phase 7: cline-bench 동작 검증
 **Goal**: cline-bench 공식 과제 일부를 로컬 Docker 로 실행해, 압축/설정(Phase 1)과 샌드박스
@@ -187,6 +192,6 @@ Phase 1·2·3 은 서로 병렬 가능(의존성 없음). Phase 4·5 는 1·2·3
 | 3. 샌드박스 + 저장소 화이트리스트 | 4/4 | ✓ Complete | 2026-08-30 |
 | 4. 헤드리스 CLI 래퍼 | 4/4 | ✓ Complete | 2026-08-30 |
 | 5. Kanban·Telegram 서비스화 | 7/7 | ✓ Complete | 2026-08-30 |
-| 6. 네트워크 노출 | 0/TBD | Not started | - |
+| 6. 네트워크 노출 | 0/6 | Planned | - |
 | 7. cline-bench 동작 검증 | 0/TBD | Not started | - |
 | 8. 한글 사용 매뉴얼 | 0/TBD | Not started | - |
