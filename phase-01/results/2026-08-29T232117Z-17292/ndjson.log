@@ -1,0 +1,6 @@
+{"type":"agent_event","event":{"type":"usage","inputTokens":5588,"outputTokens":11,"totalInputTokens":5588}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":8920,"outputTokens":9,"totalInputTokens":14508}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":12252,"outputTokens":8,"totalInputTokens":26760}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":15584,"outputTokens":7,"totalInputTokens":42344}}
+{"type":"agent_event","event":{"type":"usage","inputTokens":18400,"outputTokens":6,"totalInputTokens":60744}}
+{"type":"run_result","finishReason":"completed","iterations":5}

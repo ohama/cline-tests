@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "lastUsedProvider": "openai-compatible",
+  "providers": {
+    "cline": {
+      "settings": {
+        "provider": "cline",
+        "model": "tencent/hy4-preview"
+      },
+      "updatedAt": "2026-08-29T06:28:53.425Z",
+      "tokenSource": "manual"
+    },
+    "openai-compatible": {
+      "settings": {
+        "provider": "openai-compatible",
+        "apiKey": "dummy",
+        "model": "flashnext",
+        "contextWindow": 29000,
+        "baseUrl": "http://localhost:4000/v1"
+      },
+      "updatedAt": "2026-08-29T23:21:16.607Z",
+      "tokenSource": "manual"
+    }
+  }
+}

@@ -1,0 +1,1 @@
+DRY_RUN (fixture: phase-01/tests/fixtures/outcome3_below_trigger.ndjson)

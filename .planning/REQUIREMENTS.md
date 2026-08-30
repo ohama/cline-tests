@@ -144,11 +144,11 @@
 | SVC-03 | Phase 5 | Complete |
 | SVC-04 | Phase 5 | Complete |
 | SVC-05 | Phase 5 | Complete |
-| NET-01 | Phase 6 | Pending |
-| NET-02 | Phase 6 | Pending |
-| NET-03 | Phase 6 | Pending |
-| NET-04 | Phase 6 | Pending |
-| NET-05 | Phase 6 | Pending |
+| NET-01 | Phase 6 | Human-needed |
+| NET-02 | Phase 6 | Complete |
+| NET-03 | Phase 6 | Complete |
+| NET-04 | Phase 6 | Complete |
+| NET-05 | Phase 6 | Human-needed |
 | BCH-01 | Phase 7 | Pending |
 | BCH-02 | Phase 7 | Pending |
 | BCH-03 | Phase 7 | Pending |
