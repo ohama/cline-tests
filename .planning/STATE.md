@@ -5,21 +5,60 @@
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
-**Current focus:** **Phase 4 (헤드리스 CLI 래퍼) 완료.** wave 1의 04-01(오프라인 기반), wave 2의
-두 플랜(04-02: 실제 라이브 래퍼, 04-03: criterion-3 증명 게이트), wave 3의 04-04(criterion-3
-실제 1회 라이브 확정 + `docs/headless-wrapper.md` + phase-close)까지 4개 플랜 전부 완료. ROADMAP
-Phase 4 세 성공기준(HLS-01/02/03) 모두 실측 증거로 동시 성립: HLS-01/02 는 04-02 의 shipped
-래퍼 라이브 스모크런(`success`), HLS-03 은 04-04 의 `verify_sandbox_via_cline.sh` 라이브 실행
-(`VERDICT: DENIED`, 커널 EPERM + in-whitelist canary 성공이 같은 tool-call 배치에 공존)으로
-증명됨. `EXTRA_ALLOW_PATHS` 는 phase 시작부터 종료까지 빈 값 그대로 — Phase 3 인계 블로커는
-경계 확장이 아니라 초대(invocation) 위생(cwd 픽스)으로 닫혔다. 다음은 **Phase 5**.
+**Current focus:** **Phase 5 (Kanban·Telegram 서비스화) 완료.** 7개 플랜 전부 완료 — wave 1
+(05-01/05-02, 병렬: launchd 래퍼+readiness 게이트, check_versions.sh/restart_service.sh 확장),
+wave 2(05-03: 등록 전 포그라운드 증명), wave 3(05-04: kanban 최초 등록), wave 4(05-05:
+telegram-connect 등록, 빈 토큰), wave 5(05-06: SVC-05 미러 등록 + 상시 게이트), wave 6(05-07:
+phase-close 게이트 스윕 + `docs/services.md` + Task 3 재부팅 결정 체크포인트). ROADMAP Phase 5
+네 성공기준(SVC-01~05) 모두 실측 증거로 성립: criterion 1(라벨 running)은 pid-stable 실측 +
+재부팅 절은 사람이 `accept-proxy` 를 선택해 proxy 증거(RunAtLoad+LaunchAgents 배치+
+bootout/bootstrap 콜드스타트 사이클)로 확정 종결(실제 재부팅은 하지 않음, `iogpu.wired_limit_mb`
+재적용 비용 때문), criterion 2(kill→KeepAlive 부활)·criterion 3(flashnext 다운 중 크래시루프
+없음)·criterion 4(SVC-05 미러 반영) 는 모두 직접 실측. `EXTRA_ALLOW_PATHS` 는 phase 시작부터
+종료까지 빈 값 그대로, `cline` 호출은 phase 전체 2회(상한 3회). Phase 6 인계: criterion 1 의
+재부팅 절이 proxy-evidenced 일 뿐 관측된 적 없다는 점을 실측 재부팅 증거로 착각하지 말 것,
+`--allowed-user-id` wrapper-level 강제 필요, RPC 공존 잔여 항목(`--rpc-address`), `verify_services.sh`
+를 네트워크 노출 전/후 호출할 것. 다음은 **Phase 6**.
 
 ## Current Position
 
-Phase: 5 of 8 (Kanban·Telegram 서비스화) — 진행 중
-Plan: 06 of 7 in current phase — 완료 (SUMMARY 작성 완료). **Wave 1(05-01/05-02, 병렬) 완료 +
-wave 2(05-03) 완료 + wave 3 전반(05-04) 완료 + wave 4(05-05) 완료 + wave 5(05-06) 완료.**
-Status: 05-06 완료 — **SVC-05(미러 등록) + Phase 6 용 상시 게이트(`verify_services.sh`).**
+Phase: 5 of 8 (Kanban·Telegram 서비스화) — **완료**
+Plan: 07 of 7 in current phase — 완료 (SUMMARY 작성 완료). **Wave 1(05-01/05-02, 병렬) 완료 +
+wave 2(05-03) 완료 + wave 3 전반(05-04) 완료 + wave 4(05-05) 완료 + wave 5(05-06) 완료 +
+wave 6(05-07) 완료 — Phase 5 전체 7개 플랜 종료.**
+Status: 05-07 완료 — **Phase 5 종결: docs/services.md + 전체 게이트 스윕 + Task 3 재부팅 결정
+체크포인트(사람이 `accept-proxy` 선택).** Task 1(phase-close gate sweep): 두 서비스 라이브 상태에서
+표준 게이트 전부 동시 PASS — `verify_services.sh` 15/15, `verify_no_regression.sh`(INF03: PASS),
+`verify_sandbox.sh`(4/4 CRITERION·16/16 CASES·0 CRASHED), `verify_config.sh`(사전+사후 모두 exit 0,
+heal 불필요), `check_versions.sh`(이 플랜의 유일한 `cline` 호출, 실제 설치된 두 plist 대상으로
+exit 0·non-vacuous — Check C 는 계획 문서가 예상한 4줄이 아니라 3줄 PASS 가 정상: telegram-connect
+는 `cline` 을 부르지 `kanban` 을 부르지 않으므로 그 게이트 자체 설계상 `CLINE_NO_AUTO_UPDATE` 만
+검사 대상, 버그 아님), `pytest phase-03/tests/ phase-04/tests/`(24/24), invariant 8종 전부 PASS
+(`EXTRA_ALLOW_PATHS` 빈 값/`phase-03/` git diff 없음/pid 5종 불변/`launchctl bootstrap` 헬퍼 0건/
+포트 3000 없음/`sync.sh --check` exit 0), 네 ROADMAP 기준을 증거 경로에 매핑한
+`criteria.md`(criterion 1 재부팅 절은 Task 3 결정 대기 상태로 명시). Task 2: `docs/services.md`
+(243줄, house style, 10절, 4절이 독립 최상위 한계 섹션) 작성 — 두 launchd 서비스의 구조/근거/운영/
+토큰 주입/로그/하우스룰/증거/Phase 6 인계를 한 문서로 통합, 재부팅 절은 "Task 3 결정 기록"
+placeholder 로 열어 둠. **Task 3(체크포인트, continuation agent 가 실행)**: 사람이 세 옵션
+(proxy 수용/지금 재부팅/다음 자연 재부팅에 위임) 중 **`accept-proxy`** 를 선택 — 실제 재부팅은
+전혀 수행하지 않음(요청도 없었음). `docs/services.md` §4 의 placeholder 와
+`phase-05/results/20260830T024606Z-phase-close/criteria.md`의 "Task 3 decision" 섹션 둘 다 이
+결정을 verbatim 기록: 수용된 것은 두 plist `RunAtLoad: true` + `~/Library/LaunchAgents/` 실재 +
+라벨 활성 + 라벨별 `bootout`→`bootstrap` 콜드스타트 사이클 완주(로그인/부팅과 같은 경로)이고,
+증명되지 않은 것은 실제 macOS 재부팅 동작·로그인 세션 순서·부팅 시점 `:4000` 가용성이며, 실제
+재부팅을 안 한 이유는 `iogpu.wired_limit_mb` 가 재부팅으로 초기화돼 `preflight.sh` 를 하드
+실패시키고 특권 `sudo sysctl` 재적용이 필요하기 때문. 두 문서 어디에도 "reboot-verified"/"재부팅
+검증 완료" 로 읽히는 문구가 없음 — negation 서술("~라고 주장하지 않는다") 초안이 우연히 그 리터럴
+문자열 자체를 인용해버린 것을 커밋 전에 발견해 재작성(Rule 1, 아래 결정 로그 참조). criterion 1
+의 재부팅 절은 이 결정 이후에도 **여전히 proxy-evidenced** 상태로 남는다 — Phase 6/8 은 이것을
+실측 재부팅 증거로 착각해선 안 된다. `docs/services.md` 플랜 grep 계약 전부 재통과(`wc -l`=243
+≥120, `bootout`=8≥3, `verify_services.sh`=2≥2, `infra-hardening`=1≥1, `iogpu.wired_limit_mb`=2≥1,
+`reboot-verified`류=0, `no-tools`=2≥1, `auto-approve`=2≥1, `loaded_model`=1≥1,
+`unknown option`=1≥1, `BotFather`=1≥1). pid 5종(46573/48525/75548/53894/56669) 전 과정 불변,
+`EXTRA_ALLOW_PATHS` 빈 값, 포트 3000 없음, `phase-03/` git diff 없음, 재부팅 0회, `sudo sysctl`
+0회. 네 커밋(`c21cc33`/`b54cee8`/`5c01bd8`/`d20cd98`) 모두 개별, SUMMARY 작성 완료.
+
+이전: 05-06 완료 — **SVC-05(미러 등록) + Phase 6 용 상시 게이트(`verify_services.sh`).**
 `~/local-llm-settings/sync.sh`(이 repo 의 git 이력 밖 파일)의 하드코딩 `LABELS` 배열/포트 행
 목록에 두 새 라벨(`com.ohama.kanban`/`com.ohama.telegram-connect`)과 `3484` 행을 각각 한 줄씩만
 추가하는 최소·additive 편집(before/after/diff 를 `phase-05/results/20260830T023144Z-svc05/` 에
@@ -310,16 +349,16 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [████████▒▒] 77% (Phase 4/8 완료, Phase 5/8 진행 중 — wave 1(05-01/05-02) +
-wave 2(05-03) + wave 3 전반(05-04) + wave 4(05-05) + wave 5(05-06) 완료, Plan 24/31 누적 추정 —
-Phase 5 는 총 7개 플랜, 05-07 하나만 남음)
+Progress: [████████▒▒] 81% (Phase 5/8 완료 — wave 1(05-01/05-02) + wave 2(05-03) +
+wave 3 전반(05-04) + wave 4(05-05) + wave 5(05-06) + wave 6(05-07) 전부 완료, Plan 25/31 누적
+추정 — 다음은 Phase 6)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 24
-- Average duration: ~14.5 min
-- Total execution time: ~5.8 hours
+- Total plans completed: 25
+- Average duration: ~14.7 min
+- Total execution time: ~6.1 hours
 
 **By Phase:**
 
@@ -329,9 +368,36 @@ Phase 5 는 총 7개 플랜, 05-07 하나만 남음)
 | 2 | 4/4 | ~55 min | ~13.8 min |
 | 3 | 4/4 | ~48 min | ~12 min |
 | 4 | 4/4 | ~42 min | ~10.5 min |
-| 5 | 6/7 | ~96 min | ~16 min |
+| 5 | 7/7 | ~116 min | ~16.6 min |
 
 **Recent Trend:**
+- 05-07 (~20 min active work, wave 6 — Phase 5's final plan, closing the phase. Task 1 ran every
+  standing gate at once with both new services live: `verify_services.sh` (15/15), INF03 PASS,
+  `verify_sandbox.sh` (4/4 CRITERION, 16/16 CASES, 0 CRASHED), `verify_config.sh` (clean pre and
+  post), `check_versions.sh` (the plan's single `cline` invocation, run against the two real
+  installed plists — exit 0, non-vacuous; Check C's 3 PASS lines, not the plan text's anticipated
+  4, confirmed correct-by-design since the telegram plist invokes `cline` not `kanban`), pytest
+  24/24, 8/8 invariants, and a `criteria.md` mapping all four ROADMAP criteria to evidence with
+  criterion 1's reboot clause explicitly marked proxy-only pending Task 3. Task 2 wrote the
+  243-line `docs/services.md` (house style, 10 sections, limitations as its own top-level heading)
+  covering everything the next person needs to restart/take-down/remove/inject-a-token-into/reason
+  about both services, leaving the reboot-clause decision as an explicit, empty placeholder. Task
+  3 was a blocking checkpoint: the human selected `accept-proxy` (not `reboot-now` or
+  `defer-to-next-reboot`) for ROADMAP criterion 1's reboot clause — no reboot performed, none
+  required as follow-up. A continuation agent recorded that decision verbatim in both
+  `docs/services.md` §4 and the phase-close `criteria.md`, stating plainly what the proxy proves
+  (RunAtLoad + LaunchAgents placement + a per-label bootout/bootstrap cold-start cycle), what it
+  doesn't (real reboot behavior, login-session ordering, `:4000` readiness at boot), and why a
+  real reboot was skipped (`iogpu.wired_limit_mb` reset requiring a privileged `sudo sysctl`
+  re-apply before `preflight.sh` passes again) — re-verified every one of the plan's grep
+  contracts on `docs/services.md` afterward, all passing, with zero occurrences of
+  "reboot-verified"/"재부팅 검증 완료" anywhere (catching and rewording one self-authored draft
+  sentence that had accidentally quoted the forbidden phrase inside its own negation). Criterion
+  1's reboot half remains proxy-evidenced, not observed, even after this decision — a durable fact
+  for Phase 6/8, not an upgraded claim. Live pids (flashnext 46573, litellm 48525, role-shim
+  75548, kanban 53894, telegram-connect 56669) unchanged throughout; `EXTRA_ALLOW_PATHS` empty; no
+  port 3000; `phase-03/` git diff empty; zero reboots; zero `sudo sysctl` calls. Four commits
+  (`c21cc33`/`b54cee8`/`5c01bd8`/`d20cd98`) all individual. **Phase 5 is now fully closed.**)
 - 05-06 (~9 min, wave 5 — SVC-05 plus a standing Phase 5 gate for Phase 6 to inherit. Extended
   `~/local-llm-settings/sync.sh` (a file outside this repo's git history) with a minimal, additive
   edit: its hardcoded `LABELS` array gained both new labels and its STATE.md port-row list gained
@@ -997,6 +1063,31 @@ Recent decisions affecting current work:
   손대지 않음(커밋 여부는 사용자 결정). 서비스 등록/재시작 0건, flashnext(46573)/litellm(48525)/
   role-shim(75548)/kanban(53894)/telegram-connect(56669) pid 전 과정 불변, `EXTRA_ALLOW_PATHS`
   빈 값, `cline` 호출 0회. 두 커밋(`9d6075e`/`a75d75e`) 모두 개별.
+- 05-07: **wave 6, Phase 5 마지막 플랜 — phase-close.** Task 1: 두 서비스 라이브 상태에서 표준
+  게이트 전부(6종) 동시 PASS, `check_versions.sh`(이 플랜의 유일한 `cline` 호출)를 처음으로 실제
+  설치된 두 plist 대상으로 실행해 드리프트 게이트가 armed-but-vacuous 가 아니라 진짜 작동함을
+  확인(Check C 는 3줄 PASS 가 정상 — telegram-connect 는 `kanban` 이 아니라 `cline` 을 부르므로
+  `KANBAN_NO_AUTO_UPDATE` 검사 대상이 아님, 게이트 설계 그대로, 버그 아님). Task 2: `docs/services.md`
+  (243줄) 작성, 4절(한계)을 독립 최상위 섹션으로 두고 재부팅 결정 자리를 명시적 빈 placeholder 로
+  남김. **Task 3(체크포인트, `gate="blocking"`) — 사람이 세 옵션 중 `accept-proxy` 를 선택**:
+  ROADMAP criterion 1 의 "재부팅 후에도 동일하게 확인된다" 절을, 실제 재부팅 없이, 이미 확보한
+  proxy 증거(두 plist `RunAtLoad: true` + `~/Library/LaunchAgents/` 실재 + 라벨 활성 + 라벨별
+  `bootout`→`bootstrap` 콜드스타트 사이클 완주)로 수용하기로 결정. 재부팅을 안 한 이유:
+  `iogpu.wired_limit_mb` 가 재부팅으로 초기화돼 `phase-02/infra/preflight.sh` 를 하드 실패시키고
+  특권 `sudo sysctl` 재적용이 필요하기 때문 — 이 트레이드는 사람이 결정, Claude 가 임의로 재부팅
+  하지 않음. **이 결정은 사람이 proxy 를 "수용"하기로 명시적으로 고른 것이지, 재부팅이 실제로
+  일어났다는 뜻이 아니다** — criterion 1 의 재부팅 절은 이 결정 이후에도 여전히
+  **proxy-evidenced 이지 observed 가 아니다.** 이 사실은 Phase 6/8 로 그대로 넘어가는 durable
+  decision 이다: 어느 후속 플랜도 이것을 "실측 재부팅 증거"로 인용해서는 안 되고, 사람이 이
+  머신을 다음에 자연스럽게 재부팅할 때가 이 절을 실제로 관측할 수 있는 첫 기회다(단, 필수 후속
+  작업으로 만들지 않음 — 사람이 이미 accept 를 선택했으므로). 결정은 `docs/services.md` §4 와
+  `phase-05/results/20260830T024606Z-phase-close/criteria.md` 두 곳 모두에 verbatim 기록됐고,
+  "reboot-verified"/"재부팅 검증 완료" 리터럴 문구가 (negation 서술 안에서도) 등장하지 않도록
+  커밋 전 자체 재확인(초안 하나가 자기 negation 문장 안에 그 금지된 리터럴을 그대로 인용해버린
+  것을 발견해 재작성 — Rule 1). `docs/services.md` 플랜 grep 계약 전부 재통과. pid 5종 전 과정
+  불변, `EXTRA_ALLOW_PATHS` 빈 값, 포트 3000 없음, 재부팅 0회, `sudo sysctl` 0회. 네 커밋
+  (`c21cc33`/`b54cee8`/`5c01bd8`/`d20cd98`) 모두 개별. **Phase 5 전체 종료** — SVC-01~05 네
+  ROADMAP 기준 모두 실측(criterion 1 재부팅 반쪽만 proxy) 성립.
 
 ### Pending Todos
 
@@ -1074,7 +1165,32 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **05-06-PLAN.md 완료 — SVC-05 미러 등록 + Phase 6 용 상시 게이트.**
+Stopped at: **05-07-PLAN.md 완료 — Phase 5 종결(phase-close 게이트 스윕 + `docs/services.md` +
+Task 3 재부팅 결정 체크포인트).** Task 1/2 는 원 실행 에이전트가 완료(`c21cc33`/`b54cee8`) 후
+`gate="blocking"` 체크포인트에서 정지. 사람이 세 옵션(proxy 수용/지금 재부팅/다음 자연 재부팅에
+위임) 중 **`accept-proxy`** 를 선택 — 실제 재부팅 요청/수행 없음. continuation agent 가 Task 3
+실행: `docs/services.md` §4 의 "Task 3 결정 기록" placeholder 와
+`phase-05/results/20260830T024606Z-phase-close/criteria.md` 의 "Task 3 decision" 섹션 둘 다에
+결정을 verbatim 기록(`5c01bd8`/`d20cd98`) — 수용된 proxy 증거(RunAtLoad+LaunchAgents 배치+
+라벨별 bootout/bootstrap 콜드스타트 사이클)와 증명되지 않은 것(실제 재부팅 동작·로그인 순서·
+`:4000` 부팅 시 가용성)을 정확히 구분, 재부팅을 안 한 이유(`iogpu.wired_limit_mb` 재적용 비용)
+명시, "reboot-verified"/"재부팅 검증 완료" 리터럴 문구 0건(자기 negation 문장 안에서 그 문자열을
+실수로 인용한 초안 1건을 커밋 전 발견해 재작성). criterion 1 의 재부팅 절은 이 결정 이후에도
+proxy-evidenced 상태로 남으며, Phase 6/8 은 이를 실측 재부팅 증거로 인용해서는 안 됨(위 결정
+로그에 durable 항목으로 기록). `docs/services.md` 플랜 grep 계약 11종 전부 재통과. pid 5종
+(46573/48525/75548/53894/56669) 전 과정 불변, `EXTRA_ALLOW_PATHS` 빈 값, 포트 3000 없음,
+`phase-03/` git diff 없음, 재부팅 0회. 네 커밋(`c21cc33`/`b54cee8`/`5c01bd8`/`d20cd98`) 모두 개별,
+SUMMARY 작성 완료(`05-07-SUMMARY.md`), STATE.md 갱신 완료.
+**다음: Phase 6 (네트워크 노출).** Phase 5 전체 종료 — SVC-01~05 네 ROADMAP 기준 모두 실측
+성립(criterion 1 재부팅 반쪽은 proxy). Phase 6 인계 항목(변경 없음): criterion 1 재부팅 절이
+proxy-evidenced 일 뿐임을 재확인할 것, 토큰 주입 후 RPC 호스트가 열리는 잔여 이슈
+(`--rpc-address`/`CLINE_RPC_ADDRESS` 로 대응), `--allowed-user-id` wrapper-level 강제(NET
+criterion 4), `verify_services.sh` 를 네트워크 노출 전/후 호출. `docs/headless-wrapper.md`
+4절/8절이 남긴 `--auto-approve false` "안전하지만 무력" 한계에 대한 에스컬레이션 결정은 여전히
+검토 필요(Phase 5 범위 밖으로 재확인).
+
+이전 세션: 2026-08-30
+정지 지점: **05-06-PLAN.md 완료 — SVC-05 미러 등록 + Phase 6 용 상시 게이트.**
 `~/local-llm-settings/sync.sh`(이 repo 의 git 이력 밖 파일)의 하드코딩 `LABELS` 배열에
 `com.ohama.kanban`/`com.ohama.telegram-connect` 를, STATE.md 포트 행 목록에 `3484` 를 각각
 추가만 하는 최소·additive 편집(before/after/diff 를 `phase-05/results/20260830T023144Z-svc05/`
