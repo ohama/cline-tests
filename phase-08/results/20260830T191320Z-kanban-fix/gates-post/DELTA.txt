@@ -1,0 +1,27 @@
+DELTA vs gates-pre/exit-codes.txt:
+
+verify_network: rc 0 -> 1 (CASES 24/24 -> 23/24)
+  Sole failing check: live-pids-stable -- pid mismatch: kanban(exp=53894 live=36175)
+  Root cause: this check compares live pids against phase-06/results/20260830T051403Z-baseline/
+  inventory.txt, a FIXED historical snapshot captured in phase 06-01 (before this plan existed).
+  Kanban's pid changed from 53894 to 36175 because THIS PLAN deliberately restarted the live
+  kanban service via phase-02/infra/restart_service.sh (house rule 1 of 08-PLAN.md explicitly
+  requires this: "This plan deliberately changes the kanban pid -- record the new one"). The
+  other 23 checks, including all sandbox/proxy/tailscale posture checks, remain PASS.
+
+verify_bench: rc 0 -> 1 (CASES 11/11 -> 10/11)
+  Sole failing check: B10 -- kanban(pid=53894 missing-or-mismatched)
+  Root cause: identical to above. phase-07/bench/config.env hardcodes
+  LIVE_PIDS_STR="... 53894 ..." as kanban's expected pid across the whole Phase 7 bench harness
+  (verify_bench.sh, preflight.sh, run_task.sh, injection_probe.sh all read this same constant).
+  That constant predates this plan's restart and was never designed to track a pid that changes.
+  B11 (reached-the-model) and every other bench check remain PASS.
+
+VERDICT ON THIS DELTA: not a regression in kanban's health or in the sandbox/network security
+posture -- it is a live, correct pid-drift detection firing exactly as designed, against a
+snapshot this plan's own restart necessarily invalidated. Both hardcoded baselines
+(phase-06/results/20260830T051403Z-baseline/inventory.txt and
+phase-07/bench/config.env's LIVE_PIDS_STR) assume kanban's pid never changes across phases; that
+assumption is now false as of this plan and is out of scope for 08-01 to silently correct (neither
+file is owned by this plan -- see 08-01-PLAN.md files_modified). Flagged here, plainly, as the
+plan instructed, rather than explained away or worked around.

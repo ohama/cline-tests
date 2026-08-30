@@ -21,6 +21,8 @@
 exec "$PROJECT_ROOT/phase-03/sandbox/run_sandboxed.sh" -- \
   "$KANBAN_BIN" --no-open --host "$KANBAN_HOST" --port "$KANBAN_PORT"
 ```
+(08-01 이후: 이 exec 줄 앞, `KANBAN_NO_AUTO_UPDATE` export 직후에 `export
+GIT_CONFIG_GLOBAL=/dev/null` 한 줄이 추가됐다 — 아래 5a절 참고.)
 
 `com.ohama.telegram-connect.plist` 의 `ProgramArguments`:
 ```
@@ -170,6 +172,57 @@ launchctl bootout gui/<UID>/com.ohama.telegram-connect
 bash phase-05/services/verify_services.sh
 ```
 read-only, 재실행 가능. Phase 6 은 네트워크 노출 전/후 이 스크립트를 그대로 호출해야 한다.
+
+### 5a. GIT_CONFIG_GLOBAL 과 scratch-repo 독립 저장소화 (2026-08-31, 08-01)
+
+**무엇을 바꿨나.** 두 가지, 둘 다 no-widening.
+1. `run_kanban_service.sh` 에 `export GIT_CONFIG_GLOBAL=/dev/null` 추가 — 기존
+   `export KANBAN_NO_AUTO_UPDATE=1` 직후, `mkdir -p "$SERVICE_LOG_DIR" ...` 직전.
+2. `workspace/scratch-repo` 를 `phase-08/blocker/fix_kanban_registration.sh` 로
+   `git init -b main` + 최초 커밋 — 그 자체가 git 최상위(top-level)가 되도록.
+
+**왜 두 개가 다 필요했나.** kanban@0.1.70 의 컴파일된 `dist/cli.js` 를 직접 대조해 확인한
+사실 두 가지(08-RESEARCH.md §A4):
+- `createGitProcessEnv()` 는 `GIT_DIR`/`GIT_WORK_TREE`/`GIT_COMMON_DIR`/`GIT_INDEX_FILE`/
+  `GIT_OBJECT_DIRECTORY`/`GIT_ALTERNATE_OBJECT_DIRECTORIES`/`GIT_PREFIX`, 이 7개 키만
+  걸러내고 나머지 `process.env` 는 그대로 통과시킨다 — `GIT_CONFIG_*` 는 이 7개 안에 없으므로
+  래퍼가 export 하면 그대로 자식 프로세스에 전달된다. 이게 없으면 샌드박스가 거부하는
+  `~/.gitconfig` 를 읽으려다 모든 git 호출이 `fatal: unable to access
+  '/Users/ohama/.gitconfig': Operation not permitted`, exit 128 로 죽는다.
+- `resolveWorkspacePath` 는 전달받은 경로가 아니라 항상 git **최상위**를 등록 대상으로
+  쓴다(`--project-path` 를 명시해도 우회되지 않는다 — `resolveRuntimeWorkspace` 확인). 등록
+  대상 디렉터리 자신이 그 자체로 git 최상위가 아니면, git 의 조상 탐색이 결국
+  `ALLOWED_REPOS.json` 이 영원히 금지하는 저장소 루트(`/Users/ohama/projs/cline-tests`)까지
+  걸어 올라가려 시도한다 — 그래서 `kanban` CLI 는 반드시 `workspace/scratch-repo` **안에서**
+  실행해야 한다.
+
+**둘 다 샌드박스를 넓히지 않는다.** `EXTRA_ALLOW_PATHS` 는 그대로 비어 있고,
+`workspace/ALLOWED_REPOS.json`/`workspace/sandbox.sb` 는 손대지 않았다(`sandbox.sb` 는
+애초에 손으로 편집하는 파일이 아니다 — 매 `run_sandboxed.sh` 호출마다 재생성된다).
+`workspace/scratch-repo` 안에 `.git` 이 생기는 것은 이미 허용된 경로 안에서의 변화일 뿐이고,
+`GIT_CONFIG_GLOBAL=/dev/null` 은 `$HOME` 바깥 경로를 가리키므로 프로파일 변경이 필요 없다.
+자세한 실측 근거는 `.planning/phases/08-korean-user-manual/08-RESEARCH.md` §A2~§A5 참고. §10
+이 유예했던 "scratch-repo 는 자기 자신의 git 저장소가 아니다" 항목이 이 절에서 해소됐다.
+
+**롤백:**
+```
+cp phase-05/services/backups/run_kanban_service.sh.<타임스탬프>.bak phase-05/services/run_kanban_service.sh
+bash phase-02/infra/restart_service.sh com.ohama.kanban 3484
+```
+
+**내리기(take-down):**
+```
+launchctl bootout gui/<UID>/com.ohama.kanban
+```
+
+**등록 결과(VERDICT, 실측 그대로):**
+```
+REGISTERED: kanban task create succeeded (task id=9bf8f, workspacePath=/Users/ohama/projs/cline-tests/workspace/scratch-repo), kanban task list confirms the task with no 'is not added to Kanban yet' error, HTTP 200, no post-restart gitconfig denial in logs.
+```
+전체 증거(사전/사후 게이트 스윕, env-probe, register/task-list 전사, 롤백 recipe)는
+`phase-08/results/20260830T191320Z-kanban-fix/README.md` 에 있다. 재시작/내리기의 절차적
+규율(왜 `restart_service.sh` 만 쓰는지, `bootout` 이 비동기인 이유)은 이미 아래 8절이 못박고
+있으므로 여기서 되풀이하지 않는다.
 
 ## 6. 텔레그램 토큰 주입
 
