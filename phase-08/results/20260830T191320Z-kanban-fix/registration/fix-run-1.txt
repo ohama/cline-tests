@@ -1,0 +1,8 @@
+initializing /Users/ohama/projs/cline-tests/workspace/scratch-repo as its own git top-level
+Initialized empty Git repository in /Users/ohama/projs/cline-tests/workspace/scratch-repo/.git/
+[main (root-commit) 3d8ef27] init scratch repo (phase-08/01)
+ 2 files changed, 7 insertions(+)
+ create mode 100644 README.md
+ create mode 100644 SANDBOX_INSIDE_CANARY.txt
+OK: /Users/ohama/projs/cline-tests/workspace/scratch-repo is its own git top-level (branch=main)
+run1 exit=0

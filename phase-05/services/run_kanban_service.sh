@@ -42,6 +42,25 @@ source "$PROJECT_ROOT/phase-01/config/cline-invocation.env"
 export CLINE_NO_AUTO_UPDATE=1
 export KANBAN_NO_AUTO_UPDATE=1
 
+# GIT_CONFIG_GLOBAL — no-widening fix for the Kanban registration blocker
+# (08-RESEARCH.md §A4/§A5, applied live in 08-01).
+#
+# The sandbox denies ~/.gitconfig (kernel-confirmed: `deny(1) file-read-data
+# /Users/ohama/.gitconfig`), so under the real generated profile every git
+# call kanban makes died with `fatal: unable to access
+# '/Users/ohama/.gitconfig': Operation not permitted`, exit 128. Kanban's
+# compiled createGitProcessEnv() (dist/cli.js) strips only 7 GIT_DIR-family
+# keys (GIT_DIR/GIT_WORK_TREE/GIT_COMMON_DIR/GIT_INDEX_FILE/
+# GIT_OBJECT_DIRECTORY/GIT_ALTERNATE_OBJECT_DIRECTORIES/GIT_PREFIX) and
+# passes every other process.env key — including GIT_CONFIG_* — straight
+# through untouched, so exporting it here reaches the sandboxed child as-is.
+#
+# This is a NO-WIDENING fix: EXTRA_ALLOW_PATHS stays empty and
+# workspace/sandbox.sb is unchanged. /dev/null is already reachable with no
+# sandbox profile change (it is not under $HOME), so this line changes what
+# git reads, never what the sandbox profile allows.
+export GIT_CONFIG_GLOBAL=/dev/null
+
 mkdir -p "$SERVICE_LOG_DIR" "$SANDBOX_WORKDIR"
 cd "$SANDBOX_WORKDIR"
 

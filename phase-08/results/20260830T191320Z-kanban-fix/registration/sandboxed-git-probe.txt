@@ -1,0 +1,21 @@
+--- rev-parse --show-toplevel ---
+resolved allow list: ['/Users/ohama/projs/cline-tests/workspace/scratch-repo', '/Users/ohama/.cline']
+/Users/ohama/projs/cline-tests/workspace/scratch-repo
+exit=0
+--- is-inside-work-tree ---
+resolved allow list: ['/Users/ohama/projs/cline-tests/workspace/scratch-repo', '/Users/ohama/.cline']
+true
+exit=0
+--- symbolic-ref ---
+resolved allow list: ['/Users/ohama/projs/cline-tests/workspace/scratch-repo', '/Users/ohama/.cline']
+main
+exit=0
+--- status --porcelain ---
+resolved allow list: ['/Users/ohama/projs/cline-tests/workspace/scratch-repo', '/Users/ohama/.cline']
+warning: unable to access '/Users/ohama/.config/git/ignore': Operation not permitted
+warning: unable to access '/Users/ohama/.config/git/ignore': Operation not permitted
+exit=0
+--- log --oneline ---
+resolved allow list: ['/Users/ohama/projs/cline-tests/workspace/scratch-repo', '/Users/ohama/.cline']
+3d8ef27 init scratch repo (phase-08/01)
+exit=0
