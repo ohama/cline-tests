@@ -73,8 +73,8 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 
 Phase: 7 of 8 (cline-bench 동작 검증) — **GAP CLOSURE 진행 중 (07-05 완료 후 재개, 5개
 gap-closure 플랜 07-06~07-10 추가, 총 10/10 플랜).**
-Plan: 08 of 10 in current phase — **완료(2/2 tasks — Task 1 auto, Task 2 checkpoint:decision — 2개
-개별 커밋 + 메타데이터 커밋).**
+Plan: 09 of 10 in current phase — **완료(2/2 tasks — Task 1 auto, Task 2 auto — 2개 개별 커밋 +
+메타데이터 커밋).**
 
 **Phase 7 gap-closure 배경**: 07-05 종료 후 검증(07-VERIFICATION.md, `passed`)이 나온 뒤,
 07-02 의 `CLINE_PROVIDER_SETTINGS_PATH` 주입 `VERDICT: INJECTABLE` 이 **잘못된 바이너리**(호스트
@@ -188,6 +188,43 @@ PASS+B11 SKIP, post-fix 런 `CASES 10/11` — B5 는 이 단일-과제 런에 `m
 없이 기록. 이 플랜 전체에서 `harbor run` 0회, 모델 지출 0(`meta-count-before.txt`=2 → 최종
 확인도 2, 불변). 6종 pid·포트 3000·`EXTRA_ALLOW_PATHS` 전부 무변경. SUMMARY 작성 완료
 (`07-08-SUMMARY.md`). **다음: 07-09(`SELECTED_TASKS_GAP` 의 3개 과제를 실제로 `harbor run` 하는
+플랜).**
+
+**07-09(gap-closure 배치 실행 + BCH-03 재생성, 이번 플랜) — 완료**: Task 1(커밋 `74e1691`):
+`SELECTED_TASKS_GAP` 의 3개 과제(`telegram-plugin-refactor`/`filmarchiver`/`v-edit-workspace-tests`)를
+순차 실행(재시도 없음, 병렬화 없음, `bench/runs/20260830T122809Z-phase07-fix`로 계속 적재) —
+`telegram-plugin-refactor`: `fail-context`, 372초, `model_turns=6`, 슬라이스 21895바이트,
+`max_prompt_tokens=21036` — **모델 도달**, 32K 천장에서 거부(07-07 이 증명한 것과 동일 실패
+양상이 다른 과제에서도 재현). `v-edit-workspace-tests`: `fail-context`, 586초, `model_turns=12`,
+슬라이스 42450바이트, `max_prompt_tokens=30696` — **모델 도달**, 역시 32K 천장. `filmarchiver`:
+`fail-infra`, 438초, `model_turns=0`, 슬라이스 0바이트 — **모델 미도달**, 컨테이너의
+`bun install` 이 세그폴트(`CPU lacks AVX support`, colima 가상화 환경에서 AVX 미지원 x86_64
+Bun 바이너리) — 주입 메커니즘과 무관한 별개의 인프라 결함, 재시도 안 함(재시도해도 동일 결과
+반복, 새 정보 없음). 배치 전체 wall-clock 1396초(~23.3분) — `cost.md` 의 `+3` 비관 추정(~83분)
+훨씬 아래, 중단 임계값 근접조차 안 함. 재실행 멱등성 실측 증명(드라이버 재실행 시 3개 전부
+`SKIP`, 신규 `harbor run` 0회). Task 2(커밋 `8eacab7`): `make_summary.sh` 확장(생성 파일 손대신
+않고 스크립트 자체 수정) — 모든 런 디렉터리의 `summary.md` 헤더에 "모델 도달" 카운트(슬라이스
+非빈 AND `model_turns>0`)를 `verify_bench.sh` B11 과 동일 신호로 독립 계산해 명시(post-fix 런:
+**"3 of 4 attempted"**) — 이 플랜의 `must_haves` 가 요구했으나 어떤 이전 버전의 스크립트도
+만든 적 없던 숫자. 편차 2건 자동수정(둘 다 이 플랜 자신의 `<verify>` 통과에 필요, 구조/호스트
+포즈 변경 아님): (1) Rule 3 — `verify_bench.sh` B4 가 `filmarchiver` 에서 FAIL(`reward.txt` 없고
+설명도 없음) — `run_task.sh` 가 트라이얼이 verifier 단계에 아예 못 미친 경우를 `CAPTURE-GAPS.txt`
+에 기록하는 `<action>` 이 이제까지 전혀 없었음(이 프로젝트가 반복 지적한 결함 유형: `<verify>`
+가 어떤 `<action>` 도 만들지 않는 것을 요구) — `run_task.sh` 에 분기 추가 후 이미 커밋된
+`filmarchiver` 의 `CAPTURE-GAPS.txt` 를 재실행 없이 동일 사실로 백필(재실행하면 동일 세그폴트를
+동일 비용으로 재현할 뿐, 새 정보 없음) → `verify_bench.sh` 10/11→**11/11**. (2) Rule 2 —
+`make_summary.sh` 의 "모델 도달" 헤더 카운트(위 참고) 추가. 7개 상시 게이트 스윕 전부 통과
+(`verify_bench` post-fix 11/11·pre-fix 10/10·`/nonexistent` 네거티브 컨트롤 4/10 FAIL 그대로,
+`preflight` 11/11, `verify_services` 15/15, `verify_no_regression` INF03 PASS, `verify_sandbox`
+16/16 CRITERION 4 PASS, `verify_network --baseline` 24/24, `verify_config` exit 0). 드리프트
+6종 전부 `post/drift.txt` 에 기록(카나리아·`ALLOWED_REPOS.json`·`EXTRA_ALLOW_PATHS`·
+`providers.json` 해시·호스트 `cline` 핀(3.0.60, pre-existing, 미수정)·docker(벤치 컨테이너
+0개, `docker images` pre/post 바이트 동일 — harbor 가 트라이얼 종료 후 이미지 자체를 삭제,
+재사용 가능 6.858GB 는 이미지가 아니라 build cache 에 있음, 07-10 정리 레시피는 `docker rmi`
+아닌 `docker builder prune` 대상으로 써야 함). **두 런 디렉터리 통틀어 고유 과제 4개
+시도(런 인스턴스 5개), 모델 도달 3개, 통과 0개 — BCH-01 여전히 `not_met`, 이 플랜이 승격
+안 함.** SUMMARY 작성 완료(`07-09-SUMMARY.md`). **다음: 07-10(gap docs/cline-bench.md
+§4/§9 정정 + criteria2.md + ROADMAP/REQUIREMENTS/STATE 동기화 + 과대주장 감사 — Phase 7 마지막
 플랜).**
 
 이전(07-05 완료, gap-closure 이전 마지막 정규 플랜): Phase 7 다섯째 플랜(07-05): Task
@@ -2111,9 +2148,30 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-31
-Stopped at: **07-08-PLAN.md 완료 (2/2 tasks — Task 1 auto, Task 2 checkpoint:decision — 2개
+Stopped at: **07-09-PLAN.md 완료 (2/2 tasks — Task 1 auto, Task 2 auto — 2개 개별 커밋 +
+메타데이터 커밋), STATE.md 갱신 완료. Phase 7 gap-closure 진행 중 (9/10 plans,
+07-10 하나만 남음).** Resume file: None.
+
+**`SELECTED_TASKS_GAP` 의 3개 과제 순차 실행, 재시도 없음.** `telegram-plugin-refactor`
+(`fail-context`, 372초, `model_turns=6`)와 `v-edit-workspace-tests`(`fail-context`, 586초,
+`model_turns=12`)는 모델에 도달해 32K 천장에서 거부(07-07 이 증명한 실패 양상이 다른 과제로도
+재현). `filmarchiver`(`fail-infra`, 438초, `model_turns=0`)는 모델 미도달 — 컨테이너
+`bun install` 이 colima 가상화 환경의 AVX 미지원으로 세그폴트, 주입 메커니즘과 무관한 별개
+결함. 배치 wall-clock 1396초(~23.3분), 재실행 멱등성 실측 증명. `make_summary.sh` 확장해 모든
+런의 `summary.md` 헤더에 "모델 도달" 카운트를 자체 계산해 명시(post-fix 런: 3 of 4 attempted).
+편차 2건 자동수정(둘 다 이 플랜 `<verify>` 통과에 필요) — `run_task.sh` 에 `reward.txt` 없는
+트라이얼을 위한 `CAPTURE-GAPS.txt` 기록 분기 추가(B4 10/11→11/11), `make_summary.sh` 헤더
+카운트 추가. 7개 상시 게이트 전부 통과, 드리프트 6종 전부 기록. **두 런 디렉터리 통틀어 고유
+과제 4개 시도(런 인스턴스 5개), 모델 도달 3개, 통과 0개 — BCH-01 여전히 `not_met`, 이 플랜이
+승격 안 함.** 상세는 위 Current Position 블록 및
+`phase-07/results/20260830T170042Z-gap-batch/{README.md,ledger.tsv,post/drift.txt}` 참고.
+**다음: 07-10(gap docs/cline-bench.md §4/§9 정정 + criteria2.md + ROADMAP/REQUIREMENTS/STATE
+동기화 + 과대주장 감사 — Phase 7 마지막 플랜).**
+
+이전 세션(07-08 완료): 2026-08-31
+정지 지점: **07-08-PLAN.md 완료 (2/2 tasks — Task 1 auto, Task 2 checkpoint:decision — 2개
 개별 커밋 + 메타데이터 커밋), STATE.md 갱신 완료. Phase 7 gap-closure 진행 중 (8/10 plans,
-07-09~07-10 남음).** Resume file: None.
+07-09~07-10 남음).**
 
 **선택된 옵션: `plus-three`(오케스트레이터의 해석 — 사용자의 체크포인트 응답은 다섯 옵션 ID
 중 아무것도 명명하지 않은 "Continue" 였고, `decision2.md` 는 이를 원문 인용이 아니라 해석으로
@@ -2124,7 +2182,6 @@ Stopped at: **07-08-PLAN.md 완료 (2/2 tasks — Task 1 auto, Task 2 checkpoint
 이후 고유 과제 수는 4(ROADMAP criterion 1 의 5~8 하한에 1개 부족), 반올림 없이 기록. 이
 플랜에서 `harbor run` 0회, 모델 지출 0. 상세는 위 Current Position 블록 및
 `phase-07/results/20260830T141218Z-cost-checkpoint/{cost.md,decision2.md}` 참고.
-**다음: 07-09(`SELECTED_TASKS_GAP` 의 3개 과제를 실제로 `harbor run` 하는 플랜).**
 
 이전 세션(07-07 완료): 2026-08-30
 정지 지점: **07-07-PLAN.md 완료 (3/3 tasks, 전부 auto — 3개 개별 커밋), STATE.md 갱신 완료.
