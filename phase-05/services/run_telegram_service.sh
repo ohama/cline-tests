@@ -112,6 +112,25 @@ if [ -z "$TOKEN" ]; then
   done
 fi
 
+# ---- NET-04 pre-flight. This is the enforcement point, not the CLI. ------
+# cline 3.0.53 accepts --allowed-user-id but does not require it: an
+# invocation without it proceeds all the way to a live Telegram getMe call
+# (re-confirmed live, 06-RESEARCH.md Pattern 4). So the guarantee ROADMAP
+# Phase 6 criterion 4 asks for is made HERE: this supervised service refuses
+# to exec the connector at all unless an allowlist id is present. Reaching
+# this line means a token IS present, so refusing must be loud and must be a
+# non-zero exit -- that IS the startup failure. Under KeepAlive this backs
+# off every ThrottleInterval until a human fixes the config; that bounded,
+# noisy loop is the intended, visible failure, and it can only ever occur in
+# the misconfigured token-present/id-absent state.
+ALLOWED_ID="${TELEGRAM_ALLOWED_USER_ID:-}"
+case "$ALLOWED_ID" in
+  ''|*[!0-9]*)
+    echo "ABORT-NET04: TELEGRAM_ALLOWED_USER_ID is unset, empty, or non-numeric -- refusing to start the Telegram connector. Set it in the EnvironmentVariables dict of ~/Library/LaunchAgents/com.ohama.telegram-connect.plist (numeric Telegram user id), re-run phase-05/services/install_services.sh com.ohama.telegram-connect, then phase-02/infra/restart_service.sh com.ohama.telegram-connect none." >&2
+    exit 1
+    ;;
+esac
+
 # ---- Token is non-empty: bounded upstream readiness wait (identical
 # mechanism to the kanban wrapper), then the real invocation. -------------
 if ! bash "$SCRIPT_DIR/wait_for_upstream.sh" "$UPSTREAM_WAIT_TIMEOUT" "$UPSTREAM_WAIT_INTERVAL"; then
@@ -136,10 +155,12 @@ fi
 #
 # -i and --no-tools as literal adjacent tokens below.
 #
-# TODO(Phase 6): add --allowed-user-id <digits> here — confirmed via
-# `strings` that cline 3.0.53 does NOT itself refuse to start without it,
-# so Phase 6's criterion 4 will need wrapper-level enforcement, not a CLI
-# guarantee.
+# Phase 6: the NET-04 pre-flight guard above is the enforcement point for
+# ROADMAP criterion 4. cline 3.0.53 itself still does not refuse to start
+# without --allowed-user-id -- confirmed live, 06-RESEARCH.md Pattern 4 --
+# so the flag below is passed for completeness/defence-in-depth, but the
+# actual startup-failure guarantee is the guard, not this flag.
 exec "$PROJECT_ROOT/phase-03/sandbox/run_sandboxed.sh" -- \
   "$CLINE_BIN" connect telegram -k "$TOKEN" -i --no-tools \
-  --provider "$CLINE_PROVIDER" --model "$CLINE_MODEL" --cwd "$SANDBOX_WORKDIR"
+  --provider "$CLINE_PROVIDER" --model "$CLINE_MODEL" --cwd "$SANDBOX_WORKDIR" \
+  --allowed-user-id "$ALLOWED_ID"
