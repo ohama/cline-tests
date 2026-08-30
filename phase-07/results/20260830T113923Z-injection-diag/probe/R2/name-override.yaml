@@ -1,0 +1,5 @@
+services:
+  main:
+    image: alpine:3.20
+    command: ["sh", "-c", "sleep 120"]
+    container_name: injection-probe-R2-33968

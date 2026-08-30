@@ -1,0 +1,1 @@
+CLINE_PROVIDER_SETTINGS_PATH=/opt/harbor-cline-cw/providers.json

@@ -1,0 +1,20 @@
+R4 (reaches-flashnext, one tiny real model call) was NOT run.
+
+R1-R3 identified a working candidate: R3's schema-fix supplement (adding top-level "version":1
+and a per-provider "updatedAt" ISO datetime to cline-cw-providers.json) shows cline correctly
+parsing and RETAINING the injected openai-compatible provider entry (apiKey, model, baseUrl,
+contextWindow all intact after a `cline config --json` read/persist round-trip) -- exactly the
+"a rung showed cline resolving the injected baseUrl" condition DIAGNOSIS.md's FIX_AVAILABLE
+criterion allows as sufficient without a live R4 confirmation.
+
+R4 was attempted (`injection_probe.sh --with-model-call`, one real `cline -P openai-compatible
+... -- 'say hi'` invocation against the schema-fixed candidate file) but the invoking agent's
+own auto-mode permission classifier DENIED the bash command that would have run it, before any
+container started or any network call was made. Per the classifier's own guidance ("should not
+attempt to work around this denial"), no workaround was attempted and R4 was left unrun rather
+than forced through an alternate path. This is a process constraint on THIS diagnosis session,
+not a finding about the injection mechanism itself -- 07-07 (or a future session without this
+constraint) can run `bash phase-07/bench/injection_probe.sh --results-dir <dir> --with-model-call`
+directly to obtain the live flashnext-log-slice confirmation this rung is designed to produce.
+
+CHECK: SKIP R4-reaches-flashnext (classifier-denied, not a plan decision)

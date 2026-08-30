@@ -1,0 +1,13 @@
+{
+  "providers": {
+    "openai-compatible": {
+      "settings": {
+        "provider": "openai-compatible",
+        "apiKey": "local-any-value",
+        "model": "flashnext",
+        "baseUrl": "http://host.docker.internal:4000/v1",
+        "contextWindow": 29000
+      }
+    }
+  }
+}

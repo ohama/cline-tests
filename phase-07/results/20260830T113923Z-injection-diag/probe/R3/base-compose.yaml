@@ -1,0 +1,5 @@
+services:
+  main:
+    image: injection-probe-cline353:latest
+    command: ["sh", "-c", "sleep 600"]
+    container_name: injection-probe-R3-33968

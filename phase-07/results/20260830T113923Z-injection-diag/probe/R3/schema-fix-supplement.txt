@@ -1,0 +1,4 @@
+SCHEMA-FIX-SUPPLEMENT (not one of the plan's mandated a/b/c variants -- added per Rule 2,
+testing the specific candidate fix Task 1's schema-requirements-finding.txt surfaced:
+adding top-level version:1 and a per-provider updatedAt ISO datetime).
+RESULT: INJECTED
