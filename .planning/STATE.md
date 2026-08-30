@@ -2192,7 +2192,35 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-31
-Stopped at: **07-09-PLAN.md 완료 (2/2 tasks — Task 1 auto, Task 2 auto — 2개 개별 커밋 +
+Stopped at: **07-10-PLAN.md 완료 — Phase 7 전체 종료(gap-closure 포함 10/10 plans).** Task 1
+(커밋 `5458259`): `docs/cline-bench.md` 를 gap-closure 결과에 맞춰 양방향 정정(173→260줄) —
+거짓이 된 부분(§4 "모델 서버에 끝내 도달 못함"→수정 전 시대로 명시 스코프, §9 절대금지 문장
+→ 뒤집어서 "통과했다/검증됐다/완료할 수 있다" 금지로 재작성)과 참으로 남은 부분(P=0, 4/12
+커버리지, H1 기각·비원인, 온와이어 시스템 프롬프트 여전히 미캡처)을 분리 처리, 새 한계(모델
+도달 3개 전부 32K 천장에서 거부)를 §4 에 추가. Task 2(커밋 `b6edfac`): `criteria2.md` 작성
+(criterion 1 `not_met` + 모델 도달 3/4 서브라인, criterion 2·3 `met`, 호스트 cline 3.0.60
+드리프트를 기지·미수정 항목으로 기록) + `.planning/ROADMAP.md`(10 plans, 07-06~10 `[x]`,
+진행률 표 `10/10 ◆ 완료`) + `.planning/REQUIREMENTS.md`(BCH-02/03 `[x]`, BCH-01 은 `[ ]` 유지 +
+정정 각주) 동기화. Task 3(커밋 `21a4dac`): 7개 상시 게이트 전부 재통과(preflight 11/11,
+verify_bench 수정전 10/10+수정후 11/11+`/nonexistent` 네거티브 컨트롤 정상 FAIL,
+verify_services 15/15, verify_no_regression INF03 PASS, verify_sandbox 16/16 CRITERION 4 PASS,
+verify_network 24/24, verify_config exit 0) + `anti-overclaim.md`(6/6 PASS, 문장 인용 근거) +
+`collateral.md`(9/9 PASS). 두 런 디렉터리(`bench/runs/20260830T093657Z-phase07/`,
+`bench/runs/20260830T122809Z-phase07-fix/`) 전부 쓰기 0회로 보존 확인, `harbor run`/호스트
+`cline` 호출 0회, 6종 pid·포트 3000·`EXTRA_ALLOW_PATHS`·카나리아 전부 무변경. SUMMARY 작성
+완료(`07-10-SUMMARY.md`). **Phase 7 최종: 고유 4개 과제 시도(5 인스턴스), 3개 모델 도달, 통과
+0개 — ROADMAP criterion 1 `not_met`, criterion 2·3 `met`.** Resume file: None.
+
+**다음 세션은 Phase 8(한글 사용 매뉴얼)부터 시작.** 넘겨줄 것: cline-bench 요청이 이 스택의
+flashnext/litellm 체인에 실제로 도달한다는 것은 이제 근거를 갖고 쓸 수 있지만, "통과했다"/
+"검증됐다"/"완료할 수 있다"는 절대 쓰면 안 됨(`docs/cline-bench.md` §9). 32K 컨텍스트 천장은
+n=3 에서 모델 도달한 과제 전부에서 재현된 구조적 제약(DOC-04 가 반영해야 함,
+`docs/32k-compaction-policy.md` 와 정합). 호스트 `cline` 3.0.60 드리프트는 여전히 사전
+존재·미수정 열린 항목 — 수정은 kanban/telegram-connect 가 안 돌고 있는지 확인한 뒤 별도
+명시적 결정으로 진행할 것.
+
+이전 세션: 2026-08-31
+정지 지점: **07-09-PLAN.md 완료 (2/2 tasks — Task 1 auto, Task 2 auto — 2개 개별 커밋 +
 메타데이터 커밋), STATE.md 갱신 완료. Phase 7 gap-closure 진행 중 (9/10 plans,
 07-10 하나만 남음).** Resume file: None.
 
