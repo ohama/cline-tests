@@ -59,9 +59,50 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 
 ## Current Position
 
-Phase: 6 of 8 (네트워크 노출) — **완료 (8/8 plans)**
-Plan: 06 of 8 in current phase (누적 계획: 01/02/03/04/04.1/04.2/05/06) — **완료(3/3
-tasks, 모두 auto — 3개 개별 커밋).** Phase 6 의 마지막 플랜: `docs/network-exposure.md`
+Phase: 7 of 8 (cline-bench 동작 검증) — 진행 중
+Plan: 01 of 5 in current phase — **완료(3/3 tasks, 모두 auto — 3개 개별 커밋).**
+Phase 7 첫 플랜: 프리플라이트(11개 체크) + harbor/cline-bench 설치 + 실측 태스크
+인벤토리. Task 1(커밋 `f669831`): `phase-07/bench/config.env`(harbor/cline-bench
+스펙 단일 소스 — `HARBOR_MODEL_SPEC=openai-compatible:flashnext`(README 의
+`openai:flashnext` 아님, 이유 인라인 주석), `HARBOR_BASE_URL=http://
+host.docker.internal:4000/v1`(colima 가 host loopback 으로 프록시, Phase 2 posture
+무변경), live pid 3중 병렬 배열(pid/라벨/명령줄 부분문자열)) + `preflight.sh`(P1-P11,
+phase-05/02/06/03/01 다섯 상시 게이트 조합 + pid/포트3000/디스크≥30GiB/colima/docker/
+`ALLOWED_REPOS.json` bench 제외 확인) — **`CASES 11/11`** 연속 2회(`CHECK:` 라인 완전
+동일), 네거티브 컨트롤(`--baseline /nonexistent-baseline` → `CHECK: FAIL P5`,
+`CASES 10/11`, exit 1, 정확히 계획이 예측한 시그니처)로 게이트가 실제로 FAIL 할 수 있음을
+증명. Task 2(커밋 `47a8b0a`): `install_bench.sh`(멱등 — 기존 체크아웃엔 `git pull` 절대
+안 함, `uv venv --python 3.13`, `uv tool install harbor`) 로 cline-bench 를
+`d1085569fb0ae3f9613957e6fc2706c6e2f7da9b`(2025-12-11)에 클론, harbor
+0.22.0(`~/.local/bin/harbor`) 설치, REMOVAL 레시피(`uv tool uninstall harbor` +
+`rm -rf bench/cline-bench`, `bench/runs/` 는 명시적으로 미삭제) 기록, 스크래치
+디렉터리로 2차 실행해 `unchanged:` 멱등성 실측 후 삭제. `.gitignore` 에
+`bench/cline-bench/` 추가(`bench/runs/` 는 계속 추적). Task 3(커밋 `f8e9d04`):
+`tasks.tsv`(tomllib 파싱, 12개 태스크 — **07-RESEARCH.md 의 14 가 아니라 12**, 리서치
+당일 이후 두 태스크가 사라짐, 옛 ~89 수치는 이미 폐기됨), `candidates.txt`(연구 유래
+`CANDIDATE_SUFFIXES` 실측 매칭 — `orpc-client-workspace` 는 UNRESOLVED(실제 이름
+`orpc-client-migration` 으로 바뀜, 계획대로 후보풀에서 드롭), `SMOKE_SUFFIX`
+(`discord-trivia-approval-keyerror`) 는 해석됨, 미포함 3개 태스크는
+`not-shortlisted: no measured disqualifier` 로 정직하게 기록), `docker-reachability.txt`
+(container→litellm 재실측: HTTP 200 + flashnext, wildcard-bind 카운트 3→3 불변,
+`:4000` 여전히 `127.0.0.1` 단독), `resources.txt`. **편차 3건**: (1) Rule 1 —
+`preflight.sh` P5 가 자신의 export 된 `RESULTS_ROOT` 가 자식 게이트(`verify_network.sh`)
+로 새어 들어가 증거가 `phase-06/results/` 대신 `phase-07/results/` 에 잘못 쓰이는 것을
+저작 중 실측 발견 → `--out-dir` 명시 전달로 수정(커밋 전). (2) 계획 자체의
+wording-collision — Task 3 의 `<action>` 은 제외 태스크명(`terraform`...)을
+`candidates.txt` 헤더에 쓰라고 지시하지만 같은 태스크의 `<verify>` 는
+`grep terraform candidates.txt` 가 아무것도 찾지 못해야 한다고 요구 — 상호 모순.
+개선(improvise) 대신 **보고**: `<verify>` grep 을 문자 그대로 만족시키고, 제외 사유는
+같은 결과 디렉터리의 `README.md` 로 옮겨 기록(내용은 보존, 파일만 이동). (3) 계획
+전체의 `<verification>` 문구 `grep -c bench workspace/ALLOWED_REPOS.json` 이 0 이어야
+한다는 줄은, 이 파일 자신의 Phase 3 저작 `_comment` 가 SBX-04 를 설명하며 이미
+"bench" 라는 단어를 포함하고 있어(커밋 `df088e2`, 이 플랜 이전) 항상 1 — 이 파일은 어느
+태스크의 `<files>` 목록에도 없고 Phase 3 소유라 수정하지 않고 알려진 pre-existing
+false positive 로 문서화만 함(실제 의미 있는 체크인 `repos[]` 배열 검사는 `preflight.sh`
+의 P11 로 올바르게 통과). 6종 라이브 pid·포트 3000 전 태스크·최종 스윕 전 구간 불변.
+세 커밋 모두 개별, SUMMARY 작성 완료(`07-01-SUMMARY.md`). **다음: 07-02.**
+
+이전(Phase 6 종료, 06-06 완료): Phase 6 의 마지막 플랜: `docs/network-exposure.md`
 + `phase-06/IPAD-CHECKLIST.md` + phase-close 게이트 스윕. Task 1(커밋 `7612f0a`):
 `docs/network-exposure.md`(219줄, house style) 작성 — 결론/무엇을 열었나/왜 이렇게
 골랐나(8444 선택 이유, 포트 3000 이 절대 바인딩되면 안 되는 이유를 명문화)/**한계(NET-01
@@ -712,19 +753,21 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [██████████] Phase 1-6/8 완료 (알려진 33/33 plans 완료 — Phase 1(6) + Phase 2(4) +
-Phase 3(4) + Phase 4(4) + Phase 5(7) + Phase 6(8, 06-04.1/06-04.2 삽입 포함). Phase 6 는
-8/8 plans 로 종료 — **네트워크 OPEN, ROADMAP 다섯 기준 중 NET-02/03/04 `met`, NET-01/05
-정직하게 `human_needed`.** Phase 7·8 은 아직 plan 수가 확정되지 않음(TBD) — 다음은
-Phase 7(cline-bench 동작 검증))
+Progress: [██████████] Phase 1-6/8 완료, Phase 7 진행 중 (알려진 34/38 plans 완료 —
+Phase 1(6) + Phase 2(4) + Phase 3(4) + Phase 4(4) + Phase 5(7) + Phase 6(8, 06-04.1/06-04.2
+삽입 포함) + Phase 7(1/5, 07-01 완료). Phase 6 는 8/8 plans 로 종료 — **네트워크 OPEN,
+ROADMAP 다섯 기준 중 NET-02/03/04 `met`, NET-01/05 정직하게 `human_needed`.** Phase 7 은
+5개 plan 문서(07-01~07-05)가 이미 작성돼 있으나 실행은 07-01 뿐 — 총 plan 수는 여전히
+07-02~07-05 실행 결과에 따라 변동 가능. Phase 8 은 아직 plan 수가 확정되지 않음(TBD) —
+다음은 07-02)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 30 (06-04 excluded — BLOCKED, not counted as completed; its 35 min is
+- Total plans completed: 34 (06-04 excluded — BLOCKED, not counted as completed; its 35 min is
   tracked separately below)
-- Average duration: ~14.7 min
-- Total execution time: ~7.35 hours
+- Average duration: ~14.8 min
+- Total execution time: ~7.68 hours
 
 **By Phase:**
 
@@ -735,9 +778,23 @@ Phase 7(cline-bench 동작 검증))
 | 3 | 4/4 | ~48 min | ~12 min |
 | 4 | 4/4 | ~42 min | ~10.5 min |
 | 5 | 7/7 | ~116 min | ~16.6 min |
-| 6 | 5/8 | ~70 min (+35 min BLOCKED 06-04, uncounted above) | ~14 min |
+| 6 | 8/8 | ~70 min (+35 min BLOCKED 06-04, uncounted above) | ~14 min |
+| 7 | 1/5 (known) | ~20 min | ~20 min |
 
 **Recent Trend:**
+- 07-01 (~20 min, Phase 7's first plan — preflight (11-check standing gate composing all five
+  prior phases' own gates plus six Phase-7-specific checks) + idempotent harbor/cline-bench
+  install + live task inventory. `CASES 11/11` twice, negative control proved P5 can FAIL.
+  harbor 0.22.0 + cline-bench@d108556 installed, second run into a scratch dir proved
+  idempotency. Live task count measured at 12, correcting 07-RESEARCH.md's own 14 (itself
+  already a correction from an ~89 figure). Container->litellm reachability re-proven live
+  (HTTP 200, flashnext, no Phase 2 posture change). Three deviations: a self-caught
+  RESULTS_ROOT-leak bug in preflight.sh's P5 (fixed pre-commit), a wording-collision between
+  Task 3's own `<action>` and `<verify>` for candidates.txt (resolved by relocating the
+  excluded-task prose to README.md, reported not improvised), and a pre-existing false-positive
+  in the overall plan's `grep -c bench ALLOWED_REPOS.json` verification line (documented, not
+  fixed -- the file predates this phase and is out of scope). Six live pids and port 3000
+  unchanged throughout. Three commits (`f669831`/`47a8b0a`/`f8e9d04`) all individual.)
 - 06-04.2 (~6 min, Phase 6's second and final opening attempt — re-applied the exact same
   single Serve entry 06-04 first tried, this time pointed at 06-04.1's proxy instead of kanban
   directly. `setup_tailscale_serve.sh --apply` succeeded on the first try (P5b preflight caught
@@ -1685,7 +1742,18 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **06-06-PLAN.md 완료 (3/3 tasks, 모두 auto — 3개 개별 커밋), STATE.md 갱신 완료.
+Stopped at: **07-01-PLAN.md 완료 (3/3 tasks, 모두 auto — 3개 개별 커밋), STATE.md 갱신 완료.**
+Task 1(`f669831`): `phase-07/bench/config.env` + `preflight.sh`(P1-P11, `CASES 11/11` 연속
+2회 + 네거티브 컨트롤로 게이트가 FAIL 할 수 있음을 증명). Task 2(`47a8b0a`):
+`install_bench.sh` 로 harbor 0.22.0 + cline-bench@`d108556` 멱등 설치, REMOVAL 레시피 기록,
+2차 실행으로 멱등성 실측. Task 3(`f8e9d04`): 실측 태스크 인벤토리(12개, 07-RESEARCH.md 의 14
+가 아님) + container→litellm 재실측(HTTP 200, Phase 2 posture 무변경). 편차 3건(자기 발견
+RESULTS_ROOT 누수 버그 1건 수정, 계획 자체 wording-collision 1건 보고, 사전 존재 false
+positive 1건 문서화만 — 07-01-SUMMARY.md 결정 로그 참조). 6종 pid·포트 3000 전 구간 불변.
+**다음: 07-02.**
+
+이전 세션: 2026-08-30
+정지 지점: **06-06-PLAN.md 완료 (3/3 tasks, 모두 auto — 3개 개별 커밋), STATE.md 갱신 완료.
 Phase 6 (네트워크 노출) 8/8 plans 로 종료.** Task 1(`7612f0a`): `docs/network-exposure.md`
 작성 — 개방 내역, 포트 선택 이유(3000 절대 미바인딩 이유 포함), 한계 절(NET-01 은
 06-04.2 의 `CASES 24/24` 인용, 06-04 자체는 인용 안 함; NET-05 는 확률적 추정과 미관측을
