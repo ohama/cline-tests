@@ -1,0 +1,43 @@
+{
+    "id": "7a995b71-7aeb-4bf1-8feb-0bc8a49473d3",
+    "started_at": "2026-08-31T02:15:08.336751",
+    "updated_at": "2026-08-31T02:24:51.655512",
+    "finished_at": "2026-08-31T02:24:51.655512",
+    "n_total_trials": 1,
+    "stats": {
+        "n_completed_trials": 1,
+        "n_errored_trials": 1,
+        "n_running_trials": 0,
+        "n_pending_trials": 0,
+        "n_cancelled_trials": 0,
+        "n_retries": 0,
+        "evals": {
+            "cline-cli__openai-compatible:flashnext__adhoc": {
+                "n_trials": 1,
+                "n_errors": 1,
+                "metrics": [
+                    {
+                        "mean": 0.0
+                    }
+                ],
+                "pass_at_k": {},
+                "reward_stats": {
+                    "reward": {
+                        "0.0": [
+                            "01k8mwgj1z6kr0a7q59r6ek2ar-v-edi__b8ZqnXb"
+                        ]
+                    }
+                },
+                "exception_stats": {
+                    "NonZeroAgentExitCodeError": [
+                        "01k8mwgj1z6kr0a7q59r6ek2ar-v-edi__b8ZqnXb"
+                    ]
+                }
+            }
+        },
+        "n_input_tokens": 215634,
+        "n_cache_tokens": 0,
+        "n_output_tokens": 672,
+        "cost_usd": 0.0
+    }
+}

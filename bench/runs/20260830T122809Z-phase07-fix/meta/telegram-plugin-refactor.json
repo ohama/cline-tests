@@ -1,0 +1,17 @@
+{
+  "task": "telegram-plugin-refactor",
+  "task_dir": "01k6zz0nyj31znwsevx4sn6zb2-telegram-plugin-refactor",
+  "difficulty": "easy",
+  "memory_mb": 2048,
+  "timeout_sec": 1800.0,
+  "harbor_exit_code": 0,
+  "wall_clock_sec": 371,
+  "reward": 0,
+  "duration_sec_jobs": null,
+  "model_turns": 6,
+  "max_prompt_tokens": 21036,
+  "http_400_seen": true,
+  "system_prompt_in_transcript": "no",
+  "post_guard_notes": "",
+  "verdict": "fail-context"
+}

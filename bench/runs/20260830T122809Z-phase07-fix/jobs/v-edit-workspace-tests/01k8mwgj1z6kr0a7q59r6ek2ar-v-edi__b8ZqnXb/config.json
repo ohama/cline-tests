@@ -1,0 +1,21 @@
+{
+    "task": {
+        "path": "tasks/01k8mwgj1z6kr0a7q59r6ek2ar-v-edit-workspace-tests"
+    },
+    "trial_name": "01k8mwgj1z6kr0a7q59r6ek2ar-v-edi__b8ZqnXb",
+    "trials_dir": "jobs/2026-08-31__02-15-08",
+    "agent": {
+        "name": "cline-cli",
+        "model_name": "openai-compatible:flashnext",
+        "kwargs": {
+            "cline-version": "3.0.53"
+        }
+    },
+    "environment": {
+        "type": "docker",
+        "extra_docker_compose": [
+            "/Users/ohama/projs/cline-tests/phase-07/bench/cline-cw-overlay.yaml"
+        ]
+    },
+    "job_id": "7a995b71-7aeb-4bf1-8feb-0bc8a49473d3"
+}

@@ -1,0 +1,17 @@
+injection-probe-cline353:latest 2.43GB
+neo4j:2026.07-community 1.1GB
+python:3.12-alpine 79.5MB
+qdrant/qdrant:v1.19.0 287MB
+redis:8-alpine 154MB
+nextcloud:34-apache 2.2GB
+nextcloud:latest 2.2GB
+sandbox-egress-proxy:latest 30.9MB
+tailscale/tailscale:latest 168MB
+mariadb:11 496MB
+postgres:16-alpine 411MB
+curlimages/curl:latest 37.4MB
+node:20 1.59GB
+alpine:3.20 13.7MB
+alpine:latest 13.6MB
+hello-world:latest 22.6kB
+alpine:3.19 11.9MB

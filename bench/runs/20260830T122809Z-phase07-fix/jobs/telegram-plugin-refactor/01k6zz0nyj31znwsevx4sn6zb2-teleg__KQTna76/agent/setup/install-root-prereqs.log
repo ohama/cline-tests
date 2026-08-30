@@ -1,0 +1,6 @@
+=== install-root-prereqs ===
+start:    2026-08-30T17:04:49.496433+00:00
+end:      2026-08-30T17:04:49.563829+00:00
+duration: 0.07s
+--- STDOUT ---
+git, curl, and unzip already installed, skipping apt-get...

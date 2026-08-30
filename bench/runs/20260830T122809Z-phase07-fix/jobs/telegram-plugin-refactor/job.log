@@ -1,0 +1,40 @@
+Skipping image OS validation for hb__8d958d6a7ca4634b5cea223d655154da: docker inspect returned 1
+Running command: if command -v git &> /dev/null && command -v curl &> /dev/null && command -v unzip &> /dev/null; then  echo 'git, curl, and unzip already installed, skipping apt-get...'; else  echo 'Killing background apt processes to release lock...';  pkill -9 -x unattended-upgrades 2>/dev/null || true;  pkill -9 -x apt-get 2>/dev/null || true;  pkill -9 -x dpkg 2>/dev/null || true;  sleep 1;  rm -f /var/lib/apt/lists/lock /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend /var/cache/apt/archives/lock 2>/dev/null || true;  dpkg --configure -a 2>/dev/null || true;  echo 'Trying apt-get install without update first...';  if apt-get install -y curl ca-certificates git unzip 2>/dev/null; then    echo 'Install succeeded without update.';  else    echo 'Falling back to apt-get update + install...';    apt-get update && apt-get install -y curl ca-certificates git unzip;  fi; fi
+Command outputs captured
+Running command: set -e; if command -v node &> /dev/null && node --version | grep -qE '^v2[2-9]|^v[3-9]'; then  echo 'Node.js already installed, skipping nvm setup...'; else  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash &&  export NVM_DIR="$HOME/.nvm" &&  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" &&  nvm install 22 && nvm use 22 && nvm alias default 22; fi && export NVM_DIR="$HOME/.nvm" && { [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" || true; } && npm install -g cline@3.0.53 && sleep 0.5 && if cline --version || cline version; then echo 'Cline npm binary smoke test passed.'; else status="$?"; echo "Cline npm binary smoke test failed with exit ${status}."; echo 'Cline npm binary smoke test failed; installing Cline from source with Bun as a fallback.' && export BUN_INSTALL="$HOME/.bun" && export PATH="$BUN_INSTALL/bin:$PATH" && if ! command -v bun >/dev/null 2>&1; then curl -fsSL https://bun.sh/install | bash && export PATH="$BUN_INSTALL/bin:$PATH"; fi && CLONE_DIR="$HOME/.cache/harbor-cline-source" && REPO_URL=https://github.com/cline/cline.git && REF=main && rm -rf "$CLONE_DIR" && mkdir -p "$(dirname "$CLONE_DIR")" && (git clone --branch "$REF" --depth 1 "$REPO_URL" "$CLONE_DIR" || (git clone "$REPO_URL" "$CLONE_DIR" && cd "$CLONE_DIR" && git checkout "$REF")) && cd "$CLONE_DIR/sdk" && bun install && bun run build:sdk && CLINE_SHIM="$(dirname "$(command -v node)")/cline" && cat > "$CLINE_SHIM" <<'__HARBOR_CLINE_SHIM__'
+#!/usr/bin/env bash
+set -euo pipefail
+export BUN_INSTALL="${BUN_INSTALL:-$HOME/.bun}"
+export PATH="$BUN_INSTALL/bin:$PATH"
+export CLINE_BUILD_ENV="${CLINE_BUILD_ENV:-development}"
+exec "$BUN_INSTALL/bin/bun" --conditions=development "$HOME/.cache/harbor-cline-source/sdk/apps/cli/src/index.ts" "$@"
+__HARBOR_CLINE_SHIM__
+chmod +x "$CLINE_SHIM" && hash -r && cline --version; fi
+Command outputs captured
+Running command: mkdir -p /logs/agent ~/.cline/data && echo '{"welcomeViewCompleted": true, "isNewUser": false}' > ~/.cline/data/globalState.json
+Command outputs captured
+Running command: export NVM_DIR="$HOME/.nvm"; if [ -s "$NVM_DIR/nvm.sh" ]; then . "$NVM_DIR/nvm.sh"; nvm use 22 >/dev/null 2>&1 || true; fi; set -o pipefail; cline -P openai-compatible -k $API_KEY -m $MODELID --json --yolo -- 'Please review the template in '"'"'plugins/_template/src'"'"' (see below for file content) and '"'"'plugins/_template/LLM.txt'"'"' (see below for file content) 
+
+I want to restructure '"'"'plugins/telegram/src'"'"' (see below for file content) so it follows this same, index contract service flow
+
+And then read the '"'"'plugins/_template/LLM.txt'"'"' (see below for file content) and make sure to update the '"'"'plugins/telegram/README.md'"'"' (see below for file content) 
+
+Please scope it out and fix
+
+<environment_details>
+# Visual Studio Code Visible Files
+examples/efizzybusybot/services/embeddings.service.ts
+
+# Visual Studio Code Open Tabs
+examples/efizzybusybot/services/nearai.service.ts
+examples/efizzybusybot/services/embeddings.service.ts
+examples/efizzybusybot/main.ts
+examples/efizzybusybot/worker.ts
+</environment_details>' < /dev/null 2>&1 | stdbuf -oL tee /logs/agent/cline.txt; status=${PIPESTATUS[0]}; echo "__CLINE_EXIT=${status}" | tee -a /logs/agent/cline.txt; exit "${status}"
+Command failed
+Classified failed command as ApiRateLimitError (pattern: 'rate.?limit')
+Running command: if [ -d ~/.cline/data/sessions ]; then mkdir -p /logs/agent/sessions && LATEST_SESSION="$(ls -1td ~/.cline/data/sessions/*/ 2>/dev/null | head -n 1)" && if [ -n "$LATEST_SESSION" ]; then cp -r "$LATEST_SESSION" /logs/agent/sessions/; fi; fi
+Command outputs captured
+Wrote ATIF trajectory to jobs/2026-08-31__02-01-38/01k6zz0nyj31znwsevx4sn6zb2-teleg__KQTna76/agent/trajectory.json
+Collecting main service artifacts
+Not retrying trial because the maximum number of retries has been reached

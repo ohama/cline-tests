@@ -1,0 +1,6 @@
+=== cline --version (if invoked... but host cline budget is 0, so do NOT invoke) ===
+SKIPPED: host cline invocation budget is 0 for this plan; using package.json + stat instead
+=== /opt/homebrew/lib/node_modules/cline/package.json version field ===
+3.0.60
+=== stat mtime ===
+Aug 30 13:27:09 2026 /opt/homebrew/lib/node_modules/cline/package.json

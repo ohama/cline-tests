@@ -1,0 +1,22 @@
+{
+    "environment": {
+        "type": "docker",
+        "extra_docker_compose": [
+            "/Users/ohama/projs/cline-tests/phase-07/bench/cline-cw-overlay.yaml"
+        ]
+    },
+    "agents": [
+        {
+            "name": "cline-cli",
+            "model_name": "openai-compatible:flashnext",
+            "kwargs": {
+                "cline-version": "3.0.53"
+            }
+        }
+    ],
+    "tasks": [
+        {
+            "path": "tasks/01kbb2wvw29szdjwcs76265t3k-filmarchiver"
+        }
+    ]
+}

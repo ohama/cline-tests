@@ -1,0 +1,7 @@
+# six live pids, pid + ps -o command= substring, captured pre-batch
+46573: /Users/ohama/projs/qwen38-flash-next-tests/.venv-mlxvlm-new/bin/python3 -m mlx_vlm.server --model /Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4 --host 127.0.0.1 --port 8000 --draft-model /Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MTP-drafter --draft-kind mtp --max-kv-size 32768 --log-level INFO --max-num-seqs 1
+75548: /Users/ohama/agent-stack/venv/bin/python /Users/ohama/llm-system/role_shim.py --listen 8011 --upstream http://localhost:8000
+48525: /Users/ohama/agent-stack/venv/bin/python /Users/ohama/agent-stack/venv/bin/litellm --config /Users/ohama/agent-stack/litellm/config.yaml --port 4000 --host 127.0.0.1
+53894: node /opt/homebrew/bin/kanban --no-open --host 127.0.0.1 --port 3484
+99162: /bin/bash /Users/ohama/projs/cline-tests/phase-05/services/run_telegram_service.sh
+19669: /opt/homebrew/bin/node /Users/ohama/projs/cline-tests/phase-06/net/kanban_host_proxy.js

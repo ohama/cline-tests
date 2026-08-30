@@ -1,0 +1,3 @@
+=== R1: exported case (PROJECT_ROOT=/Users/ohama/projs/cline-tests) ===
+=== R1: unexported case (PROJECT_ROOT deliberately unset) ===
+PASS: exported case shows both the fully-resolved bind mount AND CLINE_PROVIDER_SETTINGS_PATH.

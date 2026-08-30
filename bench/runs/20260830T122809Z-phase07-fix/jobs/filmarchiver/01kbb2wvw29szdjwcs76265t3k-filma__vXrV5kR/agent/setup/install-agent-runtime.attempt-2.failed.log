@@ -1,0 +1,41 @@
+=== install-agent-runtime.attempt-2.failed ===
+start:    2026-08-30T17:14:01.410010+00:00
+end:      2026-08-30T17:14:54.096848+00:00
+duration: 52.69s
+--- STDOUT ---
+
+--- STDERR ---
+Command failed (exit 1): set -e; if command -v node &> /dev/null && node --version | grep -qE '^v2[2-9]|^v[3-9]'; then  echo 'Node.js already installed, skipping nvm setup...'; else  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash &&  export NVM_DIR="$HOME/.nvm" &&  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" &&  nvm install 22 && nvm use 22 && nvm alias default 22; fi && export NVM_DIR="$HOME/.nvm" && { [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" || true; } && npm install -g cline@3.0.53 && sleep 0.5 && if cline --version || cline version; then echo 'Cline npm binary smoke test passed.'; else status="$?"; echo "Cline npm binary smoke test failed with exit ${status}."; echo 'Cline npm binary smoke test failed; installing Cline from source with Bun as a fallback.' && export BUN_INSTALL="$HOME/.bun" && export PATH="$BUN_INSTALL/bin:$PATH" && if ! command -v bun >/dev/null 2>&1; then curl -fsSL https://bun.sh/install | bash && export PATH="$BUN_INSTALL/bin:$PATH"; fi && CLONE_DIR="$HOME/.cache/harbor-cline-source" && REPO_URL=https://github.com/cline/cline.git && REF=main && rm -rf "$CLONE_DIR" && mkdir -p "$(dirname "$CLONE_DIR")" && (git clone --branch "$REF" --depth 1 "$REPO_URL" "$CLONE_DIR" || (git clone "$REPO_URL" "$CLONE_DIR" && cd "$CLONE_DIR" && git checkout "$REF")) && cd "$CLONE_DIR/sdk" && bun install && bun run build:sdk && CLINE_SHIM="$(dirname "$(command -v node)")/cline" && cat > "$CLINE_SHIM" <<'__HARBOR_CLINE_SHIM__'
+#!/usr/bin/env bash
+set -euo pipefail
+export BUN_INSTALL="${BUN_INSTALL:-$HOME/.bun}"
+export PATH="$BUN_INSTALL/bin:$PATH"
+export CLINE_BUILD_ENV="${CLINE_BUILD_ENV:-development}"
+exec "$BUN_INSTALL/bin/bun" --conditions=development "$HOME/.cache/harbor-cline-source/sdk/apps/cli/src/index.ts" "$@"
+__HARBOR_CLINE_SHIM__
+chmod +x "$CLINE_SHIM" && hash -r && cline --version; fi
+stdout:   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100 16631  1 ... [1272 chars truncated] ... ==============================
+Bun v1.4.0 (34cbb9a40) Linux x64
+Linux Kernel v6.8.0 | glibc v2.39
+CPU: sse42 popcnt
+Args: "bun" "install"
+Features: text_lockfile no_avx2 no_avx 
+
+Elapsed: 138ms | User: 134ms | Sys: 15ms
+RSS: 52.13 MB | Peak: 51.54 MB | Commit: 72.95 MB | Faults: 38
+
+CPU lacks AVX support. Please consider upgrading to a newer CPU.
+panic(main thread): Segmentation fault at address 0x2D8
+oh no: Bun has crashed. This indicates a bug in Bun, not your code.
+
+To send a redacted crash report to Bun's team,
+please file a GitHub issue using the link below:
+
+ https://bun.report/1.4.0/li134cbb9aAgggggiDmtgoB_A2AwtB
+
+bash: line 9:  5795 Segmentation fault      (core dumped) bun install
+chmod: cannot access '': No such file or directory
+
+stderr: None

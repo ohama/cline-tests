@@ -1,0 +1,2 @@
+MISSING prompts/filmarchiver/agent-command.txt (no agent/command-*/ directories in this trial, and trial.log has no matching 'cline -P' line)
+MISSING agent/cline.txt (no transcript to probe for a system-prompt marker)

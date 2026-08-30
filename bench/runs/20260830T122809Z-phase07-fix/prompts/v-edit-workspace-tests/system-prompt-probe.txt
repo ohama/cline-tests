@@ -1,0 +1,3 @@
+# System-prompt probe over agent/cline.txt (case-insensitive grep, with line numbers)
+(no matches)
+SYSTEM_PROMPT_IN_TRANSCRIPT: no

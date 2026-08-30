@@ -1,0 +1,40 @@
+run_task.sh: RUN=/Users/ohama/projs/cline-tests/bench/runs/20260830T122809Z-phase07-fix TASK=telegram-plugin-refactor TASK_DIR=01k6zz0nyj31znwsevx4sn6zb2-telegram-plugin-refactor
+pre-guard: six live pids OK
+pre-guard: port 3000 unbound OK
+pre-guard: free disk 1177GiB >= 30GiB OK
+pre-guard: task directory present OK
+pre-guard: FLASHNEXT_ERR_LOG readable OK
+pre-guard: pre-run injection assertion (R1 compose-merge-replay) OK
+server-log offset before run: 879441 bytes
+run_task.sh: invoking: cd /Users/ohama/projs/cline-tests/bench/cline-bench && API_KEY=local-any-value BASE_URL=http://host.docker.internal:4000/v1 harbor run -p tasks/01k6zz0nyj31znwsevx4sn6zb2-telegram-plugin-refactor -a cline-cli -m openai-compatible:flashnext --agent-kwarg cline-version=3.0.53 --extra-docker-compose /Users/ohama/projs/cline-tests/phase-07/bench/cline-cw-overlay.yaml --env docker
+Wrote ATIF trajectory to jobs/2026-08-31__02-01-38/01k6zz0nyj31znwsevx4sn6zb2-teleg__KQTna76/agent/trajectory.json
+  1/1 Mean: 0.000 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0:06:09 0:00:00
+adhoc • cline-cli • openai-compatible:flashnext
+┏━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━┓
+┃ Trials ┃ Exceptions ┃  Mean ┃
+┡━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━┩
+│      1 │          1 │ 0.000 │
+└────────┴────────────┴───────┘
+
+┏━━━━━━━━┳━━━━━━━┓
+┃ Reward ┃ Count ┃
+┡━━━━━━━━╇━━━━━━━┩
+│ 0.0    │     1 │
+└────────┴───────┘
+
+┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━┓
+┃ Exception         ┃ Count ┃
+┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━┩
+│ ApiRateLimitError │     1 │
+└───────────────────┴───────┘
+
+Job Info
+Total runtime: 6m 9s
+Results written to jobs/2026-08-31__02-01-38/result.json
+Inspect results by running `harbor view jobs`
+Share results by running `harbor upload jobs/2026-08-31__02-01-38`
+
+run_task.sh: harbor exit code=0 wall_clock=371s
+post-guard: port 3000 still unbound OK
+post-guard: six live pids unchanged OK
+run_task.sh: DONE task=telegram-plugin-refactor verdict=fail-context reward=0 wall_clock=371s

@@ -1,0 +1,17 @@
+{
+  "task": "v-edit-workspace-tests",
+  "task_dir": "01k8mwgj1z6kr0a7q59r6ek2ar-v-edit-workspace-tests",
+  "difficulty": "hard",
+  "memory_mb": 2048,
+  "timeout_sec": 3600.0,
+  "harbor_exit_code": 0,
+  "wall_clock_sec": 585,
+  "reward": 0,
+  "duration_sec_jobs": null,
+  "model_turns": 12,
+  "max_prompt_tokens": 30696,
+  "http_400_seen": true,
+  "system_prompt_in_transcript": "no",
+  "post_guard_notes": "",
+  "verdict": "fail-context"
+}

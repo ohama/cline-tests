@@ -1,0 +1,67 @@
+Traceback (most recent call last):
+  File "/Users/ohama/.local/share/uv/tools/harbor/lib/python3.13/site-packages/harbor/trial/trial.py", line 406, in run
+    await self._prepare()
+  File "/Users/ohama/.local/share/uv/tools/harbor/lib/python3.13/site-packages/harbor/trial/trial.py", line 450, in _prepare
+    await self._setup_agent()
+  File "/Users/ohama/.local/share/uv/tools/harbor/lib/python3.13/site-packages/harbor/trial/trial.py", line 1455, in _setup_agent
+    await asyncio.wait_for(
+    ...<2 lines>...
+    )
+  File "/Users/ohama/.local/share/uv/python/cpython-3.13.13-macos-aarch64-none/lib/python3.13/asyncio/tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/Users/ohama/.local/share/uv/tools/harbor/lib/python3.13/site-packages/harbor/agents/installed/base.py", line 953, in setup
+    await self.install(environment)
+  File "/Users/ohama/.local/share/uv/tools/harbor/lib/python3.13/site-packages/harbor/agents/installed/cline/cline.py", line 790, in install
+    await self._exec_with_setup_retries(
+    ...<4 lines>...
+    )
+  File "/Users/ohama/.local/share/uv/tools/harbor/lib/python3.13/site-packages/harbor/agents/installed/cline/cline.py", line 545, in _exec_with_setup_retries
+    result = await asyncio.wait_for(coro, timeout=effective_timeout)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/ohama/.local/share/uv/python/cpython-3.13.13-macos-aarch64-none/lib/python3.13/asyncio/tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/Users/ohama/.local/share/uv/tools/harbor/lib/python3.13/site-packages/harbor/agents/installed/base.py", line 898, in exec_as_agent
+    return await self._exec(
+           ^^^^^^^^^^^^^^^^^
+        environment, command, env=env, cwd=cwd, timeout_sec=timeout_sec
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/ohama/.local/share/uv/tools/harbor/lib/python3.13/site-packages/harbor/agents/installed/base.py", line 865, in _exec
+    raise self._classify_exec_error(command, result)
+harbor.agents.installed.base.NonZeroAgentExitCodeError: Command failed (exit 1): set -e; if command -v node &> /dev/null && node --version | grep -qE '^v2[2-9]|^v[3-9]'; then  echo 'Node.js already installed, skipping nvm setup...'; else  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash &&  export NVM_DIR="$HOME/.nvm" &&  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" &&  nvm install 22 && nvm use 22 && nvm alias default 22; fi && export NVM_DIR="$HOME/.nvm" && { [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" || true; } && npm install -g cline@3.0.53 && sleep 0.5 && if cline --version || cline version; then echo 'Cline npm binary smoke test passed.'; else status="$?"; echo "Cline npm binary smoke test failed with exit ${status}."; echo 'Cline npm binary smoke test failed; installing Cline from source with Bun as a fallback.' && export BUN_INSTALL="$HOME/.bun" && export PATH="$BUN_INSTALL/bin:$PATH" && if ! command -v bun >/dev/null 2>&1; then curl -fsSL https://bun.sh/install | bash && export PATH="$BUN_INSTALL/bin:$PATH"; fi && CLONE_DIR="$HOME/.cache/harbor-cline-source" && REPO_URL=https://github.com/cline/cline.git && REF=main && rm -rf "$CLONE_DIR" && mkdir -p "$(dirname "$CLONE_DIR")" && (git clone --branch "$REF" --depth 1 "$REPO_URL" "$CLONE_DIR" || (git clone "$REPO_URL" "$CLONE_DIR" && cd "$CLONE_DIR" && git checkout "$REF")) && cd "$CLONE_DIR/sdk" && bun install && bun run build:sdk && CLINE_SHIM="$(dirname "$(command -v node)")/cline" && cat > "$CLINE_SHIM" <<'__HARBOR_CLINE_SHIM__'
+#!/usr/bin/env bash
+set -euo pipefail
+export BUN_INSTALL="${BUN_INSTALL:-$HOME/.bun}"
+export PATH="$BUN_INSTALL/bin:$PATH"
+export CLINE_BUILD_ENV="${CLINE_BUILD_ENV:-development}"
+exec "$BUN_INSTALL/bin/bun" --conditions=development "$HOME/.cache/harbor-cline-source/sdk/apps/cli/src/index.ts" "$@"
+__HARBOR_CLINE_SHIM__
+chmod +x "$CLINE_SHIM" && hash -r && cline --version; fi
+stdout:   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100 16631  1 ... [1272 chars truncated] ... ==============================
+Bun v1.4.0 (34cbb9a40) Linux x64
+Linux Kernel v6.8.0 | glibc v2.39
+CPU: sse42 popcnt
+Args: "bun" "install"
+Features: text_lockfile no_avx2 no_avx 
+
+Elapsed: 138ms | User: 134ms | Sys: 15ms
+RSS: 52.13 MB | Peak: 51.54 MB | Commit: 72.95 MB | Faults: 38
+
+CPU lacks AVX support. Please consider upgrading to a newer CPU.
+panic(main thread): Segmentation fault at address 0x2D8
+oh no: Bun has crashed. This indicates a bug in Bun, not your code.
+
+To send a redacted crash report to Bun's team,
+please file a GitHub issue using the link below:
+
+ https://bun.report/1.4.0/li134cbb9aAgggggiDmtgoB_A2AwtB
+
+bash: line 9:  5795 Segmentation fault      (core dumped) bun install
+chmod: cannot access '': No such file or directory
+
+stderr: None

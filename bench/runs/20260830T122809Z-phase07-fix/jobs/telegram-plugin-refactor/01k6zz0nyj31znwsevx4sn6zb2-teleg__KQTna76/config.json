@@ -1,0 +1,21 @@
+{
+    "task": {
+        "path": "tasks/01k6zz0nyj31znwsevx4sn6zb2-telegram-plugin-refactor"
+    },
+    "trial_name": "01k6zz0nyj31znwsevx4sn6zb2-teleg__KQTna76",
+    "trials_dir": "jobs/2026-08-31__02-01-38",
+    "agent": {
+        "name": "cline-cli",
+        "model_name": "openai-compatible:flashnext",
+        "kwargs": {
+            "cline-version": "3.0.53"
+        }
+    },
+    "environment": {
+        "type": "docker",
+        "extra_docker_compose": [
+            "/Users/ohama/projs/cline-tests/phase-07/bench/cline-cw-overlay.yaml"
+        ]
+    },
+    "job_id": "1e6a04d4-91f8-42b8-93c9-0e18a1eb9cd7"
+}

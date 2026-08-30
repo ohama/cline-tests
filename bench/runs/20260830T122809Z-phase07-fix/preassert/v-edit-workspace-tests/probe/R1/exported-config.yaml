@@ -1,0 +1,22 @@
+name: docker
+services:
+  main:
+    command:
+      - sh
+      - -c
+      - sleep infinity
+    environment:
+      CLINE_PROVIDER_SETTINGS_PATH: /opt/harbor-cline-cw/providers.json
+      HARBOR_TASK_ID: probe
+      HARBOR_TRIAL_ID: probe
+    image: scratch-injection-probe-image
+    networks:
+      default: null
+    volumes:
+      - type: bind
+        source: /Users/ohama/projs/cline-tests/phase-07/bench/cline-cw-providers.json
+        target: /opt/harbor-cline-cw/providers.json
+        read_only: true
+networks:
+  default:
+    name: docker_default

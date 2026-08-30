@@ -1,0 +1,3 @@
+[
+  "/Users/ohama/projs/cline-tests/workspace/scratch-repo"
+]

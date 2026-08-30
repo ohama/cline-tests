@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "session_id": "1788109523872_h90ba",
+  "source": "cli",
+  "pid": 1820,
+  "started_at": "2026-08-30T17:05:23.875Z",
+  "ended_at": "2026-08-30T17:07:36.118Z",
+  "exit_code": 1,
+  "status": "failed",
+  "interactive": false,
+  "provider": "openai-compatible",
+  "model": "flashnext",
+  "cwd": "/app",
+  "workspace_root": "/app",
+  "enable_tools": true,
+  "enable_spawn": false,
+  "enable_teams": false,
+  "prompt": "Please review the template in 'plugins/_template/src' (see below for file content) and 'plugins/_template/LLM.txt' (see below for file content) \n\nI want to restructure 'plugins/telegram/src' (see below for file content) so it follows this same, index contract service flow\n\nAnd then read the 'plugins/_template/LLM.txt' (see below for file content) and make sure to update the 'plugins/telegram/README.md' (see below for file content) \n\nPlease scope it out and fix\n\n<environment_details>\n# Visual Studio Code Visible Files\nexamples/efizzybusybot/services/embeddings.service.ts\n\n# Visual Studio Code Open Tabs\nexamples/efizzybusybot/services/nearai.service.ts\nexamples/efizzybusybot/services/embeddings.service.ts\nexamples/efizzybusybot/main.ts\nexamples/efizzybusybot/worker.ts\n</environment_details>",
+  "metadata": {
+    "sessionHistoryOrigin": {
+      "mode": "user",
+      "version": "3.0.53"
+    },
+    "title": "Please review the template in 'plugins/_template/src' (see below for file content) and 'plugins/_template/LLM.txt' (see",
+    "totalCost": 0,
+    "aggregatedAgentsCost": 0,
+    "usage": {
+      "inputTokens": 58779,
+      "outputTokens": 677,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "totalCost": 0
+    },
+    "aggregateUsage": {
+      "inputTokens": 58779,
+      "outputTokens": 677,
+      "cacheReadTokens": 0,
+      "cacheWriteTokens": 0,
+      "totalCost": 0
+    }
+  },
+  "messages_path": "/root/.cline/data/sessions/1788109523872_h90ba/1788109523872_h90ba.messages.json",
+  "compaction_path": "/root/.cline/data/sessions/1788109523872_h90ba/1788109523872_h90ba.compaction.json"
+}

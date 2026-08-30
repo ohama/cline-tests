@@ -1,0 +1,34 @@
+run_task.sh: RUN=/Users/ohama/projs/cline-tests/bench/runs/20260830T122809Z-phase07-fix TASK=filmarchiver TASK_DIR=01kbb2wvw29szdjwcs76265t3k-filmarchiver
+pre-guard: six live pids OK
+pre-guard: port 3000 unbound OK
+pre-guard: free disk 1175GiB >= 30GiB OK
+pre-guard: task directory present OK
+pre-guard: FLASHNEXT_ERR_LOG readable OK
+pre-guard: pre-run injection assertion (R1 compose-merge-replay) OK
+server-log offset before run: 901336 bytes
+run_task.sh: invoking: cd /Users/ohama/projs/cline-tests/bench/cline-bench && API_KEY=local-any-value BASE_URL=http://host.docker.internal:4000/v1 harbor run -p tasks/01kbb2wvw29szdjwcs76265t3k-filmarchiver -a cline-cli -m openai-compatible:flashnext --agent-kwarg cline-version=3.0.53 --extra-docker-compose /Users/ohama/projs/cline-tests/phase-07/bench/cline-cw-overlay.yaml --env docker
+Retrying cline setup command
+  1/1 Mean: 0.000 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0:07:15 0:00:00
+adhoc • cline-cli • openai-compatible:flashnext
+┏━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━┓
+┃ Trials ┃ Exceptions ┃  Mean ┃
+┡━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━┩
+│      0 │          1 │ 0.000 │
+└────────┴────────────┴───────┘
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━┓
+┃ Exception                 ┃ Count ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━┩
+│ NonZeroAgentExitCodeError │     1 │
+└───────────────────────────┴───────┘
+
+Job Info
+Total runtime: 7m 15s
+Results written to jobs/2026-08-31__02-07-50/result.json
+Inspect results by running `harbor view jobs`
+Share results by running `harbor upload jobs/2026-08-31__02-07-50`
+
+run_task.sh: harbor exit code=0 wall_clock=437s
+post-guard: port 3000 still unbound OK
+post-guard: six live pids unchanged OK
+run_task.sh: DONE task=filmarchiver verdict=fail-infra reward=null wall_clock=437s

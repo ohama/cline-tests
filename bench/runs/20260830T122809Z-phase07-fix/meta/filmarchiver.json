@@ -1,0 +1,17 @@
+{
+  "task": "filmarchiver",
+  "task_dir": "01kbb2wvw29szdjwcs76265t3k-filmarchiver",
+  "difficulty": "medium",
+  "memory_mb": 2048,
+  "timeout_sec": 1800.0,
+  "harbor_exit_code": 0,
+  "wall_clock_sec": 437,
+  "reward": null,
+  "duration_sec_jobs": null,
+  "model_turns": 0,
+  "max_prompt_tokens": 0,
+  "http_400_seen": false,
+  "system_prompt_in_transcript": "unknown",
+  "post_guard_notes": "",
+  "verdict": "fail-infra"
+}

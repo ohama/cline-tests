@@ -1,0 +1,27 @@
+Wrote ATIF trajectory to jobs/2026-08-31__02-01-38/01k6zz0nyj31znwsevx4sn6zb2-teleg__KQTna76/agent/trajectory.json
+  1/1 Mean: 0.000 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 0:06:09 0:00:00
+adhoc • cline-cli • openai-compatible:flashnext
+┏━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━┓
+┃ Trials ┃ Exceptions ┃  Mean ┃
+┡━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━┩
+│      1 │          1 │ 0.000 │
+└────────┴────────────┴───────┘
+
+┏━━━━━━━━┳━━━━━━━┓
+┃ Reward ┃ Count ┃
+┡━━━━━━━━╇━━━━━━━┩
+│ 0.0    │     1 │
+└────────┴───────┘
+
+┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━┓
+┃ Exception         ┃ Count ┃
+┡━━━━━━━━━━━━━━━━━━━╇━━━━━━━┩
+│ ApiRateLimitError │     1 │
+└───────────────────┴───────┘
+
+Job Info
+Total runtime: 6m 9s
+Results written to jobs/2026-08-31__02-01-38/result.json
+Inspect results by running `harbor view jobs`
+Share results by running `harbor upload jobs/2026-08-31__02-01-38`
+

@@ -1,0 +1,2 @@
+CHECK: PASS R1-compose-merge-replay
+CASES 1/1

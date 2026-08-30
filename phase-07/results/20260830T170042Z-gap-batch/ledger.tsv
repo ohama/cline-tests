@@ -1,0 +1,4 @@
+task	verdict	wall_clock_sec	model_turns	slice_bytes	max_prompt_tokens
+telegram-plugin-refactor	fail-context	372	6	21895	21036
+filmarchiver	fail-infra	438	0	0	0
+v-edit-workspace-tests	fail-context	586	12	42450	30696

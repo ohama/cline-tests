@@ -1,0 +1,51 @@
+=== install-agent-runtime ===
+start:    2026-08-30T17:04:49.564175+00:00
+end:      2026-08-30T17:05:19.689096+00:00
+duration: 30.12s
+--- STDOUT ---
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100 16631  100 16631    0     0   691k      0 --:--:-- --:--:-- --:--:--  706k
+=> Downloading nvm from git to '/root/.nvm'
+=> Cloning into '/root/.nvm'...
+* (HEAD detached at FETCH_HEAD)
+  master
+=> Compressing and cleaning up git repository
+
+=> Appending nvm source string to /root/.bashrc
+=> Appending bash_completion source string to /root/.bashrc
+=> You currently have modules installed globally with `npm`. These will no
+=> longer be linked to the active version of Node when you install a new node
+=> with `nvm`; and they may (depending on how you construct your `$PATH`)
+=> override the binaries of modules installed with `nvm`:
+
+/usr/lib
++-- corepack@0.34.6
+=> If you wish to uninstall them at a later point (or re-install them under your
+=> `nvm` node installs), you can remove them from the system Node as follows:
+
+     $ nvm use system
+     $ npm uninstall -g a_module
+
+=> Close and reopen your terminal to start using nvm or run the following to use it now:
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+Downloading and installing node v22.23.2...
+Downloading https://nodejs.org/dist/v22.23.2/node-v22.23.2-linux-arm64.tar.gz...
+                                                                           0.0%#######                                                                   10.0%##############                                                            19.7%##################                                                        25.9%##########################                                                37.3%###################################                                       48.8%###########################################                               60.2%###################################################                       71.7%###########################################################               83.1%####################################################################      94.5%######################################################################## 100.0%
+Computing checksum with sha256sum
+Checksums matched!
+Now using node v22.23.2 (npm v10.9.8)
+Creating default alias: default -> 22 (-> v22.23.2 *)
+Now using node v22.23.2 (npm v10.9.8)
+default -> 22 (-> v22.23.2 *)
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+
+added 325 packages in 24s
+
+46 packages are looking for funding
+  run `npm fund` for details
+3.0.53
+Cline npm binary smoke test passed.

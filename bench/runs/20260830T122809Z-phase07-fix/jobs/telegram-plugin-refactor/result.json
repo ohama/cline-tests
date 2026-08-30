@@ -1,0 +1,43 @@
+{
+    "id": "1e6a04d4-91f8-42b8-93c9-0e18a1eb9cd7",
+    "started_at": "2026-08-31T02:01:38.475996",
+    "updated_at": "2026-08-31T02:07:48.200881",
+    "finished_at": "2026-08-31T02:07:48.200881",
+    "n_total_trials": 1,
+    "stats": {
+        "n_completed_trials": 1,
+        "n_errored_trials": 1,
+        "n_running_trials": 0,
+        "n_pending_trials": 0,
+        "n_cancelled_trials": 0,
+        "n_retries": 0,
+        "evals": {
+            "cline-cli__openai-compatible:flashnext__adhoc": {
+                "n_trials": 1,
+                "n_errors": 1,
+                "metrics": [
+                    {
+                        "mean": 0.0
+                    }
+                ],
+                "pass_at_k": {},
+                "reward_stats": {
+                    "reward": {
+                        "0.0": [
+                            "01k6zz0nyj31znwsevx4sn6zb2-teleg__KQTna76"
+                        ]
+                    }
+                },
+                "exception_stats": {
+                    "ApiRateLimitError": [
+                        "01k6zz0nyj31znwsevx4sn6zb2-teleg__KQTna76"
+                    ]
+                }
+            }
+        },
+        "n_input_tokens": 58779,
+        "n_cache_tokens": 0,
+        "n_output_tokens": 677,
+        "cost_usd": 0.0
+    }
+}
