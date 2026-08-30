@@ -1,0 +1,3 @@
+git clone "https://github.com/cline/cline-bench.git" "/Users/ohama/projs/cline-tests/bench/cline-bench"
+uv venv --python 3.13 "/Users/ohama/projs/cline-tests/bench/cline-bench/.venv"
+uv tool install harbor

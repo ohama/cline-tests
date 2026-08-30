@@ -8,3 +8,6 @@ phase-05/services/backups/
 workspace/sandbox.sb
 workspace/scratch-repo/
 phase-03/fixtures/
+
+# Phase 7: third-party checkout + its venv. Task data and harbor are installed, not vendored.
+bench/cline-bench/
