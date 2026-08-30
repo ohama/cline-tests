@@ -51,6 +51,14 @@ and Phase 6 must never modify them:
 
 46573 (flashnext), 48525 (litellm), 53894 (kanban), 56669 (telegram-connect), 75548 (role-shim)
 
+**RECONCILED (2026-08-31, 08-06 phase-close):** kanban's pid above (53894) is this directory's
+original 06-01 capture and is left as-is — plan 08-01 (2026-08-31) sanctioned a live restart of
+`com.ohama.kanban` (`phase-02/infra/restart_service.sh` only) that changed it to **36175**.
+`inventory.txt` now carries a reconciled expectation line ahead of the original transcript so
+`phase-06/net/verify_network.sh --baseline` (check 15, `live-pids-stable`) reads the current
+pid rather than staying permanently red against a value this project itself made stale. See
+`docs/services.md` §5a and `phase-08/results/20260830T191320Z-kanban-fix/`.
+
 ## Nothing was changed
 
 This plan mutates nothing. `git status` at the end of this plan shows only new files under

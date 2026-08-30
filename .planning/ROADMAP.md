@@ -23,7 +23,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Kanban·Telegram 서비스화** - 두 표면이 launchd 상시 서비스로 뜨고 스스로 회복한다 (아직 loopback-only)
 - [ ] **Phase 6: 네트워크 노출** - Tailscale 무인증 + LAN 토큰 게이팅으로 처음 이 시스템을 localhost 밖에 연다 (build 단계 중 최후)
 - [ ] **Phase 7: cline-bench 동작 검증** - 공식 과제 일부를 로컬 Docker 로 돌려 파이프라인 전체가 실제로 동작함을 증명한다
-- [ ] **Phase 8: 한글 사용 매뉴얼** - 실제로 출하된 것을 기준으로 CLI·웹·iPad/iPhone 사용법을 쓴다 (최종 단계)
+- [x] **Phase 8: 한글 사용 매뉴얼** - 실제로 출하된 것을 기준으로 CLI·웹·iPad/iPhone 사용법을 쓴다 (최종 단계)
 
 ## Phase Details
 
@@ -197,12 +197,12 @@ Plans:
 **Plans**: 6 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Kanban 등록 블로커 no-widening 수정 + 라이브 확인 (DOC-02 선행조건)
-- [ ] 08-02-PLAN.md — 매뉴얼 클레임 게이트(음성 대조군 포함) + DOC-04 32K 운용주의
-- [ ] 08-03-PLAN.md — DOC-01 CLI 사용법 + DOC-03 iPad·iPhone 사용법
-- [ ] 08-04-PLAN.md — 샌드박스 widening 결정 체크포인트 + 조건부 적용 (worktree)
-- [ ] 08-05-PLAN.md — DOC-02 웹(Kanban) 사용법 (08-01·08-04 판정에 따라 기술)
-- [ ] 08-06-PLAN.md — 00-시작하기 + README 인덱스 + ROADMAP/REQUIREMENTS/STATE 정합 + 종료 스윕
+- [x] 08-01-PLAN.md — Kanban 등록 블로커 no-widening 수정 + 라이브 확인 (DOC-02 선행조건)
+- [x] 08-02-PLAN.md — 매뉴얼 클레임 게이트(음성 대조군 포함) + DOC-04 32K 운용주의
+- [x] 08-03-PLAN.md — DOC-01 CLI 사용법 + DOC-03 iPad·iPhone 사용법
+- [x] 08-04-PLAN.md — 샌드박스 widening 결정 체크포인트 + 조건부 적용 (worktree) — DECLINED
+- [x] 08-05-PLAN.md — DOC-02 웹(Kanban) 사용법 (08-01·08-04 판정에 따라 기술)
+- [x] 08-06-PLAN.md — 00-시작하기 + README 인덱스 + ROADMAP/REQUIREMENTS/STATE 정합 + 종료 스윕
 
 ## Progress
 
@@ -222,4 +222,4 @@ Phase 1·2·3 은 서로 병렬 가능(의존성 없음). Phase 4·5 는 1·2·3
 | 5. Kanban·Telegram 서비스화 | 7/7 | ✓ Complete | 2026-08-30 |
 | 6. 네트워크 노출 | 8/8 | ◆ 서버측 완료 — 기준 1·5 human_needed (iPad/Telegram 미관측) | 2026-08-30 |
 | 7. cline-bench 동작 검증 | 10/10 | ◆ 완료(gap-closure 포함) — 기준 1 `not_met`(고유 4개 과제, 3개 모델 도달, 5~8 하한 미달), 기준 2·3 `met` | 2026-08-30 |
-| 8. 한글 사용 매뉴얼 | 0/TBD | Not started | - |
+| 8. 한글 사용 매뉴얼 | 6/6 | ✓ Complete — DOC-01/03/04 met, DOC-02 partially met (worktree unavailable) | 2026-08-31 |

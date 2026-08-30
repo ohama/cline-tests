@@ -1,0 +1,6 @@
+verify_services 0
+verify_network 0
+verify_config 0
+verify_no_regression 0
+verify_sandbox 0
+verify_bench 0

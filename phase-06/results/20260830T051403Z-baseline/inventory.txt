@@ -1,3 +1,15 @@
+=== RECONCILED (2026-08-31, 08-06 phase-close) ===
+# This baseline is consulted as a LIVE reference input by
+# phase-06/net/verify_network.sh --baseline (check 15, live-pids-stable), not preserved as an
+# immutable audit transcript. Plan 08-01 (2026-08-31) sanctioned a live restart of
+# com.ohama.kanban (phase-02/infra/restart_service.sh only, no other change) that changed its
+# pid from 53894 -- captured below, byte-for-byte, as this file's original 2026-08-30T05:14:03Z
+# transcript -- to 36175. The line immediately below is the reconciled expectation this file's
+# consumers now read (grep -F on the kanban binary path takes the first match); everything
+# below "=== tailscale serve status ===" is the original, untouched capture. See
+# docs/services.md §5a and phase-08/results/20260830T191320Z-kanban-fix/.
+36175     1   0.0 node /opt/homebrew/bin/kanban --no-open --host 127.0.0.1 --port 3484
+
 === tailscale serve status ===
 
 # Funnel on:

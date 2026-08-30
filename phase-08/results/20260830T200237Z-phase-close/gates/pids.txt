@@ -1,0 +1,11 @@
+=== six live pids, 2026-08-30T20:07:16Z ===
+flashnext(com.ohama.flashnext) 46573
+role-shim(com.ohama.role-shim) 75548
+litellm(com.ohama.litellm) 48525
+kanban(com.ohama.kanban) 36175
+telegram-connect(com.ohama.telegram-connect) 99162
+kanban-proxy(com.ohama.kanban-proxy) 19669
+
+kanban pid changed from 53894 (phase-06 06-01 baseline capture) to 36175 by plan 08-01
+(2026-08-31, sanctioned live restart via phase-02/infra/restart_service.sh; see
+docs/services.md §5a). All other five pids unchanged since their respective launch.

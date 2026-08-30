@@ -79,12 +79,27 @@
 
 ### DOC — 한글 사용 매뉴얼
 
-- [ ] **DOC-01**: CLI 사용법 (기동, 태스크 실행, Plan/Act, 체크포인트)
+- [x] **DOC-01**: CLI 사용법 (기동, 태스크 실행, Plan/Act, 체크포인트)
+  <br>※ 2026-08-31 — `docs/manual/01-cli.md` 존재, `check_manual_claims.sh` 통과. 근거:
+  `phase-08/results/20260830T200237Z-phase-close/gates/check_manual_claims.txt`
 - [ ] **DOC-02**: 웹(Kanban) 사용법 (카드, worktree, diff 리뷰, 의존 체인)
-- [ ] **DOC-03**: iPad·iPhone 사용법 (Tailscale 접속, Telegram 대화, 승인/거부)
-- [ ] **DOC-04**: 32K 운용 주의 (64초 대기, **압축이 자동으로 도는 것과 그때의 지연**,
+  <br>※ 2026-08-31 — **부분적으로만 충족.** 카드/등록/의존 체인은 라이브 서버를 상대로 실측
+  확인됐고, CLI 에 diff/review 명령이 없다는 사실도 실측으로 확인해 정직하게 기록했다(§4).
+  네 주제 중 **작업(task)별 worktree** 만 이 배포에서 지원되지 않는다 — `git worktree add` 를
+  켜는 유일한 방법(metadata-only `$HOME` widening)을 사용자가 그 정확한 비용을 보고 명시적으로
+  **decline** 했다(08-04). 격상·완화하지 않는다. 근거: `docs/manual/02-kanban.md` §4·§6,
+  `docs/sandbox-whitelist.md` §9, `phase-08/results/20260830T193634Z-widening/DECISION.md`
+- [x] **DOC-03**: iPad·iPhone 사용법 (Tailscale 접속, Telegram 대화, 승인/거부)
+  <br>※ 2026-08-31 — `docs/manual/03-mobile.md` 존재, `check_manual_claims.sh` 통과. iOS 기기
+  실측 방문·Telegram 실토큰 라이브 트라이얼은 여전히 human_needed(NET-01/NET-05) 로, 문서
+  안에 `[GAP-IPAD]`/`[GAP-TELEGRAM-INDICATOR]`/`[GAP-TELEGRAM-TOKEN]` 로 명시돼 있다 — 문서
+  자체(절차 기술)는 완료.
+- [x] **DOC-04**: 32K 운용 주의 (64초 대기, **압축이 자동으로 도는 것과 그때의 지연**,
   `contextWindow` 는 `settings` 최상위에 넣어야 한다는 점, ⌘+클릭 터치 불가)
   <br>※ 2026-08-30 정정 — "26k 작업 예산 / 태스크 쪼개기"는 불필요해졌다. 압축이 대역을 유지한다
+  <br>※ 2026-08-31 — `docs/manual/04-32k-operations.md` 존재, `check_manual_claims.sh` 통과,
+  폐기된 조언(작업 예산/태스크 쪼개기)이 §4 에서 명시적으로 폐기 상태로 기록돼 있고 다시
+  지침으로 나오지 않는다.
 
 ## v2 Requirements
 
@@ -155,10 +170,10 @@
 | BCH-01 | Phase 7 | Not met (고유 4/12 과제, 3개 모델 도달·32K 천장에서 fail-context, 5~8 하한 미달) |
 | BCH-02 | Phase 7 | Complete (시도된 4개 과제/5개 인스턴스 기준, 두 런 디렉터리 모두) |
 | BCH-03 | Phase 7 | Complete (시도된 4개 과제/5개 인스턴스 기준, 두 런 디렉터리 모두) |
-| DOC-01 | Phase 8 | Pending |
-| DOC-02 | Phase 8 | Pending |
-| DOC-03 | Phase 8 | Pending |
-| DOC-04 | Phase 8 | Pending |
+| DOC-01 | Phase 8 | Complete |
+| DOC-02 | Phase 8 | Partial (worktree unavailable — user declined sandbox widening, 08-04) |
+| DOC-03 | Phase 8 | Complete |
+| DOC-04 | Phase 8 | Complete |
 
 **Coverage:**
 - v1 requirements: 38 total

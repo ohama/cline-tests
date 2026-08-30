@@ -5,7 +5,25 @@
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
-**Current focus:** **Phase 7 (cline-bench 동작 검증) gap-closure 포함 완료 — 07-10(docs
+**Current focus:** **Phase 8(한글 사용 매뉴얼) 완료 — 08-06(00-시작하기 + README 인덱스 +
+ROADMAP/REQUIREMENTS/STATE 정합 + phase-close 스윕)으로 6/6 plans 종료. 8개 Phase 전부
+완료 — 이 마일스톤의 마지막 플랜이다.** `docs/manual/00-getting-started.md` 가 매뉴얼의
+입구로 신설됐고, 저장소 루트 `README.md` 가 처음 생겨 `docs/manual/`(사용법)과 아홉 개
+`docs/*.md`(엔지니어링 기록)를 모두 인덱싱한다. DOC-01/03/04 는 `met`, DOC-02 는 카드/등록/
+의존 체인은 실측 확인, worktree 만 사용자 decline 으로 `partially_met`(격상·완화 없음).
+`phase-06/results/20260830T051403Z-baseline/inventory.txt`(check 15 가 읽는 kanban pid)와
+`phase-07/bench/config.env`(`LIVE_PIDS_STR`, B10 이 읽는 kanban pid)를 08-01 이 남긴 pid
+드리프트(53894→36175)에 맞춰 정직하게 갱신 — 원 08-06T05:14:03Z 캡처는 그대로 두고 그 앞에
+"RECONCILED" 표시가 있는 새 줄만 추가해, 두 파일이 소비하는 값만 최신화하고 역사적 전사는
+훼손하지 않았다. 결과: 여섯 상시 게이트 전부 exit 0, `verify_network.sh` `CASES 24/24`,
+`verify_bench.sh` `CASES 11/11` — "체크 삭제"가 아니라 실제 값이 맞아떨어져서 초록.
+`check_manual_claims.sh`(다섯 문서 전체) `CASES 21/21`. 6개 pid(46573/75548/48525/
+**36175**/99162/19669) 전과정 불변, `phase-03/` 무변경, 호스트 `cline` 호출 0회.
+`phase-08/results/20260830T200237Z-phase-close/criteria.md` 가 Phase 8 성공 기준 4개를
+met/partially_met 으로 판정. SUMMARY 작성 완료(`08-06-SUMMARY.md`). **다음: 없음 — 8개
+Phase 전부 완료, 마일스톤 종료.**
+
+이전(Phase 7 gap-closure 포함 완료): Phase 7 (cline-bench 동작 검증) gap-closure 포함 완료 — 07-10(docs
 정정 + criteria2.md + ROADMAP/REQUIREMENTS/STATE 동기화 + 과대주장 감사) 로 10/10 plans
 종료, ROADMAP criterion 1 은 여전히 정직하게 `not_met`.** cline-bench 공식 과제 12개 중 두 런
 디렉터리를 통틀어 실제로 실행된 것은 고유 **4개**(`discord-trivia-approval-keyerror`/
@@ -92,12 +110,43 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 
 ## Current Position
 
-Phase: 8 of 8 (한글 사용 매뉴얼) — 진행 중, 6개 plan 확정(08-01~08-06). wave 1(08-01/08-02)
-완료, wave 2(08-03/08-04) 완료, wave 3(08-05) 완료.
-Plan: 05 of 6 in current phase — **완료(2 tasks, 개별 커밋, 별도의 최종 "docs: complete
-plan" 메타데이터 커밋은 만들지 않음 — SUMMARY/STATE 갱신이 이 세션의 마지막 커밋).**
+Phase: 8 of 8 (한글 사용 매뉴얼) — **완료, 6/6 plan 종료(08-01~08-06).** wave 1(08-01/08-02)
+완료, wave 2(08-03/08-04) 완료, wave 3(08-05) 완료, wave 4(08-06) 완료. **8개 Phase 전부
+완료 — 마일스톤 종료.**
+Plan: 06 of 6 in current phase — **완료(3 tasks, 개별 커밋).**
 
-**08-05(DOC-02 웹/Kanban 사용법, 이번 플랜) — 완료**: 두 업스트림 판정을 각각의 안정 포인터
+**08-06(00-시작하기 + README 인덱스 + phase-close, Phase 8·마일스톤 마지막 플랜) — 완료**:
+Task 1: `RUN_DIR=phase-08/results/20260830T200237Z-phase-close` 생성,
+`docs/manual/00-getting-started.md`(133줄) 작성 — 추론 체인 한 문단, 여섯 서비스 표(라벨이
+신원, pid 는 재시작마다 바뀜), 오늘 아침 확인 명령 4개, `[GAP-REBOOT]`/`[GAP-CLINE-VERSION]`/
+`[GAP-READONLY]`/`[GAP-PORT3000]`, 64초 요약(`04-32k-operations.md` 위임), 증상→문서 표,
+아홉 개 엔지니어링 기록 인덱스(매뉴얼과의 구분 명시). 다섯 문서 전체 게이트
+`check_manual_claims.sh` (bare) `CASES 21/21` exit 0. Task 2: 저장소 루트 `README.md`(73줄,
+이전에 존재하지 않았음) 신설 — 한 문단 소개, 사용 매뉴얼 표(다섯 문서, `00-getting-started.md`
+시작점 명시), 엔지니어링 기록 표(아홉 문서), 상시 게이트 표(여섯 게이트 명령+정상 신호,
+`check_versions.sh` 의도적 제외 사유 명시), 절대 하지 말 것 5개, `.planning/ROADMAP.md`/
+`REQUIREMENTS.md` 포인터. `C4-links` 와 동일한 추출 규칙으로 링크 무결성 스윕 —
+`readme-links.txt` `DANGLING 0`. Task 3: (a) 여섯 상시 게이트 전부 재실행,
+`phase-06/results/20260830T051403Z-baseline/inventory.txt`(check 15 소비 값)와
+`phase-07/bench/config.env`(`LIVE_PIDS_STR`, B10 소비 값)를 08-01 이 남긴 kanban pid 드리프트
+(53894→36175)에 맞춰 갱신 — 원 캡처는 그대로 두고 "RECONCILED(2026-08-31, 08-06)" 표시가 있는
+새 값만 추가/치환(역사적 전사 훼손 없음, `docs/services.md` §5a 포인터 포함). 결과:
+`verify_services.sh`/`verify_config.sh`/`verify_no_regression.sh`/`verify_sandbox.sh`
+exit 0, `verify_network.sh` **`CASES 24/24`**, `verify_bench.sh` **`CASES 11/11`** — 체크를
+지워서가 아니라 실제 값이 맞아떨어져서 초록. (b) `criteria.md`: Phase 8 성공 기준 4개 —
+1(CLI) met, 2(Kanban) **partially_met**(worktree unavailable, 사용자 decline), 3(iPad/iPhone)
+met, 4(32K 운용 주의) met. (c) `.planning/REQUIREMENTS.md`: DOC-01/03/04 `[x]`, Traceability
+`Complete`; DOC-02 는 `[ ]` 유지 + 2026-08-31 정정 노트(카드/등록/의존 체인 확인, worktree 만
+gap), Traceability `Partial (worktree unavailable — user declined sandbox widening, 08-04)`.
+(d) `.planning/ROADMAP.md`: Phase 8 체크박스 `[x]`, 여섯 플랜 체크박스 전부 `[x]`, Progress
+표 `6/6 ✓ Complete 2026-08-31`, `작업 예산` 재발 없음 재확인(`grep -c` = 0). (e)
+`.planning/STATE.md`: SBPL 규칙 + `/usr/bin/log` 표준 환경 노트를 Blockers/Concerns 에 신규
+추가(기존 kanban 등록/widening 두 항목은 08-01/08-04 가 이미 실제 상태로 갱신해 둔 상태를
+그대로 확인, 열린 블로커 5개는 전부 그대로 보존). 6개 pid(46573/75548/48525/**36175**/
+99162/19669) 전과정 불변, `phase-03/` 무변경, `EXTRA_ALLOW_PATHS` 빈 값 그대로, 호스트
+`cline` 호출 0회. SUMMARY 작성 완료(`08-06-SUMMARY.md`). **다음: 없음 — 마일스톤 종료.**
+
+**08-05(DOC-02 웹/Kanban 사용법) — 완료**: 두 업스트림 판정을 각각의 안정 포인터
 파일로만 해소(`CURRENT_RUN`→`registration/VERDICT.txt`=`REGISTERED`,
 `CURRENT_WIDENING_RUN`→`DECISION.md`+`WORKTREE_STATUS`=`WORKTREE=UNAVAILABLE`) — 산문에서
 경로를 추측하지 않고 두 판정 파일을 `phase-08/results/20260830T194933Z-doc02/upstream/` 에
@@ -2344,6 +2393,18 @@ Recent decisions affecting current work:
   `phase-08/results/20260830T193634Z-widening/DECISION.md`,
   `docs/sandbox-whitelist.md` §9. `phase-08/results/WORKTREE_STATUS = WORKTREE=UNAVAILABLE`
   이 08-05 가 분기할 단일 파일.
+- **(환경 노트, 블로커 아님, 2026-08-31, 08-04 발견/08-06 표준화) 정정된 SBPL 규칙 — 앞으로
+  `gen_sandbox_profile.py` 를 건드리는 누구에게나 적용된다.** `gen_sandbox_profile.py` 의 주석과
+  `docs/sandbox-whitelist.md` §3 이 지금까지 전제해 온 "SBPL 은 나중에 쓴 규칙이 이긴다
+  (last-match-wins)"는 절반만 맞다 — 같은 연산 키워드끼리는 순서가 이기지만, 더 **구체적인**
+  연산 키워드(예: `file-read-data`)에 대한 명시적 규칙이 있으면 `file-read*` 같은 더 **넓은**
+  wildcard 규칙은 텍스트상 더 나중에 나와도 그 구체적 연산을 커버하지 못한다. 순서를 뒤집은 두
+  실험(둘 다 거부)과 같은 키워드끼리 맞춘 두 실험(둘 다 허용)을 대조한 4가지 통제 실험으로
+  직접 증명됐다. 근거: `docs/sandbox-whitelist.md` §9.
+  **`/usr/bin/log` 노트도 함께 기록한다:** zsh 의 `log` 빌트인이 `log(1)` 을 가려서, 절대경로
+  없이 `log stream`/`log show` 를 부르면 조용히(에러 한 줄만 내고) 실패해 캡처가 비어 있는
+  것을 "로그가 비었다"로 오인하기 쉽다. 샌드박스 거부(denial) 캡처를 포함해 이 프로젝트 전체는
+  반드시 `/usr/bin/log stream|show` 처럼 전체 경로로 호출해야 한다.
 - **(Phase 7/8 인계, 06-05 결정) NET-05 의 Telegram 쪽 절반은 사용자가 실토큰 트라이얼을
   `decline` 해 열린 질문으로 남았다** — "probable-but-unobserved"(64초 대기를 버티지 못할
   가능성이 높지만 관측된 적 없음)로만 기록됨, "확인됨"으로 격상 금지. 나중에 사용자가 직접
@@ -2425,8 +2486,29 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-31
-Stopped at: **08-05-PLAN.md 완료 (DOC-02 웹/Kanban 사용법, 2/2 tasks) — `.planning/STATE.md`
-최신 커밋 기준 이 저장소의 가장 최근 완료 작업.** 08-05: 두 업스트림 판정을 `CURRENT_RUN`/
+Stopped at: **08-06-PLAN.md 완료 (00-시작하기 + README 인덱스 + ROADMAP/REQUIREMENTS/STATE
+정합 + phase-close 스윕, 3/3 tasks) — Phase 8·마일스톤 전체가 이 플랜으로 종료됐다.**
+커밋 3개, 개별. Task 1: `docs/manual/00-getting-started.md`(133줄) — 매뉴얼 입구, 여섯 서비스
+표, `[GAP-REBOOT]`/`[GAP-CLINE-VERSION]`/`[GAP-READONLY]`/`[GAP-PORT3000]`, 증상→문서 표,
+아홉 엔지니어링 기록 인덱스; 다섯 문서 전체 `check_manual_claims.sh` `CASES 21/21`. Task 2:
+저장소 루트 `README.md`(73줄, 신설) — 매뉴얼/엔지니어링 기록 두 표, 여섯 상시 게이트 표,
+절대 하지 말 것 5개; 링크 무결성 스윕 `DANGLING 0`. Task 3: 여섯 상시 게이트 전부 재실행
+(`verify_network.sh` **`CASES 24/24`**, `verify_bench.sh` **`CASES 11/11`**, 나머지 exit 0) —
+`phase-06/results/20260830T051403Z-baseline/inventory.txt`/`phase-07/bench/config.env`의
+kanban pid(53894→36175)를 "RECONCILED" 표시가 있는 새 줄/값으로 갱신해(원 전사는 보존)
+체크를 지우지 않고 실제로 초록을 만듦; `criteria.md`(Phase 8 기준 4개: 1/3/4 met, 2
+partially_met); `.planning/REQUIREMENTS.md`(DOC-01/03/04 `[x]`, DOC-02 는 `[ ]` +정정 노트);
+`.planning/ROADMAP.md`(Phase 8 체크박스+6개 플랜 체크박스 전부 `[x]`, Progress 표 6/6
+Complete, `작업 예산` 재발 0 재확인); `.planning/STATE.md`(SBPL 규칙 + `/usr/bin/log` 표준
+환경 노트 신규 추가, 기존 kanban/widening 블로커 항목은 이미 실제 상태 — 열린 블로커 5개
+그대로 보존). SUMMARY: `08-06-SUMMARY.md`. 6개 pid(46573/75548/48525/**36175**/99162/19669)
+전과정 불변, `phase-03/` 무변경, 호스트 `cline` 호출 0회. Resume file: None.
+
+**다음 세션: 없음.** 8개 Phase(1~8) 전부 완료, 6개 DOC 요구 중 3개 met·1개(DOC-02) 부분
+충족(worktree — 사용자의 durable decline, `docs/sandbox-whitelist.md` §9), 이 마일스톤은
+`README.md` → `docs/manual/00-getting-started.md` 를 시작점으로 완결된 상태로 남는다.
+
+이전: **08-05-PLAN.md 완료 (DOC-02 웹/Kanban 사용법, 2/2 tasks).** 08-05: 두 업스트림 판정을 `CURRENT_RUN`/
 `CURRENT_WIDENING_RUN` 포인터 파일로만 해소(`REGISTERED` / `WORKTREE=UNAVAILABLE`) — 산문
 추측 없이 두 판정 파일을 먼저 `phase-08/results/20260830T194933Z-doc02/upstream/` 에 복사.
 커밋 `71f55ac`(Task 1: `$SANDBOX_WORKDIR` 안에서 라이브 실행 — 카드 생성/목록/삭제, 의존
