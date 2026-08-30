@@ -93,11 +93,41 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 ## Current Position
 
 Phase: 8 of 8 (한글 사용 매뉴얼) — 진행 중, 6개 plan 확정(08-01~08-06). wave 1(08-01/08-02)
-완료, wave 2(08-03) 완료.
-Plan: 03 of 6 in current phase — **완료(2/2 tasks — Task 1 auto, Task 2 auto — 개별 커밋,
-별도 메타데이터 커밋 없음).**
+완료, wave 2(08-03/08-04) 완료.
+Plan: 04 of 6 in current phase — **완료(체크포인트 결정 DECLINED + 남은 2개 auto task — 개별
+커밋, 계획-메타데이터 성격의 세 번째 커밋 포함, 별도의 최종 "docs: complete plan" 메타데이터
+커밋은 만들지 않음).**
 
-**08-03(DOC-01 CLI 사용법 + DOC-03 iPad·iPhone 사용법, 이번 플랜) — 완료**: 08-04(샌드박스
+**08-04(샌드박스 widening 결정 체크포인트, 이번 플랜) — 완료, DECLINED**: Task 1(체크포인트)이
+이전 세션에서 이미 도달돼 있었고 이번 continuation 은 사용자의 `decline` 답변을 받아 재개함 —
+Task 1 자체는 커밋을 만들지 않음(체크포인트는 사용자 답변으로만 해소됨). Task 2(커밋
+`8e8e5f5`): `RUN_DIR=phase-08/results/20260830T193634Z-widening` 생성,
+`DECISION.md` 첫 줄을 그 어떤 편집보다 먼저 정확히 `DECLINED` 로 기록(사용자의 verbatim
+답변·pros/cons 포함), 결정을 알기 전에 이미 6개 상시 게이트+negative-control+현재 프로파일을
+`gates-pre/` 로 먼저 스윕. DECLINED 분기이므로 (c)~(h) 스킵 — `phase-03/` 아래 어떤 파일도
+편집하지 않음(`git diff --stat phase-03/` 이 계획 실행 내내 계속 빈 상태로 확인됨,
+`no-change-proof.txt`). 적용하지 않은 정확한 변경을 전부 `DECISION.md` 에 옮겨 적음:
+`render_profile()` 의 정확한 before/after 코드, `verify_sandbox.sh:167` 의 `deny_read`
+프리체크가 같이 옮겨가야 하는 이유, 깨질 네 개 테스트 단언(이름으로 특정)과 누락된 회귀 가드
+테스트 하나, 4가지 순서 조합 통제 실험으로 증명된 "연산 키워드 구체성" SBPL 발견(같은 키워드
+끼리만 last-match-wins, 더 넓은 wildcard 는 더 구체적인 키워드를 순서 무관하게 못 덮음), 실측
+비용(stat 급 메타데이터는 노출되지만 내용·나열·쓰기는 계속 거부). Task 3(커밋 `dfb3fc5`):
+`docs/sandbox-whitelist.md` 신규 `## 9.` 절에 같은 내용을 한글로 영구 기록(리터럴
+`file-read-data`/`file-read-metadata`/`file-write*` 문자열 포함, `grep -c` 로 확인 가능),
+`$RUN_DIR/README.md`(결정 요약·롤백 해당 없음·포인터) 작성, **`phase-08/results/
+WORKTREE_STATUS = WORKTREE=UNAVAILABLE`** 작성 — 08-05 가 분기할 단일 파일. 최종 플랜-레벨
+검증 스윕(커밋 `ce75f5e`): `verify_sandbox.sh` 재확인 4/4 CRITERION PASS + negative-control
+정상 작동, `EXTRA_ALLOW_PATHS` 계속 빈 값, 6개 pid(46573/75548/48525/**36175**/99162/19669)
+전부 재시작 없이 그대로. 서비스 재시작 전혀 없음, 호스트 `cline` 호출 0회.
+`verify_network.sh`/`verify_bench.sh` 는 각각 1개 체크(구 kanban pid 53894 기준 stale
+baseline, 08-01 때부터 이미 알려진·의도적으로 방치된 조건, 이 플랜의 범위 밖)만 하락 — 새로
+발생한 결함 아님, 그대로 기록만 함. **결론: DOC-02(08-05)는 worktree 를 "unavailable" 로
+명시해야 하고 그 결과 부분적으로만 충족되며, 이건 완화·격상하지 않고 그대로 기록한다.**
+SUMMARY 작성 완료(`08-04-SUMMARY.md`). **다음:** 08-05(DOC-02 웹/Kanban 사용법 — 08-01 의
+실제 등록 플로우 + 08-04 의 WORKTREE_STATUS=UNAVAILABLE 판정에 의존), 08-06(00-시작하기 +
+README 인덱스 + phase-close, phase 마지막).
+
+**08-03(DOC-01 CLI 사용법 + DOC-03 iPad·iPhone 사용법) — 완료**: 08-04(샌드박스
 widening 체크포인트)와 병렬 진행, 서로 다른 파일 집합(`docs/manual/01-cli.md`+
 `docs/manual/03-mobile.md`+`phase-08/results/` vs 08-04 의 `phase-03/sandbox/*`+
 `docs/sandbox-whitelist.md`)만 건드려 충돌 없음. Task 1(커밋 `1d18b18`): `docs/manual/01-cli.md`
@@ -135,9 +165,8 @@ Funnel `:8443`→`:3000`, 영구 금지), Telegram 대화·승인/거부(`[GAP-T
 `check_manual_claims.sh --file 01-cli.md --file 03-mobile.md` exit 0(`CASES 8/8`). 호스트
 `cline` 호출 0회, 라이브 서비스/샌드박스/화이트리스트 무변경, 6개 pid
 (46573/75548/48525/**36175**/99162/19669) 전후 불변 확인. SUMMARY 작성 완료
-(`08-03-SUMMARY.md`). **다음:** 08-04(샌드박스 widening 결정 체크포인트, 다른 세션/에이전트가
-진행 중일 수 있음), 08-05(DOC-02 웹/Kanban 사용법 — 08-01 의 실제 등록 플로우 + 08-04 판정에
-의존), 08-06(00-시작하기 + README 인덱스 + phase-close, phase 마지막).
+(`08-03-SUMMARY.md`). **다음(이후 08-04 완료로 갱신됨, 위 08-04 항목 참조):** 08-05(DOC-02
+웹/Kanban 사용법), 08-06(00-시작하기 + README 인덱스 + phase-close, phase 마지막).
 
 **08-02(매뉴얼 클레임 게이트 + DOC-04, 이번 플랜) — 완료**: 08-01 과 wave 1 병렬로 진행, 서로
 다른 파일 집합(`phase-08/manual/`, `docs/manual/04-32k-operations.md` vs 08-01 의
@@ -1237,6 +1266,12 @@ DOC-03 iPad·iPhone 사용법) 완료 — 08-04 와 병렬(파일 집합 겹치�
 08-04(샌드박스 widening 체크포인트), 08-05(DOC-02 웹/Kanban 사용법), 08-06(00-시작하기 +
 README 인덱스 + phase-close). 전체 진행률 46/49(Phase 8 이 6/6 이 되면 49/49).
 
+**갱신 (08-04 완료 시점):** 완료 plan 수 **47**(위 46 + 08-04). 08-04(샌드박스 widening
+결정 체크포인트) 완료 — 사용자가 `decline` 선택, `phase-03/` 무변경. 남은 Phase 8:
+08-05(DOC-02 웹/Kanban 사용법, `WORKTREE_STATUS=UNAVAILABLE` 을 읽어 worktree 를
+unavailable/부분충족으로 기록해야 함), 08-06(00-시작하기 + README 인덱스 + phase-close).
+전체 진행률 47/49(Phase 8 이 6/6 이 되면 49/49).
+
 ## Performance Metrics
 
 **Velocity:**
@@ -2252,6 +2287,27 @@ Recent decisions affecting current work:
   pid=36175), `kanban task create`(workdir 안에서) 로 실제 등록 성공을 client-side(`task list`)
   +server-side(curl 200, 로그에 거부 재발 없음) 이중 오라클로 증명. VERDICT: REGISTERED.
   증거: `phase-08/results/20260830T191320Z-kanban-fix/`, 기록: `docs/services.md` §5a.
+- **(08-04, 2026-08-31) `git worktree add`(따라서 Kanban 의 작업별 워크트리)를 켜는 유일한
+  방법이 08-RESEARCH.md §A6b 에서 실측으로 측정됐고, 사용자가 그 정확한 비용을 보고 명시적으로
+  `decline` 했다 — durable decision, 재-진단 불필요.** 위 08-01 이 고친 gitconfig/git-toplevel
+  블로커와는 다른, 세 번째 독립 실패 지점: `git` 이 항상 `/Users/ohama` 자체까지
+  realpath-정규화하므로, 이 프로젝트 전체가 `$HOME` 아래인 한 어떤 call-shape/env
+  var/git 플래그로도 피할 수 없다(no-widening 수정 없음, 세 변형 모두 재현 확인). 유일한
+  측정된 해법은 `$HOME` 의 deny 를 `(deny file-read-data)`+`(allow file-read-metadata)` 로
+  좁히는 `render_profile()` 코드 변경(config 값 아님 — 4가지 순서 조합 통제 실험이
+  "더 구체적인 연산 키워드는 더 넓은 wildcard 에 순서 무관하게 안 덮인다"는 것을 증명해,
+  각 punch-through 경로마다 `file-read-data` 를 명시적으로 재허용해야 함). 실측 비용: `$HOME`
+  아래 이미 아는 경로의 stat 급 메타데이터는 노출되지만 내용·나열·쓰기는 전부 계속 거부.
+  **사용자가 이 수치를 보고 decline** — `phase-03/` 아래 아무 파일도 변경되지 않았다(`git diff
+  --stat phase-03/` 계속 empty), `EXTRA_ALLOW_PATHS` 계속 빈 값, 서비스 재시작 없음. **결과:
+  `git worktree add` 는 이 배포에서 계속 사용 불가능 — DOC-02(08-05)는 이걸 명시적으로
+  "unavailable" 로 적어야 하고 부분적으로만 충족된다(격상·완화 금지).** 적용하지 않은 정확한
+  4-파일 변경(`gen_sandbox_profile.py` 의 `render_profile()` before/after 코드,
+  `verify_sandbox.sh:167` 의 `deny_read` 프리체크 이동, 깨질 4개 테스트 단언 이름 + 누락된
+  회귀 가드 테스트 1개)이 전부 아래 두 곳에 재-진단 없이 바로 적용 가능한 수준으로 남아있다:
+  `phase-08/results/20260830T193634Z-widening/DECISION.md`,
+  `docs/sandbox-whitelist.md` §9. `phase-08/results/WORKTREE_STATUS = WORKTREE=UNAVAILABLE`
+  이 08-05 가 분기할 단일 파일.
 - **(Phase 7/8 인계, 06-05 결정) NET-05 의 Telegram 쪽 절반은 사용자가 실토큰 트라이얼을
   `decline` 해 열린 질문으로 남았다** — "probable-but-unobserved"(64초 대기를 버티지 못할
   가능성이 높지만 관측된 적 없음)로만 기록됨, "확인됨"으로 격상 금지. 나중에 사용자가 직접
@@ -2333,26 +2389,29 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-31
-Stopped at: **08-03-PLAN.md 완료 (2/2 tasks) — Phase 8 wave 2 의 절반(08-03), `.planning/
-STATE.md` 최신 커밋 기준 이 저장소의 가장 최근 완료 작업.** 08-03: 커밋 `1d18b18`(Task 1:
-`docs/manual/01-cli.md` — DOC-01, CLI 사용법, Plan/Act·체크포인트 두 종류를 증거 수준대로
-헤지/분리), `a219505`(Task 2: `docs/manual/03-mobile.md` — DOC-03, iPad·iPhone 사용법, iPad
-검증은 `phase-06/IPAD-CHECKLIST.md` 로 위임·Telegram 주입 레시피는 `docs/services.md` §6 으로
-위임, 둘 다 재작성하지 않음). SUMMARY: `08-03-SUMMARY.md`. `check_manual_claims.sh --file
-01-cli.md --file 03-mobile.md` exit 0(`CASES 8/8`). 08-04(샌드박스 widening 체크포인트)와
-병렬 진행(파일 집합 겹치지 않음 — 이 플랜은 `docs/manual/01-cli.md`+`docs/manual/03-mobile.md`+
-`phase-08/results/` 만). 6개 pid(46573/75548/48525/**36175**/99162/19669) 전후 불변, 호스트
-`cline` 호출 0회, 라이브 서비스/샌드박스/화이트리스트 무변경. Resume file: None.
+Stopped at: **08-04-PLAN.md 완료 (체크포인트 DECLINED + 남은 2 tasks) — `.planning/STATE.md`
+최신 커밋 기준 이 저장소의 가장 최근 완료 작업.** 08-04: Task 1(체크포인트, 별도 커밋 없음,
+이전 세션에서 이미 도달돼 있었고 이번 continuation 이 사용자의 `decline` 답변으로 재개)→
+커밋 `8e8e5f5`(Task 2: `DECISION.md` 첫 줄 `DECLINED`+`phase-03/` 무변경 증명+적용 안 한 정확한
+변경 전체 기록), `dfb3fc5`(Task 3: `docs/sandbox-whitelist.md` §9 신설+
+`WORKTREE_STATUS=WORKTREE=UNAVAILABLE` 작성), `ce75f5e`(최종 플랜-레벨 검증 스윕). SUMMARY:
+`08-04-SUMMARY.md`. `phase-03/` 아래 어떤 파일도 편집되지 않음(`git diff --stat phase-03/`
+빈 상태 재확인), `EXTRA_ALLOW_PATHS` 계속 빈 값, 서비스 재시작 없음. 6개 pid
+(46573/75548/48525/**36175**/99162/19669) 전후 불변, 호스트 `cline` 호출 0회.
+`verify_sandbox.sh` 4/4 CRITERION PASS + negative-control 정상, `verify_network.sh`/
+`verify_bench.sh` 는 08-01 부터 이미 알려진 stale-kanban-pid-baseline 조건으로 각 1개 체크만
+하락(이 플랜의 신규 결함 아님, 그대로 기록). Resume file: None.
 
-**다음 세션은 Phase 8 의 08-05(또는 아직 안 됐다면 08-04) 부터.** 넘겨줄 것: Kanban 프로젝트
-등록이 라이브에서 실제로 동작하므로(08-01), DOC-02(웹/Kanban 사용법) 매뉴얼 콘텐츠는 가상의
-플로우가 아니라 이 실제 등록 플로우(`workspace/scratch-repo` 안에서 `kanban task create`
-실행)를 근거로 작성할 수 있다. `phase-08/manual/check_manual_claims.sh` 는 이제 상시로 존재
-하며 `--file <name>` 스코프로 각 후속 플랜이 자기 문서만 게이트할 수 있다. `01-cli.md` §7 이
-접두사 없는 맨 파일명(`02-kanban.md`)으로 걸어둔 전방 참조는 08-05 가 그 파일을 실제로 쓰고
-나면 자연스러운 형제 링크가 된다 — 파일명이 정확히 일치하는지만 08-05 쪽에서 확인할 것.
-08-04(샌드박스 widening 결정 체크포인트)의 진행 상태는 이 세션에서 관측하지 않았다 — 병렬
-플랜이므로 별도로 확인할 것.
+**다음 세션은 Phase 8 의 08-05 부터.** 넘겨줄 것: Kanban 프로젝트 등록이 라이브에서 실제로
+동작하므로(08-01), DOC-02(웹/Kanban 사용법) 매뉴얼 콘텐츠는 가상의 플로우가 아니라 이 실제
+등록 플로우(`workspace/scratch-repo` 안에서 `kanban task create` 실행)를 근거로 작성할 수
+있다. **08-04 가 `git worktree add` 를 사용 불가로 확정했으므로(사용자 decline, durable
+decision, 위 Blockers/Concerns 참조), 08-05 는 `phase-08/results/WORKTREE_STATUS` 를 읽어
+`[GAP-WORKTREE]` 를 unavailable/부분충족으로 명시해야 하며 절대 격상·완화하면 안 된다.**
+`phase-08/manual/check_manual_claims.sh` 는 이제 상시로 존재하며 `--file <name>` 스코프로 각
+후속 플랜이 자기 문서만 게이트할 수 있다. `01-cli.md` §7 이 접두사 없는 맨 파일명
+(`02-kanban.md`)으로 걸어둔 전방 참조는 08-05 가 그 파일을 실제로 쓰고 나면 자연스러운 형제
+링크가 된다 — 파일명이 정확히 일치하는지만 08-05 쪽에서 확인할 것.
 
 이전: **07-10-PLAN.md 완료 — Phase 7 전체 종료(gap-closure 포함 10/10 plans).** Task 1
 (커밋 `5458259`): `docs/cline-bench.md` 를 gap-closure 결과에 맞춰 양방향 정정(173→260줄) —
