@@ -18,6 +18,18 @@
 #     inventory.txt). Only used by check 15 (live-pids-stable). If omitted,
 #     check 15 reports INCONCLUSIVE (rc=2), never a silent pass.
 #
+# 06-04.1 added checks 16-24, covering the Host/Origin-rewriting loopback
+# proxy that unblocks 06-04 (com.ohama.kanban-proxy on
+# 127.0.0.1:$KANBAN_PROXY_PORT). These add curl probes, one `lsof`, one
+# `launchctl print` (sampled twice, read-only both times), and two
+# `node probe_proxy.js` runs — all read-only, same as every check above:
+# none of them restarts a service, sends a signal, or calls a
+# state-changing launchd subcommand. Health for the new checks never rests
+# on `state = running` alone (check 16 samples the SAME pid twice, >=10s
+# apart, exactly like restart_service.sh's own portless-label health poll)
+# — a job stuck in a KeepAlive restart loop reports `running` on almost
+# every sample taken mid-loop.
+#
 # Exit code contract (mirrors phase-05/services/verify_services.sh and
 # phase-03/sandbox/verify_sandbox.sh):
 #   0 = every CHECK line PASSed
@@ -365,7 +377,7 @@ vlog ""
 # 13. no-wildcard-bind-in-repo.
 # ---------------------------------------------------------------------------
 vlog "--- 13: no-wildcard-bind-in-repo ---"
-WILDCARD_HITS="$(grep -rln '0\.0\.0\.0' "$PROJECT_ROOT/phase-05" "$PROJECT_ROOT/phase-06" --include='*.sh' --include='*.env' --include='*.plist' 2>/dev/null)"
+WILDCARD_HITS="$(grep -rln '0\.0\.0\.0' "$PROJECT_ROOT/phase-05" "$PROJECT_ROOT/phase-06" --include='*.sh' --include='*.env' --include='*.plist' --include='*.js' 2>/dev/null)"
 if [ -z "$WILDCARD_HITS" ]; then
   record_check "no-wildcard-bind-in-repo" 0
 else
@@ -431,6 +443,209 @@ else
         record_check "live-pids-stable" 1 "pid mismatch:$MISMATCH"
       fi
     fi
+  fi
+fi
+vlog ""
+
+# ---------------------------------------------------------------------------
+# 16. proxy-state-settled -- com.ohama.kanban-proxy, added by 06-04.1.
+# Health must never rest on `state = running` alone: a job stuck in a
+# KeepAlive restart loop reports `running` on almost every sample taken
+# mid-loop. Require the SAME pid across two samples >=10s apart, the same
+# discipline restart_service.sh's own portless-label health poll uses. A
+# pid that changes between samples is a FAIL ("restarting rather than
+# settling"), never a pass.
+# ---------------------------------------------------------------------------
+vlog "--- 16: proxy-state-settled ---"
+PROXY_PRINT1="$(launchctl print "gui/$UID_NUM/$KANBAN_PROXY_LABEL" 2>&1)"
+PROXY_STATE1="$(printf '%s\n' "$PROXY_PRINT1" | grep -E '^[[:space:]]*state ' | head -1 | awk -F'= ' '{print $2}')"
+PROXY_PID1="$(printf '%s\n' "$PROXY_PRINT1" | grep -E '^[[:space:]]*pid ' | head -1 | awk -F'= ' '{print $2}')"
+if [ "$PROXY_STATE1" != "running" ] || [ -z "$PROXY_PID1" ]; then
+  record_check "proxy-state-settled" 1 "$KANBAN_PROXY_LABEL not running with a pid at first sample (state=${PROXY_STATE1:-<none>})"
+else
+  sleep 10
+  PROXY_PRINT2="$(launchctl print "gui/$UID_NUM/$KANBAN_PROXY_LABEL" 2>&1)"
+  PROXY_STATE2="$(printf '%s\n' "$PROXY_PRINT2" | grep -E '^[[:space:]]*state ' | head -1 | awk -F'= ' '{print $2}')"
+  PROXY_PID2="$(printf '%s\n' "$PROXY_PRINT2" | grep -E '^[[:space:]]*pid ' | head -1 | awk -F'= ' '{print $2}')"
+  if [ "$PROXY_STATE2" = "running" ] && [ -n "$PROXY_PID2" ] && [ "$PROXY_PID2" = "$PROXY_PID1" ]; then
+    record_check "proxy-state-settled" 0
+  else
+    record_check "proxy-state-settled" 1 "pid=$PROXY_PID1 at first sample, state=${PROXY_STATE2:-<none>} pid=${PROXY_PID2:-<none>} 10s later -- restarting rather than settling"
+  fi
+fi
+vlog ""
+
+# ---------------------------------------------------------------------------
+# 17. proxy-bind-loopback-only -- NET-02's half for the new component:
+# adding a piece to the chain must not add a LAN path. Exactly one
+# 127.0.0.1:$KANBAN_PROXY_PORT LISTEN line, no wildcard line, and the
+# listening pid equals check 16's settled pid.
+# ---------------------------------------------------------------------------
+vlog "--- 17: proxy-bind-loopback-only ---"
+PROXY_LISTEN="$(lsof -nP -iTCP:"$KANBAN_PROXY_PORT" -sTCP:LISTEN 2>/dev/null)"
+PROXY_LISTEN_PID="$(printf '%s\n' "$PROXY_LISTEN" | awk 'NR==2{print $2}')"
+if printf '%s\n' "$PROXY_LISTEN" | grep -q "127.0.0.1:${KANBAN_PROXY_PORT} " \
+  && ! printf '%s\n' "$PROXY_LISTEN" | grep -q "\*:${KANBAN_PROXY_PORT} " \
+  && [ -n "$PROXY_LISTEN_PID" ] && [ "$PROXY_LISTEN_PID" = "${PROXY_PID2:-$PROXY_PID1}" ]; then
+  record_check "proxy-bind-loopback-only" 0
+else
+  record_check "proxy-bind-loopback-only" 1 "lsof=$(printf '%s' "$PROXY_LISTEN" | tr '\n' ';') expected_pid=${PROXY_PID2:-$PROXY_PID1}"
+fi
+vlog ""
+
+# ---------------------------------------------------------------------------
+# 18. proxy-rewrites-host -- the proxy turns kanban's own 403 into a real
+# 200 for the tailnet Host, reusing check 10's own board-markup predicate
+# rather than inventing a second one.
+# ---------------------------------------------------------------------------
+vlog "--- 18: proxy-rewrites-host ---"
+PROXY_BODY18="$(curl -s -m 10 -w '\n%{http_code}' -H "Host: $TAILNET_HOSTNAME:$TS_SERVE_PORT" "http://127.0.0.1:$KANBAN_PROXY_PORT/")"
+PROXY_CODE18="$(printf '%s\n' "$PROXY_BODY18" | tail -1)"
+PROXY_HTML18="$(printf '%s\n' "$PROXY_BODY18" | sed '$d')"
+if [ "$PROXY_CODE18" = "200" ] \
+  && printf '%s' "$PROXY_HTML18" | grep -qi "kanban\|<!doctype html\|<html" \
+  && ! printf '%s' "$PROXY_HTML18" | grep -q "Host not allowed\."; then
+  record_check "proxy-rewrites-host" 0
+else
+  record_check "proxy-rewrites-host" 1 "http_code=${PROXY_CODE18:-<none>}"
+fi
+vlog ""
+
+# ---------------------------------------------------------------------------
+# 19. proxy-rejects-unknown-host -- the proxy's own gate rejects, itself,
+# without ever forwarding upstream.
+# ---------------------------------------------------------------------------
+vlog "--- 19: proxy-rejects-unknown-host ---"
+PROXY_BODY19="$(curl -s -m 10 -w '\n%{http_code}' -H 'Host: evil.invalid' "http://127.0.0.1:$KANBAN_PROXY_PORT/")"
+PROXY_CODE19="$(printf '%s\n' "$PROXY_BODY19" | tail -1)"
+PROXY_JSON19="$(printf '%s\n' "$PROXY_BODY19" | sed '$d')"
+if [ "$PROXY_CODE19" = "403" ] && [ "$PROXY_JSON19" = '{"error":"Host not allowed."}' ]; then
+  record_check "proxy-rejects-unknown-host" 0
+else
+  record_check "proxy-rejects-unknown-host" 1 "http_code=${PROXY_CODE19:-<none>} body=$PROXY_JSON19"
+fi
+vlog ""
+
+# ---------------------------------------------------------------------------
+# 20. proxy-rejects-unknown-origin -- same shape, Origin instead of Host.
+# ---------------------------------------------------------------------------
+vlog "--- 20: proxy-rejects-unknown-origin ---"
+PROXY_BODY20="$(curl -s -m 10 -w '\n%{http_code}' -H "Host: $TAILNET_HOSTNAME:$TS_SERVE_PORT" -H 'Origin: https://evil.invalid' "http://127.0.0.1:$KANBAN_PROXY_PORT/")"
+PROXY_CODE20="$(printf '%s\n' "$PROXY_BODY20" | tail -1)"
+PROXY_JSON20="$(printf '%s\n' "$PROXY_BODY20" | sed '$d')"
+if [ "$PROXY_CODE20" = "403" ] && [ "$PROXY_JSON20" = '{"error":"Origin not allowed."}' ]; then
+  record_check "proxy-rejects-unknown-origin" 0
+else
+  record_check "proxy-rejects-unknown-origin" 1 "http_code=${PROXY_CODE20:-<none>} body=$PROXY_JSON20"
+fi
+vlog ""
+
+# ---------------------------------------------------------------------------
+# 21. proxy-websocket-upgrade -- the WebSocket path is what makes live card
+# updates work, not just the first page load. rc=2 (CRASHED, never a
+# silent pass) if node or probe_proxy.js is missing.
+# ---------------------------------------------------------------------------
+vlog "--- 21: proxy-websocket-upgrade ---"
+PROBE_SCRIPT="$PROJECT_ROOT/phase-06/net/probe_proxy.js"
+if [ ! -x "$NODE_BIN" ] && [ ! -f "$NODE_BIN" ]; then
+  record_check "proxy-websocket-upgrade" 2 "NODE_BIN not found: $NODE_BIN"
+elif [ ! -f "$PROBE_SCRIPT" ]; then
+  record_check "proxy-websocket-upgrade" 2 "probe_proxy.js not found: $PROBE_SCRIPT"
+else
+  PROBE21_OUT="$("$NODE_BIN" "$PROBE_SCRIPT" \
+    --url "http://127.0.0.1:$KANBAN_PROXY_PORT/api/runtime/ws" \
+    --host "$TAILNET_HOSTNAME:$TS_SERVE_PORT" \
+    --origin "https://$TAILNET_HOSTNAME:$TS_SERVE_PORT" \
+    --expect-upgrade 2>&1)"
+  PROBE21_RC=$?
+  if [ "$PROBE21_RC" -eq 0 ] && [ "$PROBE21_OUT" = "UPGRADE status=101" ]; then
+    record_check "proxy-websocket-upgrade" 0
+  else
+    record_check "proxy-websocket-upgrade" 1 "rc=$PROBE21_RC out=$PROBE21_OUT"
+  fi
+fi
+vlog ""
+
+# ---------------------------------------------------------------------------
+# 22. proxy-lan-refused -- the proxy's half of NET-02: adding a component
+# to the chain must not add a LAN path. rc=2 if no LAN IP could be derived.
+# ---------------------------------------------------------------------------
+vlog "--- 22: proxy-lan-refused ---"
+if [ -z "$LAN_IP" ]; then
+  record_check "proxy-lan-refused" 2 "no LAN IP could be derived (en0/en1 both empty)"
+else
+  HTTP_CODE22="$(curl -s -m 5 -o /dev/null -w '%{http_code}' "http://$LAN_IP:$KANBAN_PROXY_PORT/")"
+  CURL22_RC=$?
+  if [ "$CURL22_RC" -eq 7 ] || [ "$CURL22_RC" -eq 28 ]; then
+    record_check "proxy-lan-refused" 0
+  elif [ "$CURL22_RC" -eq 0 ]; then
+    record_check "proxy-lan-refused" 1 "reachable from LAN ($LAN_IP), http_code=$HTTP_CODE22 -- expected connection refused/timeout"
+  else
+    record_check "proxy-lan-refused" 1 "unexpected curl rc=$CURL22_RC"
+  fi
+fi
+vlog ""
+
+# ---------------------------------------------------------------------------
+# 23. proxy-pin-gate -- same plutil -convert json + python3 idiom
+# verify_services.sh's pin-gate-* checks use, applied to the installed
+# proxy plist: both CLINE_NO_AUTO_UPDATE=1 and KANBAN_NO_AUTO_UPDATE=1 must
+# be present (check_versions.sh Check C requires both once a plist's
+# Program/ProgramArguments contain the substring "kanban", which this
+# wrapper's path does).
+# ---------------------------------------------------------------------------
+vlog "--- 23: proxy-pin-gate ---"
+PROXY_PLIST="$LAUNCH_AGENTS_DIR/$KANBAN_PROXY_LABEL.plist"
+if [ ! -f "$PROXY_PLIST" ]; then
+  record_check "proxy-pin-gate" 1 "plist not found: $PROXY_PLIST"
+else
+  PIN23_RESULT="$(plutil -convert json -o - "$PROXY_PLIST" 2>/dev/null | python3 -c '
+import json, sys
+try:
+    d = json.load(sys.stdin)
+except Exception as e:
+    print("CRASH:" + str(e))
+    sys.exit(0)
+env = d.get("EnvironmentVariables") or {}
+c = str(env.get("CLINE_NO_AUTO_UPDATE"))
+k = str(env.get("KANBAN_NO_AUTO_UPDATE"))
+if c == "1" and k == "1":
+    print("OK")
+else:
+    print("FAIL cline=%s kanban=%s" % (c, k))
+')"
+  if [ -z "$PIN23_RESULT" ]; then
+    record_check "proxy-pin-gate" 2 "plutil/python3 produced no output for $PROXY_PLIST"
+  elif [[ "$PIN23_RESULT" == CRASH:* ]]; then
+    record_check "proxy-pin-gate" 2 "$PIN23_RESULT"
+  elif [ "$PIN23_RESULT" = "OK" ]; then
+    record_check "proxy-pin-gate" 0
+  else
+    record_check "proxy-pin-gate" 1 "$PIN23_RESULT"
+  fi
+fi
+vlog ""
+
+# ---------------------------------------------------------------------------
+# 24. tailnet-websocket-101 -- the server-side proof that live card updates
+# survive the WHOLE chain (Serve -> proxy -> kanban), not just the loopback
+# half. This is EXPECTED TO FAIL while the network is closed -- that is the
+# point of the negative control, the same shape as checks 4 and 9.
+# ---------------------------------------------------------------------------
+vlog "--- 24: tailnet-websocket-101 ---"
+if [ ! -f "$PROBE_SCRIPT" ]; then
+  record_check "tailnet-websocket-101" 2 "probe_proxy.js not found: $PROBE_SCRIPT"
+else
+  PROBE24_OUT="$("$NODE_BIN" "$PROBE_SCRIPT" \
+    --url "https://$TAILNET_HOSTNAME:$TS_SERVE_PORT/api/runtime/ws" \
+    --host "$TAILNET_HOSTNAME:$TS_SERVE_PORT" \
+    --origin "https://$TAILNET_HOSTNAME:$TS_SERVE_PORT" \
+    --expect-upgrade 2>&1)"
+  PROBE24_RC=$?
+  if [ "$PROBE24_RC" -eq 0 ] && [ "$PROBE24_OUT" = "UPGRADE status=101" ]; then
+    record_check "tailnet-websocket-101" 0
+  else
+    record_check "tailnet-websocket-101" 1 "rc=$PROBE24_RC out=$PROBE24_OUT -- expected while the network is closed (06-04.2 opens it)"
   fi
 fi
 vlog ""

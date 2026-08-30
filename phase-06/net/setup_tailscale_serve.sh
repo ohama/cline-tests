@@ -201,6 +201,31 @@ esac
 vlog "P5 OK: kanban listening on 127.0.0.1:$KANBAN_PORT only, http=$KANBAN_HTTP"
 
 # ---------------------------------------------------------------------------
+# P5b: the proxy (com.ohama.kanban-proxy, added by 06-04.1) must itself be
+# listening on loopback only AND already answering 200 for the tailnet Host
+# before this script will apply anything. 06-04 opened a Serve entry that
+# pointed at something that answered 403 — the correct place to catch that
+# is before the network changes, not after. TS_SERVE_TARGET must also
+# already resolve to the proxy's port, not kanban's own port directly, or
+# this preflight would pass for the wrong target.
+# ---------------------------------------------------------------------------
+PROXY_LISTEN="$(lsof -nP -iTCP:"$KANBAN_PROXY_PORT" -sTCP:LISTEN 2>/dev/null)"
+if ! printf '%s\n' "$PROXY_LISTEN" | grep -q "127.0.0.1:${KANBAN_PROXY_PORT} "; then
+  abort_preflight "P5b: kanban-proxy is not listening on 127.0.0.1:$KANBAN_PROXY_PORT: $PROXY_LISTEN"
+fi
+if printf '%s\n' "$PROXY_LISTEN" | grep -q "\*:${KANBAN_PROXY_PORT} "; then
+  abort_preflight "P5b: something is bound to a wildcard address on port $KANBAN_PROXY_PORT — refusing"
+fi
+PROXY_HTTP="$(curl -s -o /dev/null -w '%{http_code}' -m 5 -H "Host: $TAILNET_HOSTNAME:$TS_SERVE_PORT" "http://127.0.0.1:$KANBAN_PROXY_PORT/")"
+if [ "$PROXY_HTTP" != "200" ]; then
+  abort_preflight "P5b: kanban-proxy http check for the tailnet Host returned '$PROXY_HTTP', expected 200 — 06-04 opened an entry pointed at something that answered 403; refusing to repeat that live"
+fi
+if [ "$TS_SERVE_TARGET" != "http://$KANBAN_PROXY_HOST:$KANBAN_PROXY_PORT" ]; then
+  abort_preflight "P5b: TS_SERVE_TARGET='$TS_SERVE_TARGET' does not resolve to the proxy (expected http://$KANBAN_PROXY_HOST:$KANBAN_PROXY_PORT) — refusing to apply an entry pointed at kanban directly"
+fi
+vlog "P5b OK: kanban-proxy listening on 127.0.0.1:$KANBAN_PROXY_PORT only, answers 200 for the tailnet Host, and TS_SERVE_TARGET points at it"
+
+# ---------------------------------------------------------------------------
 # P6: idempotency. If the entry already exists and already proxies to the
 # right target, stop here — ALREADY-CONFIGURED, exit 0, nothing run.
 # ---------------------------------------------------------------------------
