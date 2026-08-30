@@ -1,0 +1,2 @@
+wait_for_upstream.sh: timed out after 36s — stage 1-tcp(127.0.0.1:1) still failing
+ABORT: flashnext still not ready after 30s (see stderr above for which stage failed) — launchd will retry the whole cycle after ThrottleInterval.

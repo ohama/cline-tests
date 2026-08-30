@@ -1,0 +1,2 @@
+COMMAND   PID  USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+node    47852 ohama   16u  IPv4 0xd36b7d22ac80f0c3      0t0  TCP 127.0.0.1:3484 (LISTEN)

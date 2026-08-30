@@ -1,0 +1,2 @@
+wait_for_upstream.sh: timed out after 20s — stage 3-litellm-alias(flashnext) still failing
+ABORT: flashnext still not ready after 20s (see stderr above for which stage failed) — launchd will retry the whole cycle after ThrottleInterval.

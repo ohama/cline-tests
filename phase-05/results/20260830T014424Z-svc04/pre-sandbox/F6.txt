@@ -1,0 +1,9 @@
+=== CASE F6 ===
+--- command ---
+/bin/cat
+/Users/ohama/projs/cline-tests/phase-03/fixtures/symlinked/real/canary.txt
+--- rc ---
+0
+--- stdout ---
+CANON-CANARY-OK--- stderr ---
+
