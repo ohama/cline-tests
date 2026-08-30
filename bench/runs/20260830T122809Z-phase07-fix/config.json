@@ -1,0 +1,12 @@
+{
+  "harbor_version": "0.22.0",
+  "cline_bench_commit_sha": "d1085569fb0ae3f9613957e6fc2706c6e2f7da9b",
+  "model_spec": "openai-compatible:flashnext",
+  "base_url": "http://host.docker.internal:4000/v1",
+  "agent": "cline-cli",
+  "cline_version": "3.0.53",
+  "cw_injection": "applied-v2",
+  "injection_mechanism": "cline-cw-providers.json: added top-level version:1 and per-provider updatedAt (ISO8601) to satisfy cline 3.0.53 persisted-settings schema, which ProviderSettingsManager.read previously silently rejected",
+  "injection_evidence": "phase-07/results/20260830T113923Z-injection-diag/DIAGNOSIS.md (ranked-fix #1), phase-07/results/20260830T113923Z-injection-diag/probe/R3/schema-fix-supplement-result-file.json (demonstrated-working evidence)",
+  "created_utc": "2026-08-30T12:28:35Z"
+}

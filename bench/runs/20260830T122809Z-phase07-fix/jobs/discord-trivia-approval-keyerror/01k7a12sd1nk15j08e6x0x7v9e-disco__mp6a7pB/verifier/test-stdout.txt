@@ -1,0 +1,176 @@
+Using CPython 3.12.3 interpreter at: /usr/bin/python3
+Creating virtual environment at: .tbench-testing
+Activate with: source .tbench-testing/bin/activate
+Using Python 3.12.3 environment at: .tbench-testing
+Resolved 19 packages in 257ms
+Downloading discord-py (1.2MiB)
+Downloading aiohttp (1.7MiB)
+Downloading pygments (1.2MiB)
+Downloading psycopg2-binary (5.6MiB)
+ Downloaded aiohttp
+ Downloaded discord-py
+ Downloaded pygments
+ Downloaded psycopg2-binary
+Prepared 19 packages in 202ms
+Installed 19 packages in 18ms
+ + aiohappyeyeballs==2.7.1
+ + aiohttp==3.14.3
+ + aiosignal==1.4.0
+ + attrs==26.1.0
+ + discord-py==2.7.1
+ + frozenlist==1.8.0
+ + idna==3.19
+ + iniconfig==2.3.0
+ + multidict==6.7.1
+ + packaging==26.3
+ + pluggy==1.6.0
+ + propcache==0.5.2
+ + psycopg2-binary==2.9.12
+ + pygments==2.21.0
+ + pytest==9.1.1
+ + pytest-asyncio==1.4.0
+ + typing-extensions==4.16.0
+ + tzdata==2026.3
+ + yarl==1.24.5
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.6.0
+rootdir: /tests
+plugins: asyncio-1.4.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 2 items
+
+test_approval_session_fix.py FF                                          [100%]
+
+=================================== FAILURES ===================================
+________________________ test_approval_session_creation ________________________
+
+    def test_approval_session_creation():
+        """
+        Test 1: BEHAVIORAL - Database session creation works without KeyError.
+    
+        The user's error: "ERROR:bot.database_module:❌ Error creating approval session - KeyError: 0"
+    
+        This test verifies create_approval_session() returns an integer without throwing KeyError,
+        using the exact parameters from the production bug report.
+    
+        We don't test HOW it's fixed (try/except, if/else, whatever) - just that it WORKS.
+        """
+        # Start PostgreSQL for testing
+        subprocess.run(['service', 'postgresql', 'start'],
+                       capture_output=True, check=True)
+    
+        try:
+            from bot.database_module import get_database
+    
+            db = get_database()
+            db.init_database()
+    
+            # Exact scenario from bug report
+            test_user_id = 337833732901961729
+            test_session_type = 'question_approval'
+            test_question_data = {
+                'question_text': 'Test question',
+                'question_type': 'single',
+                'correct_answer': 'Test answer'
+            }
+    
+            # In broken state: This throws KeyError: 0
+            # In fixed state: Returns integer session ID
+            session_id = db.create_approval_session(
+                user_id=test_user_id,
+                session_type=test_session_type,
+                conversation_step='awaiting_approval',
+                question_data=test_question_data,
+                conversation_data={},
+                timeout_minutes=180
+            )
+    
+            # Outcome-based assertions: Did it work?
+>           assert session_id is not None, "Session ID should be returned"
+E           AssertionError: Session ID should be returned
+E           assert None is not None
+
+test_approval_session_fix.py:60: AssertionError
+----------------------------- Captured stdout call -----------------------------
+✅ Database tables initialized successfully
+✅ Database tables initialized successfully
+------------------------------ Captured log call -------------------------------
+ERROR    bot.database_module:database_module.py:3929 ❌ Error creating approval session - Exception type: KeyError
+ERROR    bot.database_module:database_module.py:3930 ❌ Error creating approval session - Message: 0
+ERROR    bot.database_module:database_module.py:3931 ❌ Error creating approval session - User ID: 337833732901961729, Session type: question_approval
+________________________ test_trivia_approval_function _________________________
+
+    @pytest.mark.asyncio
+    async def test_trivia_approval_function():
+        """
+        Test 2: FUNCTIONAL - The actual failing function completes successfully.
+    
+        The user's complaint: "automated trivia approval on startup is not working"
+        Error message: "❌ SEQUENTIAL APPROVAL: Failed to send question 2"
+    
+        This tests what the user ACTUALLY cared about: Does start_jam_question_approval() work?
+        We mock Discord (external dependency) but test the real Python function flow.
+        """
+        # Start PostgreSQL
+        subprocess.run(['service', 'postgresql', 'start'],
+                       capture_output=True, check=True)
+    
+        try:
+            from bot.database_module import get_database
+            from bot.handlers.conversation_handler import start_jam_question_approval, JAM_USER_ID
+            import discord
+    
+            db = get_database()
+            db.init_database()
+    
+            # Real question_data as it comes from scheduled.py
+            question_data = {
+                'question_text': 'Which game has the most episodes?',
+                'question_type': 'single',
+                'correct_answer': 'Final Fantasy XIV',
+                'category': 'episodes',
+                'difficulty_level': 2
+            }
+    
+            # Mock Discord (external system we can't control)
+            mock_bot = AsyncMock(spec=discord.Client)
+            mock_user = AsyncMock(spec=discord.User)
+            mock_user.name = "JAM"
+            mock_user.discriminator = "0000"
+            mock_user.send = AsyncMock(return_value=Mock(id=12345))
+            mock_bot.fetch_user = AsyncMock(return_value=mock_user)
+    
+            # Test the ACTUAL function that was failing
+            with patch('bot.handlers.conversation_handler._get_bot_instance', return_value=mock_bot):
+                result = await start_jam_question_approval(question_data)
+    
+                # Outcome-based assertions: Did the function complete?
+>               assert result is True, "Function should complete successfully"
+E               AssertionError: Function should complete successfully
+E               assert False is True
+
+test_approval_session_fix.py:117: AssertionError
+----------------------------- Captured stdout call -----------------------------
+✅ Bot database integration loaded successfully
+🤖 Starting synchronous AI initialization (basic setup only)...
+⚠️ GEMINI_API_KEY not found - Gemini features disabled
+⚠️ HUGGINGFACE_API_KEY not found - Huggingface features disabled
+❌ No AI systems available - all AI features disabled
+✅ Database tables initialized successfully
+🚀 Starting persistent JAM approval workflow for question: Which game has the most episodes?...
+✅ Cleaned up existing approval conversations and sessions
+❌ Failed to create persistent approval session
+------------------------------ Captured log call -------------------------------
+ERROR    bot.database_module:database_module.py:3929 ❌ Error creating approval session - Exception type: KeyError
+ERROR    bot.database_module:database_module.py:3930 ❌ Error creating approval session - Message: 0
+ERROR    bot.database_module:database_module.py:3931 ❌ Error creating approval session - User ID: 337833732901961729, Session type: question_approval
+=============================== warnings summary ===============================
+test_approval_session_fix.py::test_trivia_approval_function
+  /tests/.tbench-testing/lib/python3.12/site-packages/discord/player.py:30: DeprecationWarning: 'audioop' is deprecated and slated for removal in Python 3.13
+    import audioop
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED test_approval_session_fix.py::test_approval_session_creation - Asserti...
+FAILED test_approval_session_fix.py::test_trivia_approval_function - Assertio...
+========================= 2 failed, 1 warning in 5.34s =========================

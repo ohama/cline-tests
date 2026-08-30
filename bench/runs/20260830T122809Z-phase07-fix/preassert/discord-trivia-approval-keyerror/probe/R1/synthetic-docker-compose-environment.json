@@ -1,0 +1,10 @@
+{
+  "services": {
+    "main": {
+      "environment": {
+        "HARBOR_TASK_ID": "probe",
+        "HARBOR_TRIAL_ID": "probe"
+      }
+    }
+  }
+}

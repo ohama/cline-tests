@@ -1,0 +1,5 @@
+run_task.sh --dry-run: resolved task dir = 01k7a12sd1nk15j08e6x0x7v9e-discord-trivia-approval-keyerror (task=discord-trivia-approval-keyerror)
+DRY-RUN COMMAND:
+cd /Users/ohama/projs/cline-tests/bench/cline-bench && API_KEY=local-any-value BASE_URL=http://host.docker.internal:4000/v1 harbor run -p tasks/01k7a12sd1nk15j08e6x0x7v9e-discord-trivia-approval-keyerror -a cline-cli -m openai-compatible:flashnext --agent-kwarg cline-version=3.0.53 --extra-docker-compose /Users/ohama/projs/cline-tests/phase-07/bench/cline-cw-overlay.yaml --env docker
+
+DRY-RUN: no run directory created, no container started, no model/cline/harbor budget spent.

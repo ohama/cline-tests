@@ -1,0 +1,10 @@
+2026-08-30T12:28:35Z	config.json (harbor version, cline-bench SHA, model spec, BASE_URL)
+2026-08-30T12:28:35Z	preassert/discord-trivia-approval-keyerror/ (pre-run compose-merge-replay assertion, reused injection_probe.sh --rung R1, rc=0)
+2026-08-30T12:28:35Z	prompts/discord-trivia-approval-keyerror/instruction.md (verbatim copy of instruction.md, pre-run)
+2026-08-30T12:28:35Z	prompts/discord-trivia-approval-keyerror/task.toml (verbatim copy of task.toml, pre-run)
+2026-08-30T12:28:35Z	logs/discord-trivia-approval-keyerror.harbor.log (tee of the harbor run invocation)
+2026-08-30T12:56:20Z	jobs/discord-trivia-approval-keyerror/ (verbatim copy of /Users/ohama/projs/cline-tests/bench/cline-bench/jobs/2026-08-30__21-28-35)
+2026-08-30T12:56:20Z	prompts/discord-trivia-approval-keyerror/agent-command.txt (fallback: extracted from trial.log's 'Running command:' block -- no agent/command-*/ dirs this trial)
+2026-08-30T12:56:20Z	prompts/discord-trivia-approval-keyerror/system-prompt-probe.txt
+2026-08-30T12:56:20Z	server-log/discord-trivia-approval-keyerror.flashnext.err.txt (byte-offset slice of $FLASHNEXT_ERR_LOG for this task's wall-clock window)
+2026-08-30T12:56:20Z	meta/discord-trivia-approval-keyerror.json (verdict=fail-context reward=0 turns=38 max_prompt_tokens=30463)

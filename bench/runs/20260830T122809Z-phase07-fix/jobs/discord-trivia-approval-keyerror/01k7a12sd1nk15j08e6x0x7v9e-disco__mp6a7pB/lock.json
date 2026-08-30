@@ -1,0 +1,46 @@
+{
+    "schema_version": 2,
+    "task": {
+        "name": "01k7a12sd1nk15j08e6x0x7v9e-discord-trivia-approval-keyerror",
+        "type": "local",
+        "digest": "sha256:ae238eec00cc70378f0692335a813322321a54c9224e48a34565bc6afab38533",
+        "path": "tasks/01k7a12sd1nk15j08e6x0x7v9e-discord-trivia-approval-keyerror"
+    },
+    "install_only": false,
+    "timeout_multiplier": 1.0,
+    "agent": {
+        "name": "cline-cli",
+        "model_name": "openai-compatible:flashnext",
+        "skills": [],
+        "resume_trajectory": false,
+        "extra_allowed_hosts": [],
+        "kwargs": {
+            "cline-version": "3.0.53"
+        },
+        "mcp_servers": []
+    },
+    "bridge_inputs": {},
+    "skills": [],
+    "environment": {
+        "type": "docker",
+        "force_build": false,
+        "delete": true,
+        "cpu_enforcement_policy": "auto",
+        "memory_enforcement_policy": "auto",
+        "extra_docker_compose": [
+            "/Users/ohama/projs/cline-tests/phase-07/bench/cline-cw-overlay.yaml"
+        ],
+        "kwargs": {},
+        "extra_allowed_hosts": []
+    },
+    "extra_docker_compose": [
+        {
+            "path": "/Users/ohama/projs/cline-tests/phase-07/bench/cline-cw-overlay.yaml",
+            "digest": "sha256:5aca2dea53903cbffa6c74f40af72c8e78642e459c17abb852d6a6473e534a85"
+        }
+    ],
+    "verifier": {
+        "disable": false,
+        "environment_mode": "shared"
+    }
+}

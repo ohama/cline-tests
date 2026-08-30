@@ -1,0 +1,51 @@
+Skipping image OS validation for hb__b9c729ae38eda2fd4a6816ea787df76a: docker inspect returned 1
+Running command: if command -v git &> /dev/null && command -v curl &> /dev/null && command -v unzip &> /dev/null; then  echo 'git, curl, and unzip already installed, skipping apt-get...'; else  echo 'Killing background apt processes to release lock...';  pkill -9 -x unattended-upgrades 2>/dev/null || true;  pkill -9 -x apt-get 2>/dev/null || true;  pkill -9 -x dpkg 2>/dev/null || true;  sleep 1;  rm -f /var/lib/apt/lists/lock /var/lib/dpkg/lock /var/lib/dpkg/lock-frontend /var/cache/apt/archives/lock 2>/dev/null || true;  dpkg --configure -a 2>/dev/null || true;  echo 'Trying apt-get install without update first...';  if apt-get install -y curl ca-certificates git unzip 2>/dev/null; then    echo 'Install succeeded without update.';  else    echo 'Falling back to apt-get update + install...';    apt-get update && apt-get install -y curl ca-certificates git unzip;  fi; fi
+Command outputs captured
+Running command: set -e; if command -v node &> /dev/null && node --version | grep -qE '^v2[2-9]|^v[3-9]'; then  echo 'Node.js already installed, skipping nvm setup...'; else  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash &&  export NVM_DIR="$HOME/.nvm" &&  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" &&  nvm install 22 && nvm use 22 && nvm alias default 22; fi && export NVM_DIR="$HOME/.nvm" && { [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" || true; } && npm install -g cline@3.0.53 && sleep 0.5 && if cline --version || cline version; then echo 'Cline npm binary smoke test passed.'; else status="$?"; echo "Cline npm binary smoke test failed with exit ${status}."; echo 'Cline npm binary smoke test failed; installing Cline from source with Bun as a fallback.' && export BUN_INSTALL="$HOME/.bun" && export PATH="$BUN_INSTALL/bin:$PATH" && if ! command -v bun >/dev/null 2>&1; then curl -fsSL https://bun.sh/install | bash && export PATH="$BUN_INSTALL/bin:$PATH"; fi && CLONE_DIR="$HOME/.cache/harbor-cline-source" && REPO_URL=https://github.com/cline/cline.git && REF=main && rm -rf "$CLONE_DIR" && mkdir -p "$(dirname "$CLONE_DIR")" && (git clone --branch "$REF" --depth 1 "$REPO_URL" "$CLONE_DIR" || (git clone "$REPO_URL" "$CLONE_DIR" && cd "$CLONE_DIR" && git checkout "$REF")) && cd "$CLONE_DIR/sdk" && bun install && bun run build:sdk && CLINE_SHIM="$(dirname "$(command -v node)")/cline" && cat > "$CLINE_SHIM" <<'__HARBOR_CLINE_SHIM__'
+#!/usr/bin/env bash
+set -euo pipefail
+export BUN_INSTALL="${BUN_INSTALL:-$HOME/.bun}"
+export PATH="$BUN_INSTALL/bin:$PATH"
+export CLINE_BUILD_ENV="${CLINE_BUILD_ENV:-development}"
+exec "$BUN_INSTALL/bin/bun" --conditions=development "$HOME/.cache/harbor-cline-source/sdk/apps/cli/src/index.ts" "$@"
+__HARBOR_CLINE_SHIM__
+chmod +x "$CLINE_SHIM" && hash -r && cline --version; fi
+Command outputs captured
+Running command: mkdir -p /logs/agent ~/.cline/data && echo '{"welcomeViewCompleted": true, "isNewUser": false}' > ~/.cline/data/globalState.json
+Command outputs captured
+Running command: export NVM_DIR="$HOME/.nvm"; if [ -s "$NVM_DIR/nvm.sh" ]; then . "$NVM_DIR/nvm.sh"; nvm use 22 >/dev/null 2>&1 || true; fi; set -o pipefail; cline -P openai-compatible -k $API_KEY -m $MODELID --json --yolo -- 'The automated trivia approval on startup is not working with the following log errors:
+
+INFO:bot.database_module:Creating approval session for user 337833732901961729, type: question_approval
+ERROR:bot.database_module:❌ Error creating approval session - Exception type: KeyError
+ERROR:bot.database_module:❌ Error creating approval session - Message: 0
+ERROR:bot.database_module:❌ Error creating approval session - User ID: 337833732901961729, Session type: question_approval
+❌ Failed to create persistent approval session
+❌ SEQUENTIAL APPROVAL: Failed to send question 2
+
+Could it be because we changed the state detection to the bot to bot_modular rather than main as we changed the standard entry point for the bot?
+
+The error occurs in Live/bot/database_module.py in the _insert_approval_session helper method.
+The bug is related to how the code accesses database query results when using psycopg2'"'"'s RealDictCursor.
+
+Your task is to fix the database result access pattern to work correctly with RealDictCursor,
+which returns dictionary-like objects rather than tuples.
+
+<environment_details>
+# Visual Studio Code Visible Files
+Live/bot/commands/trivia.py
+
+# Visual Studio Code Open Tabs
+Live/bot_modular.py
+Live/bot/handlers/ai_handler.py
+Live/bot/database_module.py
+Live/bot/handlers/message_handler.py
+Live/bot/commands/trivia.py
+Live/bot/handlers/conversation_handler.py
+Live/bot/integrations/youtube.py
+</environment_details>' < /dev/null 2>&1 | stdbuf -oL tee /logs/agent/cline.txt; status=${PIPESTATUS[0]}; echo "__CLINE_EXIT=${status}" | tee -a /logs/agent/cline.txt; exit "${status}"
+Command failed
+Classified failed command as ApiRateLimitError (pattern: 'rate.?limit')
+Running command: if [ -d ~/.cline/data/sessions ]; then mkdir -p /logs/agent/sessions && LATEST_SESSION="$(ls -1td ~/.cline/data/sessions/*/ 2>/dev/null | head -n 1)" && if [ -n "$LATEST_SESSION" ]; then cp -r "$LATEST_SESSION" /logs/agent/sessions/; fi; fi
+Command outputs captured
+Wrote ATIF trajectory to jobs/2026-08-30__21-28-35/01k7a12sd1nk15j08e6x0x7v9e-disco__mp6a7pB/agent/trajectory.json
+Collecting main service artifacts
