@@ -1,0 +1,9 @@
+verify_sandbox=0
+verify_network=1
+verify_bench=1
+
+NOTE: verify_network.sh and verify_bench.sh fail solely on their kanban pid
+expectation (53894, a stale baseline snapshot predating plan 08-01's kanban
+restart to 36175). This drift pre-dates this plan, is outside its
+files_modified scope (phase-06/net, phase-07/bench baseline data), and is
+unrelated to the sandbox-widening decision. Not fixed here.

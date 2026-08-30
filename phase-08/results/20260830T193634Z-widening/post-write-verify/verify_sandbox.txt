@@ -1,0 +1,43 @@
+=== phase-03 verify_sandbox.sh — 2026-08-30T19:43:02Z ===
+OUT_DIR=/Users/ohama/projs/cline-tests/phase-03/results/20260830T194302Z-sbx
+profile sanity pre-check: fixture.sb OK
+profile sanity pre-check: production.sb OK
+CASE F1 PASS allowed
+
+CASE F2 PASS denied
+
+CASE F3 PASS denied
+
+CASE F4 PASS denied
+
+CASE F5 PASS denied
+
+CASE F6 PASS allowed
+
+CASE F7 PASS denied
+
+CASE F8 PASS probe (7/7 checks correct: SBX-02/SBX-03 same mechanism)
+CASE P1 PASS allowed
+
+CASE P2 PASS allowed
+
+CASE P3 PASS denied
+
+CASE P4 PASS denied
+
+CASE P5 PASS denied
+
+CASE P6 PASS denied
+
+criterion-1-check: PASS entries=1 bench_real=/Users/ohama/projs/cline-tests/bench
+
+CRITERION 1 (SBX-01 ALLOWED_REPOS.json exists and is the source of truth): PASS PASS entries=1 bench_real=/Users/ohama/projs/cline-tests/bench
+CRITERION 2 (SBX-02 read/write outside the whitelist actually fails): PASS F2=PASS F3=PASS F8=PASS
+CRITERION 3 (SBX-03 execute_command outside the whitelist is blocked by sandbox-exec): PASS F4=PASS F8=PASS
+CRITERION 4 (SBX-04 bench results dir unreadable from inside the sandbox): PASS P3=PASS P4=PASS CANARY-LEAK=PASS
+
+CASES 16/16
+CRASHED 0
+
+VERIFY_SANDBOX: PASS
+RESULTS_DIR=/Users/ohama/projs/cline-tests/phase-03/results/20260830T194302Z-sbx
