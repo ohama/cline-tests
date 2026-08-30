@@ -1,0 +1,12 @@
+=== CASE F3 ===
+--- command ---
+/bin/sh
+-c
+echo x > /Users/ohama/projs/cline-tests/phase-03/fixtures/forbidden/newfile.txt
+--- rc ---
+1
+--- stdout ---
+--- stderr ---
+shell-init: error retrieving current directory: getcwd: cannot access parent directories: Operation not permitted
+/bin/sh: /Users/ohama/projs/cline-tests/phase-03/fixtures/forbidden/newfile.txt: Operation not permitted
+

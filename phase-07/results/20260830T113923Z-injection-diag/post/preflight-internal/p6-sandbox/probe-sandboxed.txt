@@ -1,0 +1,8 @@
+PROBE inproc-read-allowed SUCCEEDED
+PROBE inproc-read-forbidden DENIED EPERM
+PROBE inproc-write-forbidden DENIED EPERM
+PROBE inproc-write-allowed SUCCEEDED
+PROBE subproc-read-forbidden DENIED status=1
+PROBE subproc-write-forbidden DENIED status=1
+PROBE escape-symlink-read DENIED EPERM
+PROBE-SUMMARY succeeded=2 denied=5 error=0

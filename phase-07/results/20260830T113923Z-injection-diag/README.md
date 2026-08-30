@@ -64,3 +64,25 @@ pre-installed) is left on disk for a cheap R4 re-run later; not removed by this 
 injection-probe-cline353:latest`.
 
 Six pids, port 3000, SBX-04 canary, ALLOWED_REPOS.json bench-exclusion: all unchanged after Task 2.
+
+## Task 3 complete
+
+`DIAGNOSIS.md` written: `ROOT_CAUSE: schema-rejected`, `FIX_AVAILABLE: yes`. H4 confirmed live
+(container-side, zero model cost) via `probe/R3`'s `cline config --json` read/persist round-trip;
+H1/H2/H3/H5 all ruled out with named evidence. Candidate fix (add "version":1 + per-provider
+"updatedAt" to cline-cw-providers.json) demonstrated working in probe/R3/schema-fix-supplement*.
+
+All seven standing gates re-run into `post/`, matching pre-probe signatures exactly:
+verify_bench CASES 10/10, verify_sandbox CASES 16/16 (SBX-04 PASS), verify_services CASES 15/15,
+verify_network CASES 24/24, verify_no_regression INF03 PASS, verify_config exit 0, preflight
+CASES 11/11. Collateral checklist re-asserted: six pids unchanged, port 3000 unbound, CANARY.txt
+intact, ALLOWED_REPOS.json still excludes bench/ and the repo root, EXTRA_ALLOW_PATHS empty,
+`git diff --stat phase-01 phase-02 phase-04 phase-05 phase-06 workspace` empty,
+`bash phase-07/bench/verify_bench.sh --run-dir bench/runs/20260830T093657Z-phase07` still
+CASES 10/10 (pre-fix evidence bundle undisturbed). Host cline package.json version/mtime
+identical to Task 1's recording (3.0.60 / Aug 30 13:27:09 2026). Host
+`~/.cline/data/settings/providers.json` mtime (19:51 local, predates this session's 20:39+ start)
+confirms it was never touched by this plan -- the 19:51 write is the pre-existing, already-
+disclosed drift from a prior verification session (07-VERIFICATION.md), not this plan's doing.
+
+Host `cline` invocations across the whole plan: 0. `harbor run` invocations: 0.
