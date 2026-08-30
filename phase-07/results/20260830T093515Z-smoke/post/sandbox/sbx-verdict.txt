@@ -1,0 +1,29 @@
+=== phase-03 verify_sandbox.sh — 2026-08-30T10:04:43Z ===
+OUT_DIR=phase-07/results/20260830T093515Z-smoke/post/sandbox/
+profile sanity pre-check: fixture.sb OK
+profile sanity pre-check: production.sb OK
+
+
+
+
+
+
+
+CASE F8 PASS probe (7/7 checks correct: SBX-02/SBX-03 same mechanism)
+
+
+
+
+
+
+criterion-1-check: PASS entries=1 bench_real=/Users/ohama/projs/cline-tests/bench
+
+CRITERION 1 (SBX-01 ALLOWED_REPOS.json exists and is the source of truth): PASS PASS entries=1 bench_real=/Users/ohama/projs/cline-tests/bench
+CRITERION 2 (SBX-02 read/write outside the whitelist actually fails): PASS F2=PASS F3=PASS F8=PASS
+CRITERION 3 (SBX-03 execute_command outside the whitelist is blocked by sandbox-exec): PASS F4=PASS F8=PASS
+CRITERION 4 (SBX-04 bench results dir unreadable from inside the sandbox): PASS P3=PASS P4=PASS CANARY-LEAK=PASS
+
+CASES 16/16
+CRASHED 0
+
+VERIFY_SANDBOX: PASS

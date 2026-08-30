@@ -1,0 +1,45 @@
+=== phase-05/services/verify_services.sh — 2026-08-30T10:02:32Z ===
+
+--- kanban (com.ohama.kanban): running + settled ---
+CHECK: PASS kanban-state-running
+kanban-pid-samples: 53894 / 53894 / 53894 (state running/running/running)
+CHECK: PASS kanban-pid-settled
+--- telegram (com.ohama.telegram-connect): running + settled ---
+CHECK: PASS telegram-state-running
+telegram-pid-samples: 99162 / 99162 / 99162 (state running/running/running)
+CHECK: PASS telegram-pid-settled
+
+--- kanban: port + http ---
+CHECK: PASS kanban-port-listening
+kanban-http-response: http_code=200 curl_rc=0
+CHECK: PASS kanban-http-response
+
+--- anti-orphan ---
+CHECK: PASS anti-orphan-kanban-sandboxed
+anti-orphan-telegram: token empty, orphan_count=0 log_hit=0
+CHECK: PASS anti-orphan-telegram
+
+--- port hygiene: neither service on :3000 ---
+CHECK: PASS port-hygiene-no-3000
+
+--- pin gates (both auto-update env vars, both plists) ---
+CHECK: PASS pin-gate-com.ohama.kanban
+CHECK: PASS pin-gate-com.ohama.telegram-connect
+
+--- sandbox boundary: EXTRA_ALLOW_PATHS empty ---
+CHECK: PASS sandbox-boundary-empty-allow-paths
+
+--- log growth watch ($SERVICE_LOG_DIR=/Users/ohama/.cline/logs) ---
+log-size: kanban.log = 528 bytes
+log-size: kanban.err = 978 bytes
+log-size: telegram-connect.log = 0 bytes
+log-size: telegram-connect.err = 4966 bytes
+CHECK: PASS log-growth-watch
+
+--- mirror freshness ---
+CHECK: PASS mirror-labels-tracked
+CHECK: PASS mirror-plists-byte-identical
+
+CASES 15/15
+CRASHED 0
+VERIFY_SERVICES: PASS

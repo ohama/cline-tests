@@ -1,0 +1,35 @@
+=== phase-07/bench/verify_bench.sh -- 2026-08-30T10:05:06Z ===
+RUN=/Users/ohama/projs/cline-tests/bench/runs/20260830T093657Z-phase07
+
+--- B1: run directory + config.json ---
+CHECK: PASS B1
+
+--- B2: meta/*.json count >= 1, each parses, verdict in allowed set ---
+CHECK: PASS B2
+
+--- B3: BCH-02 prompt half (instruction.md unconditional; agent-command.txt required unless excused as fail-infra) ---
+CHECK: PASS B3
+
+--- B4: BCH-02 result half (verifier/reward.txt, or an explained gap) ---
+CHECK: PASS B4
+
+--- B5: BCH-03 (summary.md table; attempted-task data-row count == meta record count) ---
+CHECK: PASS B5
+
+--- B6: server-log/<task>.flashnext.err.txt exists for every task ---
+CHECK: PASS B6
+
+--- B7: phase-03/sandbox/verify_sandbox.sh (SBX-04 re-assertion) ---
+CHECK: PASS B7
+
+--- B8: ALLOWED_REPOS.json repos[] excludes bench/ and the repo root ---
+CHECK: PASS B8
+
+--- B9: bench/runs/CANARY.txt unchanged ---
+CHECK: PASS B9
+
+--- B10: port 3000 unbound; six live pids present ---
+CHECK: PASS B10
+
+CASES 10/10
+VERIFY_BENCH: PASS

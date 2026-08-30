@@ -471,8 +471,20 @@ rm -f "$PROBE_WRITE_FILE"
 record_case "P3" $?
 vlog "$(grep '^CASE' "$OUT_DIR/P3.txt" 2>/dev/null || true)"
 
+# NOT `cat $BENCH_DIR/runs/*` -- once Phase 7 committed a real run directory
+# (bench/runs/<UTC>-phase07/, sibling to CANARY.txt, per its own PLAN.md
+# artifact spec) alongside CANARY.txt, that glob's control run (unsandboxed,
+# below) legitimately failed with rc=1 ("cat: bench/runs/<dir>: Is a
+# directory") -- nothing to do with sandbox enforcement, purely `cat`'s
+# normal behavior on a directory argument -- which made assert_denied.sh
+# bail out at its own control-run guard before ever invoking the sandboxed
+# command (observed live 2026-08-30, 07-03 smoke run post-run gate sweep).
+# `find -type f -exec cat {} +` asserts the same thing (every FILE under
+# bench/runs/ is unreadable from inside the sandbox) but is robust to
+# subdirectories, and is if anything a broader assertion (recurses into any
+# subdirectory) rather than a weaker one.
 "$SCRIPT_DIR/assert_denied.sh" --label P4 --profile "$PRODUCTION_SB" --expect deny \
-  -- /bin/sh -c "cat $BENCH_DIR/runs/*"
+  -- /bin/sh -c "find \"$BENCH_DIR/runs\" -type f -exec cat {} +"
 record_case "P4" $?
 vlog "$(grep '^CASE' "$OUT_DIR/P4.txt" 2>/dev/null || true)"
 
