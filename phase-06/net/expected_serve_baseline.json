@@ -1,0 +1,40 @@
+{
+  "AllowFunnel": {
+    "ohama-2.tail318f12.ts.net:8443": true
+  },
+  "TCP": {
+    "10000": {
+      "HTTPS": true
+    },
+    "443": {
+      "HTTPS": true
+    },
+    "8443": {
+      "HTTPS": true
+    }
+  },
+  "Web": {
+    "ohama-2.tail318f12.ts.net:10000": {
+      "Handlers": {
+        "/": {
+          "Proxy": "http://127.0.0.1:8788"
+        }
+      }
+    },
+    "ohama-2.tail318f12.ts.net:443": {
+      "Handlers": {
+        "/": {
+          "Proxy": "http://127.0.0.1:8787"
+        }
+      }
+    },
+    "ohama-2.tail318f12.ts.net:8443": {
+      "Handlers": {
+        "/": {
+          "Proxy": "http://127.0.0.1:3000"
+        }
+      }
+    }
+  },
+  "_comment": "Frozen snapshot of the three Tailscale Serve handlers that pre-date this project, plus its single public-exposure key. None of these three entries belongs to this project. Phase 6 must never modify them. They are frozen here, machine-generated from a live capture, so later plans can assert byte-identity against this file instead of eyeballing `tailscale serve status` output."
+}
