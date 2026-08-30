@@ -5,7 +5,8 @@
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
-**Current focus:** **Phase 6 (네트워크 노출) 진행 중 — 06-03 완료(3/6 plans).** Phase 5 는 7개
+**Current focus:** **Phase 6 (네트워크 노출) 진행 중 — 06-04 BLOCKED(사람 결정 대기, 3/6 plans
+완료, 네트워크는 닫힌 채 안전).** Phase 5 는 7개
 플랜 전부 완료 — wave 1(05-01/05-02, 병렬: launchd 래퍼+readiness 게이트,
 check_versions.sh/restart_service.sh 확장), wave 2(05-03: 등록 전 포그라운드 증명), wave
 3(05-04: kanban 최초 등록), wave 4(05-05: telegram-connect 등록, 빈 토큰), wave 5(05-06: SVC-05
@@ -49,14 +50,53 @@ untouched`)에 가짜 기댓값을 주입해 각각 FAIL 을 실측 유도한 �
 캡처로 수정). 라이브 tailscale 변경 명령은 이 플랜 전체에서 스크래치 포트 롤백 프로브 1회뿐(무변경
 byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `verify_services.sh` 15/15
 재확인, `EXTRA_ALLOW_PATHS` 빈 값, `cline` 호출 0회. 세 커밋(`36fdb61`/`776f4b2`/`2ffbc20`) 모두
-개별, SUMMARY 작성 완료(`06-03-SUMMARY.md`). 다음은 **06-04**.
+개별, SUMMARY 작성 완료(`06-03-SUMMARY.md`).
 
 ## Current Position
 
-Phase: 6 of 8 (네트워크 노출) — **진행 중**
-Plan: 03 of 6 in current phase — 완료 (SUMMARY 작성 완료). **Phase 5(7/7 플랜) 완전 종료 후
-Phase 6 시작, 06-01/06-02/06-03 완료.**
-Status: 06-03 완료 — **`setup_tailscale_serve.sh`/`verify_network.sh` 오프라인 저작 + 자가검증,
+Phase: 6 of 8 (네트워크 노출) — **진행 중, BLOCKED**
+Plan: 04 of 6 in current phase — **BLOCKED, 사람 결정 대기.** Task 1 완료(커밋), Task 2 는
+계획대로 즉시 롤백 후 리포트(커밋), Task 3 는 미도달(네트워크가 열려 있어야 실행 가능한
+플랜이라 전제조건 미충족). 네트워크는 06-01 베이스라인과 byte-identical 하게 닫혀 있고 네
+상시 게이트 전부 재통과 — 안전한 정지 상태.
+Status: 06-04 시도 — **`tailscale serve` 엔트리를 실제로 열어 NET-01/02/03 서버측 실측을
+시도했으나, kanban 자체의 Host-헤더 화이트리스트가 tailnet 호스트명을 거부(HTTP 403
+`Host not allowed.`)함을 발견해 즉시 롤백.** Task 1(커밋 `f94f3bd`): 변경 직전 재확인(모두
+OK) 후 `setup_tailscale_serve.sh --apply` 로 정확히 한 개 명령(`serve --bg --https=8444
+http://127.0.0.1:3484`) 실행, 스크립트 자체 Q1-Q5 전부 OK, 독립 재검증도 전부 일치
+(`AllowFunnel` 여전히 기존 `:8443` 키 하나만, `Web` 정확히 4개 핸들러(기존 3개 byte-identical
++ 신규 8444), `TCP` 정확히 4개 키, diff 는 8444 추가분만, kanban 바인드/pid(53894)/포트
+3000 미바인딩 전부 불변) — **엔트리 개통 메커니즘 자체는 완전히 정상 동작함이 실측 증명됨.**
+Task 2(커밋 `0885cbb`): 개통된 네트워크에 `verify_network.sh` 실행 → FAIL(`CASES 13/15`) —
+`tailnet-https-200` 이 200 이 아니라 **HTTP 403** `{"error":"Host not allowed."}` 반환. 읽기
+전용으로 근본원인 진단(네트워크는 아직 열린 채, 최소 시간): `127.0.0.1:3484` 에 직접
+`Host: ohama-2.tail318f12.ts.net:8444` 헤더로 curl 해도 동일 403 재현 → kanban 자신의
+문제로 확정. 설치된 kanban 의 컴파일된 `dist/cli.js` 를 읽어 `getAllowedHostHeaders()` 가
+loopback 바인드 시 `{localhost:<port>, 127.0.0.1:<port>}` 만 허용하도록 하드코딩돼 있고
+이를 넓힐 CLI 플래그/env 변수가 전혀 없음을 확인, `tailscale serve --help` 도 이 버전엔
+Host-rewrite 옵션이 없음을 확인 — 즉 Host 헤더를 원본 그대로 전달하는 어떤 리버스 프록시
+앞단도 이 벽에 부딪힘. 계획 문서의 명시적 지시("열린 네트워크에서 반복 시도 금지 —
+롤백하고 리포트")와 하우스룰("열린 네트워크에서 fix forward 금지")에 따라 **즉시**
+`tailscale serve --https=8444 off` 실행 — 개통~롤백 총 소요 약 90초. 롤백 후 `serve-status`
+가 apply 이전 캡처와 byte-identical, `expected_serve_baseline.json` 과 content-equal 확인,
+포트 8444 재미바인딩, 포트 3000 여전히 미바인딩, kanban 바인드/pid 불변 확인.
+`verify_network.sh` 재실행 시 `CASES 13/15`, FAIL 집합이 06-03 Task 3 Step B 가 이미 증명한
+"닫힌 상태" 시그니처와 정확히 동일함을 확인(알려진 안전 상태로 복귀, 새로운 상태 아님) — 네
+상시 게이트 전부 재통과(`verify_services.sh` 15/15, `verify_no_regression.sh` INF03:PASS,
+`verify_sandbox.sh` 16/16 CRASHED 0, `verify_config.sh` exit 0), pid 5종
+(46573/48525/75548/53894/99162) 개통~롤백 전 구간 불변, `git diff phase-01..04` 없음,
+`EXTRA_ALLOW_PATHS` 빈 값, `cline` 호출 0회. **이것은 Rule 4(아키텍처 결정 필요) 편차 —
+자동 수정하지 않고 즉시 정지·보고**: 근본 수정안은 (1) `tailscale serve` 와 kanban 사이에
+Host 헤더를 `127.0.0.1:3484` 로 재작성하는 작은 프록시 레이어 삽입, (2) 다른 kanban 버전에
+화이트리스트 오버라이드가 있는지 조사(현재 설치본엔 없음), (3) kanban 을 non-loopback 으로
+바인드(기존 설계상 배제 — passcode 게이트가 켜지고, 애초에 allowedHosts 는 프록시의
+tailnet 호스트명이 아니라 바인드된 host 자체로 만들어지므로 이것만으로는 문제가 완전히
+해결되지도 않음) 세 가지이며, 전부 phase-06/net/ 기존 스크립트 변경 없이 새 컴포넌트/
+플래그 결정 문제 — 사람이 선택해야 함. 전체 진단·증거·옵션은
+`phase-06/results/20260830T060638Z-opening/README.md` 및 `06-04-SUMMARY.md` 참조. 두 커밋
+(`f94f3bd`/`0885cbb`) 모두 개별.
+
+이전: 06-03 완료 — **`setup_tailscale_serve.sh`/`verify_network.sh` 오프라인 저작 + 자가검증,
 네트워크 상태 무변경.** Task 1: `setup_tailscale_serve.sh`(355줄) — `--check`(기본값, no-op)/
 `--apply`, 사전점검 P1-P6(P4=베이스라인 정확 일치 강제하는 fail-closed 핵심, P6=멱등성
 단락), 정확히 한 개 변경 명령(`serve --bg --https=8444 http://127.0.0.1:3484`), 사후단언
@@ -346,7 +386,23 @@ read/write/subprocess/escape-symlink 5건 전부 `DENIED EPERM`으로, `ENOENT` 
 deny-less 프로파일 거부, precheck 우회 시 Group F 4건 전부 `FAIL not-denied`, `--no-canonicalize`
 아래서 F6 실패)이 모두 사양대로 동작. `launchctl print .../com.ohama.flashnext` pid 46573 로
 플랜 전체에서 불변, `cline` 호출 0회.
-Last activity: 2026-08-30 — 06-03-PLAN.md 완료 (`phase-06/net/setup_tailscale_serve.sh` +
+Last activity: 2026-08-30 — 06-04-PLAN.md BLOCKED (`phase-06/results/20260830T060638Z-opening/`:
+네트워크를 실제로 열었으나 kanban 자신의 Host-헤더 화이트리스트가 tailnet 호스트명을 거부(HTTP
+403 `Host not allowed.`)함을 발견, 계획의 명시적 지시대로 즉시 롤백 후 정지·보고 — 사람 결정
+대기. Task 1(`f94f3bd`): 변경 직전 재확인 전부 OK → `setup_tailscale_serve.sh --apply` 로 정확히
+한 개 명령(`serve --bg --https=8444 http://127.0.0.1:3484`) 실행, 스크립트 Q1-Q5 + 독립 재검증
+전부 통과 — 개통 메커니즘 자체는 완전히 정상 동작 실측 증명. Task 2(`0885cbb`): `verify_network.sh`
+FAIL(`CASES 13/15`, `tailnet-https-200` 이 403). 읽기 전용 진단(설치된 kanban 의 컴파일된
+`dist/cli.js`)으로 loopback 바인드 시 `getAllowedHostHeaders()` 가 `{localhost, 127.0.0.1}` 만
+허용하도록 하드코딩돼 있고 이를 넓힐 플래그/env 가 전혀 없음, `tailscale serve --help` 도 이
+버전엔 Host-rewrite 옵션이 없음을 확인 → 즉시 `tailscale serve --https=8444 off` 실행(개통~롤백
+약 90초) → byte-identical 복구 확인, `verify_network.sh` 재실행 시 06-03 이 증명한 "닫힌 상태"
+시그니처와 정확히 일치, 네 상시 게이트 전부 재통과, pid 5종 불변. Rule 4(아키텍처 결정 필요) 편차
+— 근본 수정안 3가지(Host 재작성 프록시 삽입/다른 kanban 버전 조사/non-loopback 바인드 재검토)
+모두 사람 선택 필요, 전체 진단·증거는 결과 README 참조. 두 커밋(`f94f3bd`/`0885cbb`) 모두 개별,
+SUMMARY 작성 완료(`06-04-SUMMARY.md`, BLOCKED 로 명시).)
+
+이전 활동: 2026-08-30 — 06-03-PLAN.md 완료 (`phase-06/net/setup_tailscale_serve.sh` +
 `phase-06/net/verify_network.sh` + `phase-06/results/20260830T055744Z-authoring/`: 06-04 가 실행할
 라이브 저작/정책 스크립트 두 개를 오프라인으로 저작하고 자가검증, 네트워크 상태 무변경. Task 1:
 `setup_tailscale_serve.sh` — `--check`(기본값)/`--apply`, P1-P6 사전점검(P4=베이스라인 정확
@@ -482,7 +538,8 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
 Progress: [█████████▒] 90% (Phase 5/8 완료, Phase 6/8 진행 중 — 06-01/06-02/06-03(3/6 plans) 완료,
-Plan 28/31 누적 추정 — 다음은 06-04)
+06-04 는 BLOCKED(Task 1/2 실행·커밋됨, 네트워크는 안전하게 닫힌 채 사람 결정 대기, plan 자체는
+미완료로 카운트), Plan 28/31 누적 추정 — 다음은 06-04 재개(결정 후) 또는 병행 가능한 다른 작업)
 
 ## Performance Metrics
 
@@ -1370,7 +1427,40 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **06-03-PLAN.md 완료 — `setup_tailscale_serve.sh`/`verify_network.sh` 오프라인 저작 +
+Stopped at: **06-04-PLAN.md BLOCKED — 실제로 네트워크를 열어봤으나 kanban 자체의 Host-헤더
+화이트리스트가 tailnet 호스트명을 거부해 즉시 롤백, 사람 결정 대기.** Task 1(`f94f3bd`): 변경
+직전 재확인 전부 OK → `setup_tailscale_serve.sh --apply` 로 정확히 한 개 명령 실행(`serve --bg
+--https=8444 http://127.0.0.1:3484`), 스크립트 Q1-Q5 + 독립 재검증 전부 통과(`AllowFunnel` 여전히
+기존 `:8443` 키 하나, `Web` 정확히 4개 핸들러, `TCP` 정확히 4개 키, diff 는 8444 추가분만, kanban
+바인드/pid(53894)/포트 3000 불변) — **개통 메커니즘 자체는 완전히 정상 동작 실측 증명.**
+Task 2(`0885cbb`): 개통된 네트워크에 `verify_network.sh` 실행 → FAIL(`CASES 13/15`) —
+`tailnet-https-200` 이 200 대신 **HTTP 403** `{"error":"Host not allowed."}`. 읽기 전용 근본원인
+진단(개통~진단~롤백 총 약 90초): `127.0.0.1:3484` 에 직접 tailnet Host 헤더로 curl 해도 동일
+403 재현(kanban 자신의 문제 확정) → 설치된 kanban 의 컴파일된 `dist/cli.js` 읽어
+`getAllowedHostHeaders()` 가 loopback 바인드 시 `{localhost:<port>, 127.0.0.1:<port>}` 만
+허용하도록 하드코딩돼 있고 이를 넓힐 CLI 플래그/env 변수가 전혀 없음 확인, `tailscale serve
+--help` 도 이 버전엔 Host-rewrite 옵션이 없음 확인. 계획의 명시적 지시("열린 네트워크에서 반복
+시도 금지 — 롤백하고 리포트")에 따라 **즉시** `tailscale serve --https=8444 off` 실행 → 롤백
+후 `serve-status` 가 apply 이전 캡처와 byte-identical, 포트 8444 재미바인딩, 포트 3000 여전히
+미바인딩, kanban 바인드/pid 불변 확인. `verify_network.sh` 재실행 시 06-03 Task 3 Step B 가 이미
+증명한 "닫힌 상태" 시그니처(`CASES 13/15`, FAIL 집합 동일)와 정확히 일치(알려진 안전 상태로
+복귀) — 네 상시 게이트 전부 재통과, pid 5종(46573/48525/75548/53894/99162) 개통~롤백 전 구간
+불변, `git diff phase-01..04` 없음, `EXTRA_ALLOW_PATHS` 빈 값, `cline` 호출 0회. **Rule 4(아키텍처
+결정 필요) 편차 — 자동 수정 안 하고 즉시 정지·보고**: 근본 수정안 3가지(Host 헤더 재작성 프록시
+레이어 삽입 / 다른 kanban 버전의 화이트리스트 오버라이드 조사 / kanban non-loopback 바인드 —
+기존 설계상 배제 + 이것만으론 문제가 완전히 해결되지도 않음) 전부 phase-06/net/ 기존 스크립트
+변경 없이 새 컴포넌트/플래그 결정 문제 — 사람이 선택해야 함. 전체 진단·증거·옵션은
+`phase-06/results/20260830T060638Z-opening/README.md` 참조. 두 커밋(`f94f3bd`/`0885cbb`) 모두
+개별, SUMMARY 작성 완료(`06-04-SUMMARY.md`, BLOCKED 로 명시), STATE.md 갱신 완료.
+**다음: 06-04 는 사람 결정 대기 상태로 재개 필요 — 결정 후에도 `setup_tailscale_serve.sh`/
+`verify_network.sh` 자체는 변경 불필요(둘 다 06-03 산출물 그대로 재사용 가능). 결정된 수정이
+반영된 뒤에만 06-04 Task 2/3 를 재시도(현재 정지 지점부터), 이후 06-05/06-06 진행 가능.**
+Phase 6 인계 항목: 네트워크는 06-01 베이스라인과 byte-identical 하게 닫힌 채 안전, port 3000 은
+계속 미바인딩 상태를 유지해야 함(기존 :8443 Funnel 이 여전히 그쪽으로 포워딩), 토큰/id 두 슬롯
+모두 여전히 빈 값.
+
+이전 세션: 2026-08-30
+정지 지점: **06-03-PLAN.md 완료 — `setup_tailscale_serve.sh`/`verify_network.sh` 오프라인 저작 +
 자가검증, 네트워크 상태 무변경.** Task 1: `setup_tailscale_serve.sh`(355줄) — `--check`(기본값)/
 `--apply`, P1-P6 사전점검(P4=베이스라인 정확 일치 fail-closed 핵심, P6=멱등성 단락), 정확히 한 개
 변경 명령, Q1-Q5 사후단언(Q1=신규 공용노출 키 금지), 롤백을 헤더+모든 실패 경로에 인쇄(`36fdb61`).
@@ -1392,7 +1482,7 @@ Phase 7/8 상속용 상시 게이트(`776f4b2`). Task 3: (A) `--check` no-op 실
 불필요), port 3000 은 계속 미바인딩 상태를 유지해야 함(기존 :8443 Funnel 이 여전히 그쪽으로
 포워딩), 토큰/id 두 슬롯 모두 여전히 빈 값.
 
-이전 세션: 2026-08-30
+이전 세션: 2026-08-30 (구)
 정지 지점: **06-02-PLAN.md 완료 — NET-04 wrapper 프리플라이트 가드 + 실제 launchd 기동 실패
 실증 후 원복.** Task 1: `run_telegram_service.sh`에 가드(빈 토큰 idle 분기 뒤,
 `wait_for_upstream.sh` 앞 — 토큰 있음+`TELEGRAM_ALLOWED_USER_ID` 없음/빈값/비숫자면
