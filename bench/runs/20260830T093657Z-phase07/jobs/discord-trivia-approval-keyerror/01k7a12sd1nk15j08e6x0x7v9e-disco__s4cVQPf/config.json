@@ -1,0 +1,21 @@
+{
+    "task": {
+        "path": "tasks/01k7a12sd1nk15j08e6x0x7v9e-discord-trivia-approval-keyerror"
+    },
+    "trial_name": "01k7a12sd1nk15j08e6x0x7v9e-disco__s4cVQPf",
+    "trials_dir": "jobs/2026-08-30__18-36-57",
+    "agent": {
+        "name": "cline-cli",
+        "model_name": "openai-compatible:flashnext",
+        "kwargs": {
+            "cline-version": "3.0.53"
+        }
+    },
+    "environment": {
+        "type": "docker",
+        "extra_docker_compose": [
+            "/Users/ohama/projs/cline-tests/phase-07/bench/cline-cw-overlay.yaml"
+        ]
+    },
+    "job_id": "d4ec79d3-d471-4e2b-9eab-45bfd7157dd1"
+}

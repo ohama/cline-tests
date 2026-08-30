@@ -1,0 +1,17 @@
+{
+  "task": "discord-trivia-approval-keyerror",
+  "task_dir": "01k7a12sd1nk15j08e6x0x7v9e-discord-trivia-approval-keyerror",
+  "difficulty": "easy",
+  "memory_mb": 2048,
+  "timeout_sec": 1800.0,
+  "harbor_exit_code": 0,
+  "wall_clock_sec": 232,
+  "reward": 0,
+  "duration_sec_jobs": null,
+  "model_turns": 0,
+  "max_prompt_tokens": 0,
+  "http_400_seen": false,
+  "system_prompt_in_transcript": "no",
+  "post_guard_notes": "",
+  "verdict": "fail-infra"
+}

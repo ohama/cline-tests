@@ -314,10 +314,29 @@ fi
 # ---------------------------------------------------------------------------
 # 7. Collect harbor's own output verbatim. Find the newest jobs/<timestamp>/
 #    created since the run started.
-# ---------------------------------------------------------------------------
+#
+# NOTE: NOT `-newermt "@$JOBS_MARKER_EPOCH"` (strict "newer than", one-second
+# resolution on macOS/BSD find) -- observed live 2026-08-30, smoke run:
+# harbor created jobs/2026-08-30__18-36-57/ at mtime 18:36:58, the SAME
+# second (one second after) JOBS_MARKER_EPOCH was captured at 18:36:57,
+# which a strict "newer than" comparison does not count as newer, so
+# resolution silently found nothing and the whole evidence bundle (jobs/,
+# agent-command.txt, system-prompt-probe.txt, reward/duration in meta.json)
+# was lost even though harbor genuinely completed a job. Harbor's own job
+# directory naming convention (`%Y-%m-%d__%H-%M-%S`) sorts lexicographically
+# in creation order, so prefer that; guard against picking up a stale
+# leftover directory from a much earlier invocation with a loose (30s)
+# epoch sanity check derived from the directory's own name, not its mtime.
 JOB_DIR=""
 if [ -d "$BENCH_REPO/jobs" ]; then
-  JOB_DIR="$(find "$BENCH_REPO/jobs" -mindepth 1 -maxdepth 1 -type d -newermt "@$JOBS_MARKER_EPOCH" 2>/dev/null | sort | tail -1)"
+  CANDIDATE="$(find "$BENCH_REPO/jobs" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort | tail -1)"
+  if [ -n "$CANDIDATE" ]; then
+    CAND_NAME="$(basename "$CANDIDATE")"
+    CAND_EPOCH="$(date -j -f '%Y-%m-%d__%H-%M-%S' "$CAND_NAME" +%s 2>/dev/null || echo 0)"
+    if [ "$CAND_EPOCH" -ge $((JOBS_MARKER_EPOCH - 30)) ] 2>/dev/null; then
+      JOB_DIR="$CANDIDATE"
+    fi
+  fi
 fi
 
 if [ -z "$JOB_DIR" ] || [ ! -d "$JOB_DIR" ]; then
@@ -352,7 +371,34 @@ else
         echo "MISSING prompts/$TASK/agent-command.txt (command-*/ dirs present but no command.txt files inside)" >> "$RUN/prompts/$TASK/CAPTURE-GAPS.txt"
       fi
     else
-      echo "MISSING prompts/$TASK/agent-command.txt (no agent/command-*/ directories in this trial)" >> "$RUN/prompts/$TASK/CAPTURE-GAPS.txt"
+      # Fallback: harbor does not always create agent/command-*/ (observed
+      # live 2026-08-30, smoke run -- a NonZeroAgentExitCodeError trial had
+      # none), but the exact resolved `cline -P ... --json --yolo -- <prompt>`
+      # invocation still appears verbatim in the trial's own trial.log, as
+      # the single "Running command: ...cline -P ..." block up to the next
+      # "Command outputs captured"/"Command failed" terminator. Extract that
+      # block rather than silently leaving the prompt-capture requirement
+      # unmet whenever a trial fails before harbor writes command-*/.
+      if [ -f "$TRIAL_DIR/trial.log" ] && grep -q '^Running command:.*cline -P ' "$TRIAL_DIR/trial.log" 2>/dev/null; then
+        {
+          echo "=== extracted from $TRIAL_DIR/trial.log (no agent/command-*/ dirs present) ==="
+          # -E (POSIX extended regex): BSD/macOS sed's default basic-regex
+          # mode does NOT support GNU's `\|` alternation extension -- a bare
+          # BRE `\|` between the two end patterns silently fails to match
+          # either, so the range never closes and reads to EOF (observed
+          # live 2026-08-30, smoke run backfill: agent-command.txt ran on
+          # past the intended single command block into the next one).
+          sed -n -E '/^Running command:.*cline -P /,/^(Command failed|Command outputs captured)$/p' "$TRIAL_DIR/trial.log"
+        } > "$RUN/prompts/$TASK/agent-command.txt"
+        if [ -s "$RUN/prompts/$TASK/agent-command.txt" ]; then
+          manifest_add "prompts/$TASK/agent-command.txt (fallback: extracted from trial.log's 'Running command:' block -- no agent/command-*/ dirs this trial)"
+        else
+          rm -f "$RUN/prompts/$TASK/agent-command.txt"
+          echo "MISSING prompts/$TASK/agent-command.txt (no agent/command-*/ directories, and trial.log extraction produced nothing)" >> "$RUN/prompts/$TASK/CAPTURE-GAPS.txt"
+        fi
+      else
+        echo "MISSING prompts/$TASK/agent-command.txt (no agent/command-*/ directories in this trial, and trial.log has no matching 'cline -P' line)" >> "$RUN/prompts/$TASK/CAPTURE-GAPS.txt"
+      fi
     fi
 
     if [ -f "$TRIAL_DIR/agent/cline.txt" ]; then
@@ -383,7 +429,16 @@ fi
 tail -c +$((OFF_BEFORE + 1)) "$FLASHNEXT_ERR_LOG" > "$RUN/server-log/$TASK.flashnext.err.txt"
 manifest_add "server-log/$TASK.flashnext.err.txt (byte-offset slice of \$FLASHNEXT_ERR_LOG for this task's wall-clock window)"
 
-MODEL_TURN_COUNT="$(grep -c 'Request completed:' "$RUN/server-log/$TASK.flashnext.err.txt" 2>/dev/null || echo 0)"
+# NOTE: deliberately NOT `grep -c ... || echo 0` -- `grep -c` on zero
+# matches already prints "0" to stdout but still exits 1 (no match found),
+# which would make the `||` fallback print a SECOND "0" on its own line,
+# turning this into a two-line value ("0\n0") that corrupts the meta.json
+# heredoc below (observed live 2026-08-30, smoke run: "invalid syntax.
+# Perhaps you forgot a comma?" at the model_turns line). `${VAR:-0}`
+# catches the genuinely-empty case (file missing/unreadable) without
+# double-counting grep's own legitimate "0".
+MODEL_TURN_COUNT="$(grep -c 'Request completed:' "$RUN/server-log/$TASK.flashnext.err.txt" 2>/dev/null)"
+MODEL_TURN_COUNT="${MODEL_TURN_COUNT:-0}"
 MAX_PROMPT_TOKENS="$(grep -oE 'prompt_tokens=[0-9]+' "$RUN/server-log/$TASK.flashnext.err.txt" 2>/dev/null | grep -oE '[0-9]+' | sort -n | tail -1)"
 MAX_PROMPT_TOKENS="${MAX_PROMPT_TOKENS:-0}"
 
