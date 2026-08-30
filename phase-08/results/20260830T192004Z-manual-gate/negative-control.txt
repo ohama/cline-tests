@@ -1,0 +1,26 @@
+=== check_manual_claims.sh — 2026-08-30T19:20:19Z ===
+MANUAL_DIR=/Users/ohama/projs/cline-tests/phase-08/manual/fixtures/negative
+IN_SCOPE=00-getting-started.md 01-cli.md 02-kanban.md 03-mobile.md 04-32k-operations.md
+NEGATIVE_CONTROL=1
+
+CHECK C1-exists:00-getting-started.md FAIL — 11 lines, MIN_LINES=60
+CHECK C1-exists:01-cli.md PASS — 64 lines
+CHECK C1-exists:02-kanban.md PASS — 62 lines
+CHECK C1-exists:03-mobile.md PASS — 62 lines
+CHECK C1-exists:04-32k-operations.md FAIL — missing under /Users/ohama/projs/cline-tests/phase-08/manual/fixtures/negative
+CHECK C2-evidence-pointer:00-getting-started.md PASS — '근거 문서:' + docs/ path present in first 15 lines
+CHECK C3-markers:00-getting-started.md FAIL — missing: [GAP-CLINE-VERSION] [GAP-REBOOT] [GAP-READONLY] [GAP-PORT3000]
+CHECK C4-links:00-getting-started.md PASS — no dangling paths
+CHECK C2-evidence-pointer:01-cli.md FAIL — missing '근거 문서:' or a docs/ path in first 15 lines
+CHECK C3-markers:01-cli.md PASS — all required markers present
+CHECK C4-links:01-cli.md PASS — no dangling paths
+CHECK C2-evidence-pointer:02-kanban.md PASS — '근거 문서:' + docs/ path present in first 15 lines
+CHECK C3-markers:02-kanban.md FAIL — missing: [GAP-READONLY]
+CHECK C4-links:02-kanban.md PASS — no dangling paths
+CHECK C2-evidence-pointer:03-mobile.md PASS — '근거 문서:' + docs/ path present in first 15 lines
+CHECK C3-markers:03-mobile.md PASS — all required markers present
+CHECK C4-links:03-mobile.md FAIL — dangling: docs/does-not-exist.md
+CHECK C5-index FAIL — missing references: 01-cli.md 02-kanban.md 03-mobile.md 04-32k-operations.md
+CASES 11/18
+NEGATIVE_CONTROL: gate correctly rejected the broken fixture corpus (fail-closed proof)
+MANUAL_CLAIMS_GATE: PASS

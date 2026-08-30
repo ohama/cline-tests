@@ -1,0 +1,12 @@
+=== check_manual_claims.sh — 2026-08-30T19:20:19Z ===
+MANUAL_DIR=/Users/ohama/projs/cline-tests/docs/manual
+IN_SCOPE=00-getting-started.md 01-cli.md 02-kanban.md 03-mobile.md 04-32k-operations.md
+NEGATIVE_CONTROL=0
+
+CHECK C1-exists:00-getting-started.md FAIL — missing under /Users/ohama/projs/cline-tests/docs/manual
+CHECK C1-exists:01-cli.md FAIL — missing under /Users/ohama/projs/cline-tests/docs/manual
+CHECK C1-exists:02-kanban.md FAIL — missing under /Users/ohama/projs/cline-tests/docs/manual
+CHECK C1-exists:03-mobile.md FAIL — missing under /Users/ohama/projs/cline-tests/docs/manual
+CHECK C1-exists:04-32k-operations.md FAIL — missing under /Users/ohama/projs/cline-tests/docs/manual
+CASES 0/5
+MANUAL_CLAIMS_GATE: FAIL
