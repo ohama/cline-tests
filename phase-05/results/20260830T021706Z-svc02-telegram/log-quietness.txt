@@ -1,0 +1,4 @@
+log line count: start=0 end=0
+err line count: start=4 end=4
+delta log=0 err=0
+note: launchd never rotates these files; steady-state growth is exactly one startup notice per service start, none expected in this idle 60s window since the service was already up before this sample began.

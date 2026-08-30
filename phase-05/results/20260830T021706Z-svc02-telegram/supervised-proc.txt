@@ -1,0 +1,1 @@
+55660     1   0.0 /bin/bash /Users/ohama/projs/cline-tests/phase-05/services/run_telegram_service.sh

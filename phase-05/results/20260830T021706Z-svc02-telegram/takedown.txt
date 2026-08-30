@@ -1,0 +1,21 @@
+=== take-down path (bootout) ===
+command: launchctl bootout gui/501/com.ohama.telegram-connect
+rc=0
+=== confirm gone, staying gone for 30s (sampled every 5s) ===
+sample 1 at 02:20:50: rc=113 output=Bad request.
+sample 2 at 02:20:55: rc=113 output=Bad request.
+sample 3 at 02:21:00: rc=113 output=Bad request.
+sample 4 at 02:21:05: rc=113 output=Bad request.
+sample 5 at 02:21:11: rc=113 output=Bad request.
+sample 6 at 02:21:16: rc=113 output=Bad request.
+=== orphan sweep during down window ===
+pgrep 'connect telegram' count: 0
+
+teardown confirmed after 0s
+.
+sampled pid=56669 after 2s; waiting 10s before re-sampling for stability
+RESTART OK: com.ohama.telegram-connect pid=56669 port=none waited=12s
+	state = running
+	pid = 56669
+		state = active
+		state = active

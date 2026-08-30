@@ -1,0 +1,78 @@
+gui/501/com.ohama.telegram-connect = {
+	active count = 1
+	path = /Users/ohama/Library/LaunchAgents/com.ohama.telegram-connect.plist
+	type = LaunchAgent
+	state = running
+
+	program = /bin/bash
+	arguments = {
+		/bin/bash
+		/Users/ohama/projs/cline-tests/phase-05/services/run_telegram_service.sh
+	}
+
+	working directory = /Users/ohama/projs/cline-tests/workspace/scratch-repo
+
+	stdout path = /Users/ohama/.cline/logs/telegram-connect.log
+	stderr path = /Users/ohama/.cline/logs/telegram-connect.err
+	inherited environment = {
+		SSH_AUTH_SOCK => /private/tmp/com.apple.launchd.iX4AdwKcCL/Listeners
+	}
+
+	default environment = {
+		PATH => /usr/bin:/bin:/usr/sbin:/sbin
+	}
+
+	environment = {
+		OSLogRateLimit => 64
+		KANBAN_NO_AUTO_UPDATE => 1
+		CLINE_NO_AUTO_UPDATE => 1
+		TELEGRAM_BOT_TOKEN => 
+		PATH => /opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin
+		XPC_SERVICE_NAME => com.ohama.telegram-connect
+	}
+
+	domain = gui/501 [100003]
+	asid = 100003
+	minimum runtime = 30
+	exit timeout = 5
+	runs = 1
+	pid = 55660
+	immediate reason = speculative
+	forks = 8
+	execs = 1
+	initialized = 1
+	trampolined = 1
+	started suspended = 0
+	proxy started suspended = 0
+	checked allocations = 0 (queried = 1)
+	checked allocations reason = no host
+	checked allocations flags = 0x0
+	last exit code = (never exited)
+
+	resource coalition = {
+		ID = 13784
+		type = resource
+		state = active
+		active count = 1
+		name = com.ohama.telegram-connect
+	}
+
+	jetsam coalition = {
+		ID = 13785
+		type = jetsam
+		state = active
+		active count = 1
+		name = com.ohama.telegram-connect
+	}
+
+	spawn type = daemon (3)
+	jetsam priority = 40
+	jetsam memory limit (active) = (unlimited)
+	jetsam memory limit (inactive) = (unlimited)
+	jetsamproperties category = daemon
+	jetsam thread limit = 32
+	cpumon = default
+
+	properties = keepalive | runatload | inferred program
+}
+PID2=55660

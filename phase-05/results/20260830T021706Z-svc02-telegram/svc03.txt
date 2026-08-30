@@ -1,0 +1,8 @@
+SVC-03 / criterion 2 test -- this kill is THE criterion-2 test, not the take-down path.
+PID_BEFORE=55660
+kill signal used: TERM only (a forceful kill or a process-name-based kill utility was never used)
+poll: 2s to observe a new running pid
+PID_AFTER=56315
+elapsed_seconds=2
+state 15s after revival=running pid=56315
+PID_15S_LATER == PID_AFTER: YES
