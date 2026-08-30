@@ -60,8 +60,66 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 ## Current Position
 
 Phase: 7 of 8 (cline-bench 동작 검증) — 진행 중
-Plan: 01 of 5 in current phase — **완료(3/3 tasks, 모두 auto — 3개 개별 커밋).**
-Phase 7 첫 플랜: 프리플라이트(11개 체크) + harbor/cline-bench 설치 + 실측 태스크
+Plan: 02 of 5 in current phase — **완료(3/3 tasks, 모두 auto — 3개 개별 커밋).**
+Phase 7 둘째 플랜(07-02): contextWindow 주입 가능성 판정 + 벤치 스크립트 3종. Task
+1(커밋 `c4a660c`): 설치된 harbor 0.22.0 어댑터 소스(`cline.py`/`docker.py`/`cli/jobs.py`/
+`utils/env.py`, GitHub 사본 아님 — 실제 설치 경로)와 설치된 cline 3.0.53 컴파일 바이너리를
+직접 읽어 다섯 경로(A~E) 전부 조사, **`VERDICT: INJECTABLE`**(phase 자체 프레이밍이
+암시한 NOT-INJECTABLE 이 아님) 로 판정. 메커니즘: `harbor run --extra-docker-compose`(실
+제·문서화된 harbor CLI 플래그, task.toml 수정도 harbor 소스 패치도 아님)로 프로젝트가
+새로 작성한 `providers.json`(최상위 `settings.contextWindow=29000`, `docs/
+32k-compaction-policy.md` 가 이미 실측 증명한 스키마와 동일)을 컨테이너에 bind-mount 하고
+`CLINE_PROVIDER_SETTINGS_PATH` 를 compose-service 레벨 env 로 설정 — 설치된 바이너리의
+`sC()` 함수(strings 로 실측 확인)가 이 env var 를 그대로 존중하고, `docker compose
+exec -e` 는 누적적(container 자체 env 를 지우지 않음, source 확인)이며, cline 의
+`--json`/비대화형 single-shot 부트스트랩이 이 정확한 호출 형태에서도
+`getProviderConfig()` 를 호출함을 세 지점 연쇄로 확인 — **단, 이 플랜은 `harbor run` 을
+전혀 실행하지 않으므로(예산 0) 실측 검증은 아직 안 됨, 07-03 스모크런이 첫 실측.** 부수
+발견(경로 C 조사 중): `BASE_URL` 은 어댑터의 고정 5키 exec-env 딕셔너리에도, 설치된
+cline 바이너리의 핵심 호출 경로에도 전혀 없음(`connect <platform>` 서브커맨드에만 존재,
+무관) — `openai-compatible` provider 는 `baseUrl` 을 오직 `providers.json` 에서만
+가져오므로, 같은 주입 메커니즘이 이 문제도 함께 해결. `config.env` 에 `CW_INJECTION=applied`
++ `HARBOR_EXTRA_ARGS=--extra-docker-compose .../cline-cw-overlay.yaml` 기록,
+`cline-cw-overlay.yaml`/`cline-cw-providers.json` 신규 작성(호스트의 실제 providers.json
+은 절대 건드리지 않음 — house rule 6 구조적 준수). Task 2(커밋 `c4eec49`):
+`run_task.sh`(505줄) — 태스크 하나 실행에 필요한 전부: 실행 디렉터리 해석(재개 가능,
+`meta/<task>.json` 존재 시 skip), 사전 가드 5종(실패 시 실행 자체를 안 함), 실행 전
+프롬프트 캡처(harbor 가 죽어도 보존), 계획서가 지정한 정확한 harbor 호출문(인용부호 없이
+구성 — `--dry-run` 출력이 grep 으로 직접 검증 가능하도록), 사후 가드(회귀를 조용히
+흡수하지 않고 기록), harbor 자체 `jobs/` 출력 원본 그대로 수집 +
+`agent-command.txt`/`system-prompt-probe.txt` 추출(누락은 `CAPTURE-GAPS.txt` 로 가시화),
+서버 로그 바이트 오프셋 슬라이스, 감사 가능한 `pass`/`fail-task`/`fail-context`/`fail-infra`
+판정 규칙(스크립트 주석으로 명문화). `--dry-run` 검증: harbor 명령 리터럴 전부 포함,
+실행 디렉터리 미생성, 컨테이너 미기동(`docker ps` 카운트 불변) 실측 확인.
+`run_sandboxed` 리터럴 0건. Task 3(커밋 `f115ffe`): `make_summary.sh`(203줄) — 실측
+라이브 풀 크기·실행 비율·cline-bench SHA·harbor 버전·`CW_INJECTION` 값을 헤더에, 시도된
+태스크 전부(제외 없음) + 미실행 태스크는 사유와 함께 `not-run` 행으로 한 테이블에,
+필수 **한계** 섹션(`fail-context` 는 스택이 과제를 못 끝낸다는 증거가 아니고, `pass` 도
+전체 스위트 통과의 증거가 아님을 명문화). `verify_bench.sh`(438줄) — house
+`CHECK:`+`CASES`+0/1/2 계약, 10개 체크(B1 config.json 신원, B2 meta 유효성, B3 BCH-02
+프롬프트 절반(`fail-infra` 전용 좁은 예외 밸브, 발동 시 반드시 공지, `agent/cline.txt`
+전사록은 밸브 유무와 무관하게 절대 대체물로 인정 안 함), B4 BCH-02 결과 절반, B5 BCH-03
+테이블/meta 개수 일치, B6 서버로그 존재, B7 SBX-04 재확인, B8 ALLOWED_REPOS.json 제외,
+B9 CANARY.txt 무결성, B10 포트3000/6종pid), 네거티브 컨트롤 실측(`--run-dir /nonexistent`
+→ exit 1·`CHECK: FAIL B1`). **편차 3건**: (1) Rule 2 — `run_task.sh` 에 이 플랜의 어떤
+`<action>` 도 지시하지 않은 실행-레벨 `config.json` 작성기를 추가(B1 이 이것 없이는
+영원히 통과 불가능한 걸 저작 중 발견 → 최소 추가). (2) Rule 1 — bash 3.2(macOS 기본)가
+빈 배열의 `"${ARR[@]}"` 확장에서 `set -u` 하에 unbound variable 로 죽는 버그를 네거티브
+컨트롤 실행 중 발견 → `META_COUNT` 가드로 전 루프 수정. (3) house rule 9
+wording-collision(보고, 개선 아님) — `make_summary.sh` 의 `<action>` 은 "어떤 태스크도
+테이블에서 누락되지 않는다"(미실행 태스크도 `not-run` 행)를 요구하지만 B5 의 `<verify>`
+는 "테이블 데이터-행 수 == meta 레코드 수"를 요구 — 미실행 태스크가 하나라도 있으면 전체
+행 수 기준으로는 상호 모순. 07-01 Task 3 의 동일 함정 선례를 따라 해결: B5 의 "데이터
+행"을 시도된 태스크 행만으로 정의(미실행 행은 테이블엔 그대로 남되 이 카운트에서만 제외),
+`verify_bench.sh` 자신의 B5 주석에 기록. 스크래치 디렉터리 3종(양성 2태스크 `CASES
+10/10`, `fail-infra` 밸브 발동 확인, `fail-task` 밸브 미발동 확인)으로 실측 테스트,
+`bench/runs/` 는 전혀 건드리지 않음. 6종 라이브 pid·포트 3000·`docker ps -a` exited
+카운트(5, 전부 이 플랜 이전 생성분 확인) 전부 불변, `git diff phase-01..06 workspace`
+빈 결과, `cline`/`harbor run`(dry-run 제외) 호출 0회. 세 커밋 모두 개별, SUMMARY 작성
+완료(`07-02-SUMMARY.md`). **다음: 07-03(스모크런 — 이 플랜의 INJECTABLE 메커니즘을 최초
+실측 검증).**
+
+이전(07-01 완료): Phase 7 첫 플랜: 프리플라이트(11개 체크) + harbor/cline-bench 설치 + 실측 태스크
 인벤토리. Task 1(커밋 `f669831`): `phase-07/bench/config.env`(harbor/cline-bench
 스펙 단일 소스 — `HARBOR_MODEL_SPEC=openai-compatible:flashnext`(README 의
 `openai:flashnext` 아님, 이유 인라인 주석), `HARBOR_BASE_URL=http://
