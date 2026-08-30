@@ -16,9 +16,21 @@ Phase 4 세 성공기준(HLS-01/02/03) 모두 실측 증거로 동시 성립: HL
 
 ## Current Position
 
-Phase: 4 of 8 (헤드리스 CLI 래퍼) — **완료**
-Plan: 04 of 4 in current phase — 완료 (SUMMARY 작성 완료). **Phase 4 전체 4개 플랜 종료.**
-Status: 04-04 완료 — criterion-3(HLS-03)를 `verify_sandbox_via_cline.sh` 실제 1회 라이브 실행으로
+Phase: 5 of 8 (Kanban·Telegram 서비스화) — 진행 중
+Plan: 02 of 7 in current phase — 완료 (SUMMARY 작성 완료). Wave 1(05-01/05-02, 병렬)의 절반.
+Status: 05-02 완료 — `phase-01/config/check_versions.sh` Check C 를 `KANBAN_NO_AUTO_UPDATE=1` 까지
+스캔하도록 확장(기존 `CLINE_NO_AUTO_UPDATE` 체크와 A/B 체크는 무변경, 이전엔 보이지 않던 kanban
+드리프트 갭이 이제 fixture 쌍(good PASS/bad FAIL)으로 증명됨), `phase-02/infra/restart_service.sh`
+를 포크하지 않고 그 자리에서 확장해 포트 없는 라벨(`<port> none`)도 재시작 가능하게 함 —
+비동기 bootout teardown-wait 은 그대로 보존, 포트 없는 헬스체크는 `state=running` 단독을 증거로
+받지 않고 10초 이상 간격의 두 샘플에서 동일 pid 를 요구(재시작 루프에 갇힌 잡이 `running` 을
+보고하는 것과 구분). 이 플랜은 어떤 서비스도 등록/재시작하지 않음 — flashnext(46573)/
+role-shim(75548)/litellm(48525) pid 전 과정 불변. `cline` 호출 1회(Check B 내부, 예산 상한 2회
+대비 절반), `verify_config.sh` 1차 통과(heal 불필요 — `contextWindow` 최상위 필드 정정이
+`cline config --json` 정규화를 생존한다는 관찰과 일치). 05-01(같은 wave, 병렬)이 소유한
+`phase-05/services/`/`phase-05/plists/` 는 전혀 건드리지 않음. 아래 결정 로그 참조.
+
+이전: 04-04 완료 — criterion-3(HLS-03)를 `verify_sandbox_via_cline.sh` 실제 1회 라이브 실행으로
 확정(`VERDICT: DENIED`, 커널 EPERM + in-whitelist canary 성공 공존), `docs/headless-wrapper.md`
 작성(8절, 한계 절이 독립 섹션), `docs/sandbox-whitelist.md` §7 에 `해결됨 (Phase 4)` 노트 추가
 (원문 보존), phase-close 게이트 8종 전부 PASS. 자체 발견/수정 버그 1건(Rule 1) — 04-03 이 오프라인
@@ -107,7 +119,13 @@ read/write/subprocess/escape-symlink 5건 전부 `DENIED EPERM`으로, `ENOENT` 
 deny-less 프로파일 거부, precheck 우회 시 Group F 4건 전부 `FAIL not-denied`, `--no-canonicalize`
 아래서 F6 실패)이 모두 사양대로 동작. `launchctl print .../com.ohama.flashnext` pid 46573 로
 플랜 전체에서 불변, `cline` 호출 0회.
-Last activity: 2026-08-30 — 04-02-PLAN.md 완료 (`phase-04/run_headless.sh`: HLS-01/02/03 shipped
+Last activity: 2026-08-30 — 05-02-PLAN.md 완료 (`phase-01/config/check_versions.sh` Check C 확장:
+`KANBAN_NO_AUTO_UPDATE=1` 게이트 추가, fixture 쌍으로 증명. `phase-02/infra/restart_service.sh` 를
+그 자리에서 확장(포크 아님): `<port|none>`, 포트 없는 라벨은 10초+ 간격 동일 pid 두 샘플로만 건강
+판정, 비동기 bootout teardown-wait 은 그대로 보존. 서비스 등록/재시작 0건, pid 3종 불변, `cline`
+호출 1/2. 05-01 과 wave 1 병렬 실행, `phase-05/services/`·`phase-05/plists/` 무터치.)
+
+이전 활동: 2026-08-30 — 04-02-PLAN.md 완료 (`phase-04/run_headless.sh`: HLS-01/02/03 shipped
 헤드리스 래퍼. `--auto-approve false` 리터럴 고정, 유일한 cline 호출 경로가 `run_sandboxed.sh`
 경유, THE CWD RULE(cd + prefix-match 단언) 적용. 5개 fixture 오프라인 dry-run 계약 전부 일치,
 non-whitelisted-cwd 음성 대조군 통과. **라이브 1회**: `run_headless.sh --timeout 180
@@ -139,15 +157,15 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [████████▒▒] 75% (Phase 4/8 **완료**, Plan 18/24 누적 추정 — Phase 4 4개 플랜 전부 종료,
-다음은 Phase 5)
+Progress: [████████▒▒] 76% (Phase 4/8 완료, Phase 5/8 진행 중 — 05-02 완료(wave 1, 05-01 과 병렬),
+Plan 19/31 누적 추정 — Phase 5 는 총 7개 플랜)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 18
-- Average duration: ~14.1 min
-- Total execution time: ~4.23 hours
+- Total plans completed: 19
+- Average duration: ~13.4 min
+- Total execution time: ~4.4 hours
 
 **By Phase:**
 
@@ -157,8 +175,20 @@ Progress: [████████▒▒] 75% (Phase 4/8 **완료**, Plan 18/24
 | 2 | 4/4 | ~55 min | ~13.8 min |
 | 3 | 4/4 | ~48 min | ~12 min |
 | 4 | 4/4 | ~42 min | ~10.5 min |
+| 5 | 1/7 | ~10 min | ~10 min |
 
 **Recent Trend:**
+- 05-02 (~10 min, wave 1 — ran in parallel with 05-01, no shared files. Extended
+  `phase-01/config/check_versions.sh` Check C in place to enforce kanban's own separate
+  `KANBAN_NO_AUTO_UPDATE=1` gate (previously invisible drift gap), proven with a fixture pair in a
+  single scanner run (rc=1: bad fixture FAILs, good fixture PASSes both gates, pre-existing
+  CLINE_NO_AUTO_UPDATE check unregressed). Extended `phase-02/infra/restart_service.sh` in place
+  (never forked) to accept `<port|none>`: portless labels skip the lsof probe in the teardown poll
+  while keeping the async-bootout wait itself untouched, and the health poll requires the SAME pid
+  across two samples >=10s apart rather than accepting `state = running` alone (a job stuck in a
+  restart loop reports running on almost every sample). No deviations — both tasks matched the
+  plan's `<action>`/`<verify>` blocks exactly. No service registered or restarted; pids
+  46573/75548/48525 unchanged throughout. `cline` invocations: 1/2.)
 - 04-04 (~9 min, wave 3 — Phase 4's final plan. Spent the phase's second and last live `cline`
   invocation to prove criterion 3 (HLS-03): `bash phase-04/verify_sandbox_via_cline.sh --timeout
   180` → exit 0, `VERDICT: DENIED` — a real out-of-whitelist read (`$HOME/.zshrc`) failed with
@@ -568,6 +598,26 @@ Recent decisions affecting current work:
   `git diff --stat phase-03/ phase-02/` 빈 결과, ROADMAP 3개 기준 재확인, launchctl pid 3종
   불변, git status 클린) — flashnext(46573)/role-shim(75548)/litellm(48525) 이 phase 시작부터
   종료까지 불변, 서비스 재시작 0회.
+- 05-02: **Phase 5 착수, wave 1(05-01 과 병렬).** `check_versions.sh` Check C 의 임베디드 python 이
+  이제 매칭된 plist 마다 필요 변수 목록을 순회하며 한 줄씩 PASS/FAIL 을 찍는다 —
+  `CLINE_NO_AUTO_UPDATE` 는 항상, `KANBAN_NO_AUTO_UPDATE` 는 haystack 에 "kanban" 이 있을 때만
+  추가로 요구(A/B 체크와 vacuous-pass 로직은 무변경). `strings` 로 확인된 사실(kanban 0.1.70 이
+  `env2.KANBAN_NO_AUTO_UPDATE === "1"` 로 자체 업데이트 경로를 가드)을 근거로, 이전엔 아무것도 잡지
+  못했던 kanban 전용 드리프트 게이트가 이제 fixture 쌍(`phase-05/fixtures/launchagents/
+  com.ohama.fixture-kanban-{good,bad}.plist`, 둘 다 설치/부트스트랩 안 됨)으로 한 번의 스캐너
+  실행에서 증명됨(rc=1, bad 는 KANBAN_NO_AUTO_UPDATE FAIL, good 은 둘 다 PASS).
+  `restart_service.sh` 는 포크 대신 그 자리에서 확장 — `<port|none>`, portless 일 때 Step 3b 는
+  `lsof` 프로브만 생략(비동기 bootout teardown-wait 폴링 자체와 3초 settle margin 은 그대로),
+  Step 5 헬스체크는 `state=running` 단독을 증거로 받지 않고 **10초 이상 간격의 두 샘플에서 동일
+  pid** 를 요구(재시작 루프에 갇힌 잡도 거의 매 샘플 `running` 을 보고하므로). numeric-port 경로는
+  `git diff` 로 완전 동일함을 확인(if/else 로 분기, 기존 로직 재작성 아님). 이 플랜은 어떤
+  서비스도 등록/재시작하지 않음 — `restart_service.sh` 는 정적 검증(`bash -n`, usage 라인,
+  존재하지 않는 라벨에 대한 `none` 인자 파싱)만 거쳤고, flashnext/role-shim/litellm pid 3종은 플랜
+  시작부터 종료까지 불변. `cline` 호출 1회(Check B 내부), `verify_config.sh` 1차 통과(heal
+  불필요 — `contextWindow` 최상위 필드 정정이 `cline config --json` 정규화를 생존한다는 관찰과
+  일치, guard 자체는 손대지 않음). 편차(deviation) 0건 — 두 태스크 모두 `<action>`/`<verify>`
+  그대로 통과. 05-01(같은 wave, 병렬)이 소유한 `phase-05/services/`/`phase-05/plists/` 는 git
+  status 로 무터치 확인.
 
 ### Pending Todos
 
@@ -645,7 +695,20 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **04-04-PLAN.md 완료 — Phase 4 전체 종료(wave 3, 마지막 플랜).**
+Stopped at: **05-02-PLAN.md 완료 (wave 1, 05-01 과 병렬 — 05-01 진행 상황은 이 SUMMARY 의 소관
+아님, 해당 SUMMARY 확인 필요).** `check_versions.sh` Check C 에 `KANBAN_NO_AUTO_UPDATE=1` 게이트
+추가(fixture 쌍으로 증명), `restart_service.sh` 를 포크 없이 확장해 포트 없는 라벨 재시작 지원
+(비동기 bootout teardown-wait 보존, 10초+ 동일-pid 헬스 증거). 서비스 등록/재시작 0건, pid 3종
+(46573/75548/48525) 불변, `cline` 호출 1/2, 편차 0건. 두 태스크 모두 개별 커밋
+(`e7ab02b`/`a23c1f1`), SUMMARY 작성 완료, STATE.md 갱신 완료.
+**다음:** wave 1 의 나머지 절반(05-01)이 아직 진행 중이거나 완료됐는지 확인 후, wave 2(05-03 이후)
+로 진행. `docs/headless-wrapper.md` 4절/8절이 남긴 `--auto-approve false` "안전하지만 무력" 한계에
+대한 에스컬레이션 결정(사람이 명시적으로: `--auto-approve true` 수용 vs 업스트림 기능 대기)과,
+Phase 5 의 launchd plist 가 `WorkingDirectory` 를 반드시 명시해야 한다는 요구사항은 여전히 이후
+플랜(05-03+)이 검토해야 할 항목.
+
+이전 세션: 2026-08-30
+정지 지점: **04-04-PLAN.md 완료 — Phase 4 전체 종료(wave 3, 마지막 플랜).**
 criterion 3(HLS-03) 을 `phase-04/verify_sandbox_via_cline.sh --timeout 180` 실제 1회 라이브 실행으로
 확정: exit 0, `VERDICT: DENIED` — 화이트리스트 밖 `/Users/ohama/.zshrc` 읽기가 커널 EPERM 으로
 거부됐고, 같은 tool-call 배치 안에서 화이트리스트 안쪽 canary 읽기는 성공. 라이브 실행 전 자체
