@@ -1,0 +1,11 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.6, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/ohama/projs/cline-tests
+plugins: asyncio-1.4.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 24 items
+
+phase-03/tests/test_gen_sandbox_profile.py ...........                   [ 45%]
+phase-04/tests/test_classify_run.py .............                        [100%]
+
+============================== 24 passed in 0.03s ==============================
