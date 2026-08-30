@@ -1,0 +1,56 @@
+=== phase-07/bench/preflight.sh -- 2026-08-30T10:42:01Z ===
+PROJECT_ROOT=/Users/ohama/projs/cline-tests
+EFFECTIVE_BASELINE=phase-06/results/20260830T051403Z-baseline (override=none)
+
+--- P1: six live pids (pid + command substring) ---
+  flashnext pid=46573: present, cmd matches 'mlx_vlm.server'
+  role-shim pid=75548: present, cmd matches 'role_shim.py'
+  litellm pid=48525: present, cmd matches 'litellm'
+  kanban pid=53894: present, cmd matches 'kanban'
+  telegram-connect pid=99162: present, cmd matches 'run_telegram_service.sh'
+  kanban-proxy pid=19669: present, cmd matches 'kanban_host_proxy.js'
+CHECK: PASS P1-live-pids
+
+--- P2: port 3000 unbound ---
+CHECK: PASS P2-port-3000-unbound
+
+--- P3: phase-05/services/verify_services.sh ---
+  rc=0 CASES 15/15
+CHECK: PASS P3-verify-services
+
+--- P4: phase-02/infra/verify_no_regression.sh ---
+  rc=0 INF03: PASS
+CHECK: PASS P4-verify-no-regression
+
+--- P5: phase-06/net/verify_network.sh --baseline phase-06/results/20260830T051403Z-baseline ---
+  rc=0 CASES 24/24
+CHECK: PASS P5-verify-network
+
+--- P6: phase-03/sandbox/verify_sandbox.sh (SBX-04) ---
+  rc=0 CRITERION 4 (SBX-04 bench results dir unreadable from inside the sandbox): PASS P3=PASS P4=PASS CANARY-LEAK=PASS
+CHECK: PASS P6-verify-sandbox-sbx04
+
+--- P7: phase-01/config/verify_config.sh ---
+  rc=0
+CHECK: PASS P7-verify-config
+
+--- P8: free disk >= 30 GiB ---
+  df -g /Users/ohama/projs/cline-tests: /dev/disk3s5      1858  638      1182    36% 2508892 12401442640    0%   /System/Volumes/Data
+  available=1182GiB floor=30GiB
+CHECK: PASS P8-disk-floor
+
+--- P9: colima default profile Running ---
+  colima list (verbatim): PROFILE    STATUS     ARCH       CPUS    MEMORY    DISK     RUNTIME    ADDRESS
+default    Running    aarch64    4       4GiB      20GiB    docker     
+CHECK: PASS P9-colima-running
+
+--- P10: docker info reachable, Name: colima ---
+CHECK: PASS P10-docker-info-colima
+
+--- P11: ALLOWED_REPOS.json repos[] excludes bench/ and the repo root ---
+  PASS entries=1 ['/Users/ohama/projs/cline-tests/workspace/scratch-repo']
+CHECK: PASS P11-allowed-repos-excludes-bench
+
+CASES 11/11
+PREFLIGHT: PASS
+RESULTS_DIR=/Users/ohama/projs/cline-tests/phase-07/results/20260830T104201Z-preflight

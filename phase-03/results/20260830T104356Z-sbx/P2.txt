@@ -1,0 +1,11 @@
+=== CASE P2 ===
+--- command ---
+/bin/sh
+-c
+echo ok > /Users/ohama/projs/cline-tests/workspace/scratch-repo/.sbx-write-probe
+--- rc ---
+0
+--- stdout ---
+--- stderr ---
+shell-init: error retrieving current directory: getcwd: cannot access parent directories: Operation not permitted
+

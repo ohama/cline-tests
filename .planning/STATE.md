@@ -1840,6 +1840,15 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
+- 🔴 **호스트 `cline` 이 고정값에서 드리프트했다 — 현재 `3.0.60`, 고정값은 `3.0.53`.**
+  Phase 7 이 만든 것이 아니다: 파일 mtime 상 Phase 7 착수보다 약 4시간 앞서고, Phase 7 다섯
+  플랜의 cline 호출 예산은 모두 0으로 기록돼 있다. 이 프로젝트가 01-04 부터 문서화해온 백그라운드
+  자동 업데이트(`CLINE_NO_AUTO_UPDATE=1` 로도 막히지 않음)의 결과다. **`providers.json` 내용은
+  정상**(최상위 `contextWindow=29000`, 트리거 26100, `verify_config.sh` 통과).
+  되돌리려면 실행 중인 cline/kanban 프로세스가 없음을 `ps` 로 확인한 뒤
+  `npm install -g cline@3.0.53` — 되돌릴지는 사용자 결정 사항이라 이번 페이즈에서는 하지 않았다.
+  Phase 8 매뉴얼은 "3.0.53 고정"을 사실로 쓰기 전에 실제 버전을 다시 확인할 것.
+
 - **(Phase 6·8 주의) 로드맵 Phase 5 기준 1 의 "재부팅 후에도" 절은 실제 재부팅으로 관측된 것이
   아니라 프록시 증거다.** 사용자가 `accept-proxy` 를 선택했다(2026-08-30, 05-07 체크포인트).
   증명된 것: 두 plist 모두 `RunAtLoad: true`, `~/Library/LaunchAgents/` 에 존재, 라벨 활성,

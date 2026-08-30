@@ -1,0 +1,1 @@
+/dev/disk3s5      1858  638      1182    36% 2508892 12401442640    0%   /System/Volumes/Data

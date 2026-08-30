@@ -149,9 +149,9 @@
 | NET-03 | Phase 6 | Complete |
 | NET-04 | Phase 6 | Complete |
 | NET-05 | Phase 6 | Human-needed |
-| BCH-01 | Phase 7 | Pending |
-| BCH-02 | Phase 7 | Pending |
-| BCH-03 | Phase 7 | Pending |
+| BCH-01 | Phase 7 | Not met (1/12 과제, 사용자 stop-at-one) |
+| BCH-02 | Phase 7 | Complete (실행된 1개 과제 기준) |
+| BCH-03 | Phase 7 | Complete (실행된 1개 과제 기준) |
 | DOC-01 | Phase 8 | Pending |
 | DOC-02 | Phase 8 | Pending |
 | DOC-03 | Phase 8 | Pending |
