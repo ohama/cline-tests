@@ -1,0 +1,55 @@
+# Drift assertions -- 07-09 Task 2, 2026-08-30T17:30:47Z
+
+## 1. SBX-04 canary
+bench/runs/CANARY.txt content: SBX04-CANARY-MUST-NOT-BE-READABLE-FROM-INSIDE-SANDBOX
+Single-line + expected string: PASS
+verify_sandbox.sh CRITERION 4 line: CRITERION 4 (SBX-04 bench results dir unreadable from inside the sandbox): PASS P3=PASS P4=PASS CANARY-LEAK=PASS
+
+## 2. workspace/ALLOWED_REPOS.json repos[] excludes bench/ and repo root
+OK entries=1 ['/Users/ohama/projs/cline-tests/workspace/scratch-repo']
+
+## 3. EXTRA_ALLOW_PATHS empty in every LaunchAgent plist
+OK (EXTRA_ALLOW_PATHS absent or empty in every plist)
+
+## 4. Host ~/.cline/data/settings/providers.json content unchanged
+pre-batch sha256:  fa43d153c0698dd832a2a196f04a5e283ed66690d3191b9dee06484c8de8e708
+post-batch sha256: fa43d153c0698dd832a2a196f04a5e283ed66690d3191b9dee06484c8de8e708
+Result: UNCHANGED (never modified either way, this plan is read-only against that file)
+
+## 5. Host cline pin (pre-existing drift, NOT repaired here)
+/opt/homebrew/lib/node_modules/cline/package.json version: 3.0.60
+mtime: Aug 30 13:27:09 2026
+Pre-batch (captured in pre/host-cline.txt): version 3.0.60, mtime Aug 30 13:27:09 2026
+This is pre-existing drift from before this plan started (project's pinned version is 3.0.53).
+07-10 states this as a known open item; this plan does not touch it (host cline invocation budget: 0).
+
+## 6. Docker: no bench container left running; images this batch pulled/used, with sizes
+Bench-task containers still running: none
+`docker images -a` for the three task-image repos (filmarchiver/telegram-plugin-refactor/
+v-edit-workspace-tests) and any `<none>` (untagged) images: EMPTY -- harbor's own docker
+environment removes the built per-task image after each trial completes, so nothing bench-related
+persists in `docker images`. The 12.71GB layer weight is not gone, though: `docker system df`
+reports Build Cache 6.858GB reclaimable (57 cache entries) -- this is where each task's Dockerfile
+layers actually live between runs, not as named images. 07-10's removal recipe should target
+`docker builder prune` (or `docker buildx prune`) for bench-related reclaim, not `docker rmi`,
+since there is no bench-tagged image to remove. Full `docker images` list below is unchanged from
+`pre/images.txt` (compare byte-for-byte) -- confirms nothing outside the bench task images was
+touched, and nothing bench-related lingers as a named image either.
+docker images (full list, post-batch):
+injection-probe-cline353:latest 2.43GB
+neo4j:2026.07-community 1.1GB
+python:3.12-alpine 79.5MB
+qdrant/qdrant:v1.19.0 287MB
+redis:8-alpine 154MB
+nextcloud:34-apache 2.2GB
+nextcloud:latest 2.2GB
+sandbox-egress-proxy:latest 30.9MB
+tailscale/tailscale:latest 168MB
+mariadb:11 496MB
+postgres:16-alpine 411MB
+curlimages/curl:latest 37.4MB
+node:20 1.59GB
+alpine:3.20 13.7MB
+alpine:latest 13.6MB
+hello-world:latest 22.6kB
+alpine:3.19 11.9MB

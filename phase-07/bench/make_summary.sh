@@ -70,6 +70,35 @@ else
   RUN_PCT="n/a"
 fi
 
+# ---------------------------------------------------------------------------
+# Reached-the-model count (07-09 gap closure, BCH-01 honesty): of the attempted tasks in THIS
+# run directory, how many have BOTH a non-zero-size server-log/<task>.flashnext.err.txt slice
+# AND a meta/<task>.json model_turns parsed as an integer > 0 -- the same decisive signal
+# verify_bench.sh's B11 check already uses, computed here independently (never re-derives
+# verdict/pass-fail from a transcript, only reads what run_task.sh already extracted). This
+# number is distinct from META_COUNT ("how many ran") and must never be conflated with it.
+# ---------------------------------------------------------------------------
+REACHED_MODEL_COUNT=0
+for f in "$RUN"/meta/*.json; do
+  [ -f "$f" ] || continue
+  R_TASK="$(python3 -c "import json; print(json.load(open('$f')).get('task','?'))" 2>/dev/null)"
+  R_SLICE="$RUN/server-log/$R_TASK.flashnext.err.txt"
+  R_SLICE_BYTES=0
+  [ -f "$R_SLICE" ] && R_SLICE_BYTES="$(wc -c < "$R_SLICE" | tr -d ' ')"
+  R_TURNS="$(python3 -c "
+import json
+try:
+    v = json.load(open('$f')).get('model_turns', 0)
+    print(int(v))
+except Exception:
+    print(0)
+" 2>/dev/null)"
+  R_TURNS="${R_TURNS:-0}"
+  if [ "$R_SLICE_BYTES" -gt 0 ] 2>/dev/null && [ "$R_TURNS" -gt 0 ] 2>/dev/null; then
+    REACHED_MODEL_COUNT=$((REACHED_MODEL_COUNT + 1))
+  fi
+done
+
 OUT="$RUN/summary.md"
 
 {
@@ -85,6 +114,10 @@ OUT="$RUN/summary.md"
   echo "- Model spec: \`${HARBOR_MODEL_SPEC}\`"
   echo "- CW_INJECTION (contextWindow injection mechanism, see phase-07/bench/config.env and"
   echo "  07-02 Task 1's FINDING.md): \`${CW_INJECTION:-unset}\`"
+  echo "- **Reached the model (non-empty flashnext server-log slice AND model_turns > 0) in this"
+  echo "  directory: ${REACHED_MODEL_COUNT} of ${META_COUNT} attempted** -- this is the number"
+  echo "  BCH-01's honesty depends on, distinct from how many tasks merely ran; see verify_bench.sh"
+  echo "  check B11 for the same signal re-verified independently."
   echo ""
   echo "## Table"
   echo ""

@@ -1,0 +1,38 @@
+=== phase-07/bench/verify_bench.sh -- 2026-08-30T17:27:58Z ===
+RUN=bench/runs/20260830T122809Z-phase07-fix
+
+--- B1: run directory + config.json ---
+CHECK: PASS B1
+
+--- B2: meta/*.json count >= 1, each parses, verdict in allowed set ---
+CHECK: PASS B2
+
+--- B3: BCH-02 prompt half (instruction.md unconditional; agent-command.txt required unless excused as fail-infra) ---
+CHECK: PASS B3 (1 task(s) excused as fail-infra)
+
+--- B4: BCH-02 result half (verifier/reward.txt, or an explained gap) ---
+CHECK: PASS B4
+
+--- B5: BCH-03 (summary.md table; attempted-task data-row count == meta record count) ---
+CHECK: PASS B5
+
+--- B6: server-log/<task>.flashnext.err.txt exists for every task ---
+CHECK: PASS B6
+
+--- B7: phase-03/sandbox/verify_sandbox.sh (SBX-04 re-assertion) ---
+CHECK: PASS B7
+
+--- B8: ALLOWED_REPOS.json repos[] excludes bench/ and the repo root ---
+CHECK: PASS B8
+
+--- B9: bench/runs/CANARY.txt unchanged ---
+CHECK: PASS B9
+
+--- B10: port 3000 unbound; six live pids present ---
+CHECK: PASS B10
+
+--- B11: reached-the-model (non-empty flashnext log slice + model_turns > 0; opt-in per run) ---
+CHECK: PASS B11
+
+CASES 11/11
+VERIFY_BENCH: PASS

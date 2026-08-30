@@ -1,2 +1,3 @@
 MISSING prompts/filmarchiver/agent-command.txt (no agent/command-*/ directories in this trial, and trial.log has no matching 'cline -P' line)
 MISSING agent/cline.txt (no transcript to probe for a system-prompt marker)
+MISSING verifier/reward.txt (no reward file under /Users/ohama/projs/cline-tests/bench/runs/20260830T122809Z-phase07-fix/jobs/filmarchiver/01kbb2wvw29szdjwcs76265t3k-filma__vXrV5kR -- the trial never reached the verifier stage)

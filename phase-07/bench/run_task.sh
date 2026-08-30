@@ -494,6 +494,13 @@ REWARD="null"
 DURATION_SEC_JOBS="null"
 if [ -n "${TRIAL_DIR:-}" ] && [ -f "$TRIAL_DIR/verifier/reward.txt" ]; then
   REWARD="$(tr -d '[:space:]' < "$TRIAL_DIR/verifier/reward.txt")"
+else
+  # BCH-02 result-half escape valve (verify_bench.sh check B4): a trial can legitimately never
+  # reach the verifier at all (e.g. environment_setup crashed before the agent, or before harbor
+  # even produced a trial dir) -- record that explicitly rather than leaving B4 to find an
+  # unexplained gap. Genuinely missing, not silently defaulted: this line only appears when
+  # reward.txt truly does not exist.
+  echo "MISSING verifier/reward.txt (no reward file under ${TRIAL_DIR:-<no trial dir>} -- the trial never reached the verifier stage)" >> "$RUN/prompts/$TASK/CAPTURE-GAPS.txt"
 fi
 if [ -n "${TRIAL_DIR:-}" ] && [ -f "$TRIAL_DIR/result.json" ]; then
   DURATION_SEC_JOBS="$(python3 -c "import json,sys

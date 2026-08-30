@@ -1,0 +1,59 @@
+Client: Docker Engine - Community
+ Version:    29.5.2
+ Context:    colima
+ Debug Mode: false
+ Plugins:
+  buildx: Docker Buildx (Docker Inc.)
+    Version:  v0.34.1
+    Path:     /opt/homebrew/lib/docker/cli-plugins/docker-buildx
+  compose: Docker Compose (Docker Inc.)
+    Version:  5.1.4
+    Path:     /opt/homebrew/lib/docker/cli-plugins/docker-compose
+
+Server:
+ Containers: 12
+  Running: 7
+  Paused: 0
+  Stopped: 5
+ Images: 16
+ Server Version: 29.2.1
+ Storage Driver: overlayfs
+  driver-type: io.containerd.snapshotter.v1
+ Logging Driver: json-file
+ Cgroup Driver: cgroupfs
+ Cgroup Version: 2
+ Plugins:
+  Volume: local
+  Network: bridge host ipvlan macvlan null overlay
+  Log: awslogs fluentd gcplogs gelf journald json-file local splunk syslog
+ CDI spec directories:
+  /etc/cdi
+  /var/run/cdi
+ Swarm: inactive
+ Runtimes: runc io.containerd.runc.v2
+ Default Runtime: runc
+ Init Binary: docker-init
+ containerd version: dea7da592f5d1d2b7755e3a161be07f43fad8f75
+ runc version: v1.3.4-0-gd6d73eb8
+ init version: de40ad0
+ Security Options:
+  apparmor
+  seccomp
+   Profile: builtin
+  cgroupns
+ Kernel Version: 6.8.0-100-generic
+ Operating System: Ubuntu 24.04.4 LTS
+ OSType: linux
+ Architecture: aarch64
+ CPUs: 4
+ Total Memory: 3.813GiB
+ Name: colima
+ ID: 1f564285-2d84-4255-80da-4b635df50af2
+ Docker Root Dir: /var/lib/docker
+ Debug Mode: false
+ Experimental: false
+ Insecure Registries:
+  ::1/128
+  127.0.0.0/8
+ Live Restore Enabled: false
+ Firewall Backend: iptables
