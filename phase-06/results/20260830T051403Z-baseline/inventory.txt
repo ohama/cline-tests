@@ -1,0 +1,101 @@
+=== tailscale serve status ===
+
+# Funnel on:
+#     - https://ohama-2.tail318f12.ts.net:8443
+
+https://ohama-2.tail318f12.ts.net:10000 (tailnet only)
+|-- / proxy http://127.0.0.1:8788
+
+https://ohama-2.tail318f12.ts.net (tailnet only)
+|-- / proxy http://127.0.0.1:8787
+
+https://ohama-2.tail318f12.ts.net:8443 (Funnel on)
+|-- / proxy http://127.0.0.1:3000
+
+
+=== tailscale serve status --json ===
+{
+  "TCP": {
+    "10000": {
+      "HTTPS": true
+    },
+    "443": {
+      "HTTPS": true
+    },
+    "8443": {
+      "HTTPS": true
+    }
+  },
+  "Web": {
+    "ohama-2.tail318f12.ts.net:10000": {
+      "Handlers": {
+        "/": {
+          "Proxy": "http://127.0.0.1:8788"
+        }
+      }
+    },
+    "ohama-2.tail318f12.ts.net:443": {
+      "Handlers": {
+        "/": {
+          "Proxy": "http://127.0.0.1:8787"
+        }
+      }
+    },
+    "ohama-2.tail318f12.ts.net:8443": {
+      "Handlers": {
+        "/": {
+          "Proxy": "http://127.0.0.1:3000"
+        }
+      }
+    }
+  },
+  "AllowFunnel": {
+    "ohama-2.tail318f12.ts.net:8443": true
+  }
+}
+
+=== tailscale status ===
+100.118.140.2    ohama-2                 ohama100@  macOS    -                                                           
+100.114.100.124  hamabot                 ohama100@  macOS    -                                                           
+100.88.149.99    ipad-mini-6th-gen-wifi  ohama100@  iOS      offline, last seen 29d ago                                  
+100.101.4.74     ipad165                 ohama100@  iOS      offline, last seen 4d ago                                   
+100.71.137.120   iphone171               ohama100@  iOS      offline, last seen 27d ago                                  
+100.84.252.92    nextcloud               ohama100@  linux    -                                                           
+100.76.176.3     ohama-1                 ohama100@  windows  offline, last seen 5h ago                                   
+100.126.199.69   ohama-ms-7e25           ohama100@  linux    offline, last seen 202d ago                                 
+100.77.217.11    ohama                   ohama100@  windows  offline, last seen 197d ago                                 
+100.101.4.10     soo-1                   ohama100@  windows  -                                                           
+100.107.6.124    soo                     ohama100@  linux    active; direct 61.101.210.2:50079, tx 65530396 rx 15293112  
+100.127.71.10    soohyoungui-macstudio   ohama100@  macOS    offline, last seen 145d ago                                 
+
+# Funnel on:
+#     - https://ohama-2.tail318f12.ts.net:8443
+
+
+=== tailscale ip -4 ===
+100.118.140.2
+
+=== lsof -nP -iTCP:3000 ===
+port-3000: UNBOUND
+
+=== lsof -nP -iTCP:3484 -sTCP:LISTEN ===
+COMMAND   PID  USER   FD   TYPE            DEVICE SIZE/OFF NODE NAME
+node    53894 ohama   16u  IPv4 0x58b50914dca014c      0t0  TCP 127.0.0.1:3484 (LISTEN)
+
+=== lsof -nP -iTCP:8444 ===
+port-8444: UNBOUND
+
+=== LAN_IP (ipconfig getifaddr en0, fallback en1) ===
+LAN_IP=192.168.75.108
+
+=== ps -o pid,ppid,%cpu,command -p 46573,48525,53894,56669,75548 ===
+  PID  PPID  %CPU COMMAND
+46573     1   0.0 /Users/ohama/projs/qwen38-flash-next-tests/.venv-mlxvlm-new/bin/python3 -m mlx_vlm.server --model /Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4 --host 127.0.0.1 --port 8000 --draft-model /Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MTP-drafter --draft-kind mtp --max-kv-size 32768 --log-level INFO --max-num-seqs 1
+48525     1   0.0 /Users/ohama/agent-stack/venv/bin/python /Users/ohama/agent-stack/venv/bin/litellm --config /Users/ohama/agent-stack/litellm/config.yaml --port 4000 --host 127.0.0.1
+53894     1   0.0 node /opt/homebrew/bin/kanban --no-open --host 127.0.0.1 --port 3484
+56669     1   0.0 /bin/bash /Users/ohama/projs/cline-tests/phase-05/services/run_telegram_service.sh
+75548     1   0.0 /Users/ohama/agent-stack/venv/bin/python /Users/ohama/llm-system/role_shim.py --listen 8011 --upstream http://localhost:8000
+
+=== log line counts ===
+kanban.log: 16
+telegram-connect.log: 0
