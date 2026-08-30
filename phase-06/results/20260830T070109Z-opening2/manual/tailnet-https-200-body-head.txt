@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+		<link
+			rel="icon"
+			href='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 92 95%22><path fill=%22%23E6EDF3%22 fill-rule=%22nonzero%22 d=%22M65.45 15.8c10.89 0 19.71 8.865 19.71 19.8v6.6l5.74 11.465a4.8 4
