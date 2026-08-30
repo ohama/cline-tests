@@ -239,5 +239,11 @@ Phase 5 고유 두 가지 추가:
 - Phase 6 은 네트워크를 여는 것 앞뒤로 `verify_services.sh` 를 호출해야 한다 — 이건 명시적인
   초대(invitation) 다.
 
+**Phase 6 handoff — 위 `--allowed-user-id` 항목은 이제 해소됐다.** 06-02 에서
+`run_telegram_service.sh` 에 프리플라이트 가드를 추가해, 토큰이 있는데 숫자형
+`TELEGRAM_ALLOWED_USER_ID` 가 없으면 `cline` 을 절대 실행하지 않고 즉시 거부(`ABORT-NET04`)한다.
+CLI 자체(cline 3.0.53)는 여전히 이 플래그 없이도 시작한다 — 보장하는 지점은 CLI 가 아니라 이
+래퍼다. 전체 설명은 `docs/network-exposure.md` §4d 참고.
+
 ---
 *Phase: 05-kanban-telegram-services*
