@@ -1,0 +1,68 @@
+# cline-cw-overlay.yaml -- Phase 7 (07-02 Task 1) contextWindow injection mechanism.
+#
+# Passed to `harbor run` as `--extra-docker-compose <this file>` (a real, documented harbor
+# CLI flag -- harbor/cli/jobs.py `extra_docker_compose: Annotated[list[Path] | None, Option(
+# "--extra-docker-compose", help="Additional Docker Compose overlay file. Can be used multiple
+# times.")]`, wired to `config.environment.extra_docker_compose` (harbor/models/trial/config.py:214)
+# and merged into the compose file list Harbor already builds for the `main` service
+# (harbor/environments/docker/docker.py: `paths.extend(self.extra_docker_compose_paths)`).
+#
+# This is NOT editing any task.toml / environment/Dockerfile (house rule 4) and NOT patching
+# harbor's own source (also house rule 4) -- it is a first-class, generic overlay mechanism
+# harbor ships for exactly this purpose, used here for a Cline-specific injection harbor's own
+# cline-cli adapter does not natively support (no --agent-kwarg exists for this, see FINDING.md
+# avenue B).
+#
+# What it does, and why it is picked up by the actual `cline ... -- <prompt>` invocation:
+#   1. Bind-mounts cline-cw-providers.json (read-only) to a container-absolute path that is
+#      NOT ~/.cline/data/settings/providers.json (house rule 6: never target that literal path,
+#      host or container) and does not depend on any per-task Dockerfile's $HOME/$USER.
+#   2. Sets CLINE_PROVIDER_SETTINGS_PATH at the *compose-service* level (Dockerfile-ENV-
+#      equivalent), which `docker compose exec` inherits by default -- confirmed from
+#      harbor/environments/docker/docker.py `_compose_exec`: `if env: for key, value in
+#      env.items(): exec_command.extend(["-e", f"{key}={value}"])` only ever APPENDS specific
+#      `-e KEY=VALUE` pairs to the exec invocation; it never clears or replaces the container's
+#      own environment. So harbor's cline-cli adapter's own fixed 5-key exec-time env dict
+#      (PROVIDER/API_KEY/MODELID/CLINE_WRITE_PROMPT_ARTIFACTS/CLINE_PROMPT_ARTIFACT_DIR, cline.py
+#      `create_run_agent_commands`) coexists with, rather than erases, this compose-level var.
+#   3. The installed cline 3.0.53 binary's settings-path resolver honors it verbatim: (strings,
+#      /opt/homebrew/lib/node_modules/cline/bin/.cline) `function sC(){let C=process.env
+#      .CLINE_PROVIDER_SETTINGS_PATH?.trim();if(C)return C;return E(D(),"settings",
+#      "providers.json")}` -- if set, used AS-IS; only falls back to the default
+#      ~/.cline/data/settings/providers.json path when unset/empty.
+#   4. cline's own CLI single-shot bootstrap (the exact `--json`, non-interactive code path
+#      harbor's adapter invokes) calls `q.getProviderConfig(p, {includeKnownModels:!1})` for the
+#      `-P`-selected provider id BEFORE building the session's model handler -- confirmed live in
+#      the same binary, in the branch keyed on `outputMode==="json"||!process.stdin.isTTY&&
+#      !n.interactive` (harbor's adapter always passes --json and runs non-interactively). For
+#      the openai-compatible provider specifically, this is also where `baseUrl` is sourced (see
+#      the separate `h8()` function: `Z=new E1().getProviderConfig($,...),J=Z?.baseUrl`) --
+#      meaning this same file also supplies the base URL the adapter's own fixed env dict never
+#      forwards (see FINDING.md avenue C's BASE_URL sub-finding).
+#
+# NOT LIVE-VERIFIED: this plan's `cline` invocation budget is 0 and it runs no `harbor run`
+# (house rule -- verification is deferred to 07-03's smoke run, same pattern this project already
+# uses for research Open Question 2). Sourced with high confidence from four independent points
+# in the installed adapter + installed cline binary, but the FIRST thing 07-03 must check is
+# whether this overlay actually took effect (e.g. by reading `agent/cline.txt`'s first turns for
+# evidence the model saw more than a token or two of budget, or by grepping the copied
+# `agent/command-*/command.txt` for confirmation cline started without an immediate
+# provider-not-configured error).
+# `source:` uses ${PROJECT_ROOT} compose-variable interpolation (NOT a bare relative path) --
+# harbor merges multiple `-f`/-compose-file arguments and the "project directory" a bare relative
+# path would resolve against is harbor's OWN installed package directory (the first compose file
+# in its internally-built list, `docker-compose-build.yaml`/`-prebuilt.yaml`), not this overlay
+# file's own directory -- so a relative source path here would resolve to the wrong place.
+# PROJECT_ROOT is already exported by config.env, which every script that invokes `harbor run`
+# sources first, so it's present in harbor's own process environment and therefore in the
+# `docker compose` CLI invocation's env (docker.py `_compose_env_vars(include_os_env=True)` merges
+# the full host os.environ for exactly this kind of ${VAR} substitution).
+services:
+  main:
+    volumes:
+      - type: bind
+        source: ${PROJECT_ROOT}/phase-07/bench/cline-cw-providers.json
+        target: /opt/harbor-cline-cw/providers.json
+        read_only: true
+    environment:
+      CLINE_PROVIDER_SETTINGS_PATH: /opt/harbor-cline-cw/providers.json

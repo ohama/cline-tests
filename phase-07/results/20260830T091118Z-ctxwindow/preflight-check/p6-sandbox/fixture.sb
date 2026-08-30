@@ -1,0 +1,12 @@
+(version 1)
+;; DO NOT EDIT — generated from /Users/ohama/projs/cline-tests/phase-03/fixtures/allowed_repos.test.json
+;; Generated: 2026-08-30T09:15:49Z
+(allow default)
+(deny file-read* (subpath "/Users/ohama"))
+(deny file-write* (subpath "/Users/ohama"))
+(allow file-read* (subpath "/Users/ohama/projs/cline-tests/phase-03/fixtures/allowed"))
+(allow file-write* (subpath "/Users/ohama/projs/cline-tests/phase-03/fixtures/allowed"))
+(allow file-read* (subpath "/Users/ohama/projs/cline-tests/phase-03/fixtures/symlinked/real"))
+(allow file-write* (subpath "/Users/ohama/projs/cline-tests/phase-03/fixtures/symlinked/real"))
+(allow file-read* (subpath "/Users/ohama/.cline"))
+(allow file-write* (subpath "/Users/ohama/.cline"))
