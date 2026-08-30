@@ -1,0 +1,39 @@
+{
+  "TCP": {
+    "10000": {
+      "HTTPS": true
+    },
+    "443": {
+      "HTTPS": true
+    },
+    "8443": {
+      "HTTPS": true
+    }
+  },
+  "Web": {
+    "ohama-2.tail318f12.ts.net:10000": {
+      "Handlers": {
+        "/": {
+          "Proxy": "http://127.0.0.1:8788"
+        }
+      }
+    },
+    "ohama-2.tail318f12.ts.net:443": {
+      "Handlers": {
+        "/": {
+          "Proxy": "http://127.0.0.1:8787"
+        }
+      }
+    },
+    "ohama-2.tail318f12.ts.net:8443": {
+      "Handlers": {
+        "/": {
+          "Proxy": "http://127.0.0.1:3000"
+        }
+      }
+    }
+  },
+  "AllowFunnel": {
+    "ohama-2.tail318f12.ts.net:8443": true
+  }
+}

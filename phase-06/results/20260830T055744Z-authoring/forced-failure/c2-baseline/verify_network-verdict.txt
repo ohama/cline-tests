@@ -1,0 +1,51 @@
+=== phase-06/net/verify_network.sh -- 2026-08-30T05:58:09Z ===
+
+--- 1: tailscale-reachable ---
+CHECK: PASS tailscale-reachable
+
+--- 2: no-new-public-exposure ---
+CHECK: PASS no-new-public-exposure
+
+--- 3: preexisting-serve-entries-untouched ---
+CHECK: FAIL preexisting-serve-entries-untouched -- DRIFT:Web[ohama-2.tail318f12.ts.net:10000] drifted: live={'Handlers': {'/': {'Proxy': 'http://127.0.0.1:8788'}}} base={'Handlers': {'/': {'Proxy': 'http://127.0.0.1:1234'}}}
+
+--- 4: kanban-serve-entry-present ---
+CHECK: FAIL kanban-serve-entry-present -- ABSENT -- no handler for ohama-2.tail318f12.ts.net:8444 proxying / to http://127.0.0.1:3484 yet
+
+--- 5: port-3000-unbound ---
+CHECK: PASS port-3000-unbound
+
+--- 6: kanban-bind-loopback-only ---
+CHECK: PASS kanban-bind-loopback-only
+
+--- 7: lan-refused-kanban-port ---
+CHECK: PASS lan-refused-kanban-port
+
+--- 8: lan-refused-serve-port ---
+CHECK: PASS lan-refused-serve-port
+
+--- 9: tailnet-https-200 ---
+CHECK: FAIL tailnet-https-200 -- http_code=000 url=https://ohama-2.tail318f12.ts.net:8444/
+
+--- 10: tailnet-no-passcode-gate ---
+tailnet-no-passcode-gate: https://ohama-2.tail318f12.ts.net:8444/ not yet reachable (curl_rc=7) -- reachability is check 9's job; no banner in the log is this check's PASS condition when unreachable
+CHECK: PASS tailnet-no-passcode-gate
+
+--- 11: net04-guard-present ---
+CHECK: PASS net04-guard-present
+
+--- 12: net04-guard-refuses ---
+CHECK: PASS net04-guard-refuses
+
+--- 13: no-wildcard-bind-in-repo ---
+CHECK: PASS no-wildcard-bind-in-repo
+
+--- 14: no-public-exposure-command-in-repo ---
+CHECK: PASS no-public-exposure-command-in-repo
+
+--- 15: live-pids-stable ---
+CHECK: PASS live-pids-stable
+
+CASES 12/15
+CRASHED 0
+VERIFY_NETWORK: FAIL
