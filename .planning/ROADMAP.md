@@ -156,12 +156,15 @@ Plans:
 **Requirements**: BCH-01, BCH-02, BCH-03
 **Success Criteria** (what must be TRUE):
   1. `harbor run --env docker` 로 cline-bench 공식 과제 5~8개가 로컬 Docker 에서 실행된 결과 디렉터리가 존재한다
-     — **`not_met`**: 실제로 실행된 과제는 1개뿐이다(사용자가 07-03 체크포인트에서 `stop-at-one`
-     을 선택). 1개를 5~8개 범위로 승격하지 않는다 — `phase-07/results/20260830T103307Z-phase-close/criteria.md`
-     참고
-  2. 각 실행 디렉터리에 프롬프트 원문과 결과가 모두 파일로 저장돼 있다 — `met` (실행된 1개 과제 기준)
+     — **`not_met`**: gap-closure(07-06~09) 로 주입 메커니즘 자체는 고쳐졌고 모델 도달도
+     증명됐지만, 두 런 디렉터리를 통틀어 실제로 실행된 과제는 여전히 고유 **4개**뿐이다(실행
+     인스턴스로는 5회 — `discord-trivia-approval-keyerror` 는 수정 전/후 두 번 시도된 동일 과제
+     1개). 4개를 5~8개 범위로 승격하지 않는다 —
+     `phase-07/results/20260830T174325Z-phase-close-2/criteria2.md` 참고
+  2. 각 실행 디렉터리에 프롬프트 원문과 결과가 모두 파일로 저장돼 있다 — `met` (시도된 4개 과제/5개
+     인스턴스 기준, 두 런 디렉터리 모두)
   3. 통과/실패와 소요 시간을 정리한 표가 파일로 존재한다 — `met`
-**Plans**: 10 plans (5 original + 5 gap-closure)
+**Plans**: 10 plans
 
 Plans:
 - [x] 07-01-PLAN.md — harbor/cline-bench 설치 + 상시 게이트 프리플라이트 + 과제 인벤토리
@@ -169,11 +172,11 @@ Plans:
 - [x] 07-03-PLAN.md — 스모크 1개 과제 실행 + 분석 + 비용 결정 체크포인트
 - [x] 07-04-PLAN.md — 선택된 과제 순차 실행 + BCH-03 표 + 배치 후 게이트
 - [x] 07-05-PLAN.md — docs/cline-bench.md + phase-close(criteria.md, ROADMAP)
-- [ ] 07-06-PLAN.md — (gap) 주입 실패 원인 진단: 3.0.53 실측 바이너리 + 오프라인 compose 재현 + 컨테이너 프로브 사다리 → DIAGNOSIS.md
-- [ ] 07-07-PLAN.md — (gap) 확인된 메커니즘 적용 + 과제 1개로 증명(flashnext 로그 슬라이스 non-empty, model_turns>0) 또는 terminal 기록 + verify_bench B11
-- [ ] 07-08-PLAN.md — (gap) 실측 비용 제시 + 추가 실행 개수 결정 체크포인트(사람)
-- [ ] 07-09-PLAN.md — (gap) 선택된 과제 순차 실행 + BCH-03 표 재생성 + 배치 후 게이트
-- [ ] 07-10-PLAN.md — (gap) docs/cline-bench.md §4/§9 정정 + criteria2.md + ROADMAP/REQUIREMENTS/STATE 동기화 + 과대주장 감사
+- [x] 07-06-PLAN.md — (gap) 주입 실패 원인 진단: 3.0.53 실측 바이너리 + 오프라인 compose 재현 + 컨테이너 프로브 사다리 → DIAGNOSIS.md(ROOT_CAUSE: schema-rejected)
+- [x] 07-07-PLAN.md — (gap) 스키마 수정 적용 + 과제 1개로 실측 증명(SLICE_BYTES=145133, model_turns=38) + verify_bench B11
+- [x] 07-08-PLAN.md — (gap) 실측 비용 제시(cost.md) + 추가 실행 개수 결정 체크포인트(사람, `plus-three` 해석) → SELECTED_TASKS_GAP
+- [x] 07-09-PLAN.md — (gap) 선택된 3개 과제 순차 실행(2개 모델 도달·fail-context, 1개 fail-infra) + BCH-03 표 재생성 + 배치 후 게이트
+- [x] 07-10-PLAN.md — (gap) docs/cline-bench.md §4/§9 정정 + criteria2.md + ROADMAP/REQUIREMENTS/STATE 동기화 + 과대주장 감사
 
 ### Phase 8: 한글 사용 매뉴얼
 **Goal**: 실제로 출하된 것을 기준으로 CLI·웹(Kanban)·iPad/iPhone 사용법과 32K 운용 주의사항을
@@ -207,5 +210,5 @@ Phase 1·2·3 은 서로 병렬 가능(의존성 없음). Phase 4·5 는 1·2·3
 | 4. 헤드리스 CLI 래퍼 | 4/4 | ✓ Complete | 2026-08-30 |
 | 5. Kanban·Telegram 서비스화 | 7/7 | ✓ Complete | 2026-08-30 |
 | 6. 네트워크 노출 | 8/8 | ◆ 서버측 완료 — 기준 1·5 human_needed (iPad/Telegram 미관측) | 2026-08-30 |
-| 7. cline-bench 동작 검증 | 5/5 | ◆ 완료 — 기준 1 `not_met`(1개 과제만 실행, 사용자 결정), 기준 2·3 `met` | 2026-08-30 |
+| 7. cline-bench 동작 검증 | 10/10 | ◆ 완료(gap-closure 포함) — 기준 1 `not_met`(고유 4개 과제, 3개 모델 도달, 5~8 하한 미달), 기준 2·3 `met` | 2026-08-30 |
 | 8. 한글 사용 매뉴얼 | 0/TBD | Not started | - |

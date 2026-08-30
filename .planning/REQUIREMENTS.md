@@ -71,8 +71,11 @@
 ### BCH — 동작 검증
 
 - [ ] **BCH-01**: cline-bench 공식 과제 5~8개를 로컬 Docker(`harbor run --env docker`)로 실행한다
-- [ ] **BCH-02**: 각 실행의 **프롬프트와 결과가 모두** 파일로 저장된다
-- [ ] **BCH-03**: 통과/실패와 소요 시간이 한 표로 요약된다
+  <br>※ 2026-08-31 정정 — gap-closure(07-06~09) 로 주입 메커니즘은 고쳐져 모델 도달까지
+  실측 증명됐지만(3개 과제, 32K 천장에서 거부), 실제 실행된 고유 과제 수는 4개로 여전히
+  5~8 하한에 못 미친다. `not_met` 그대로.
+- [x] **BCH-02**: 각 실행의 **프롬프트와 결과가 모두** 파일로 저장된다
+- [x] **BCH-03**: 통과/실패와 소요 시간이 한 표로 요약된다
 
 ### DOC — 한글 사용 매뉴얼
 
@@ -149,9 +152,9 @@
 | NET-03 | Phase 6 | Complete |
 | NET-04 | Phase 6 | Complete |
 | NET-05 | Phase 6 | Human-needed |
-| BCH-01 | Phase 7 | Not met (1/12 과제, 사용자 stop-at-one) |
-| BCH-02 | Phase 7 | Complete (실행된 1개 과제 기준) |
-| BCH-03 | Phase 7 | Complete (실행된 1개 과제 기준) |
+| BCH-01 | Phase 7 | Not met (고유 4/12 과제, 3개 모델 도달·32K 천장에서 fail-context, 5~8 하한 미달) |
+| BCH-02 | Phase 7 | Complete (시도된 4개 과제/5개 인스턴스 기준, 두 런 디렉터리 모두) |
+| BCH-03 | Phase 7 | Complete (시도된 4개 과제/5개 인스턴스 기준, 두 런 디렉터리 모두) |
 | DOC-01 | Phase 8 | Pending |
 | DOC-02 | Phase 8 | Pending |
 | DOC-03 | Phase 8 | Pending |

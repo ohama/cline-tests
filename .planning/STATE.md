@@ -5,17 +5,38 @@
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
-**Current focus:** **Phase 7 (cline-bench 동작 검증) 완료 — 07-05(docs/cline-bench.md +
-phase-close) 로 5/5 plans 종료, ROADMAP criterion 1 은 정직하게 `not_met`.** cline-bench 공식
-과제 12개 중 실제로 실행된 것은 **1개**(`discord-trivia-approval-keyerror`, 사용자가 07-03
-체크포인트에서 `stop-at-one` 선택), 통과 0개, 검증 `fail-infra`(flashnext 서버 로그 슬라이스
-0바이트 — 컨테이너의 cline 이 실제 OpenAI API 를 호출하고 인증 실패). 07-02 의
-`CLINE_PROVIDER_SETTINGS_PATH` 주입 판정(`INJECTABLE`, 소스만으로 도출, 라이브 미검증)이
-harbor 의 실제 호출 형태에서는 **적용되지 않는다**는 것이 이 실행으로 확정됐다(하네스 버그
-아님 — compose 머지/exec env 상속 둘 다 격리 재검증 완료). 증명된 것은 파이프라인 전체(설치→
-컨테이너 빌드→호출→검증→증거 번들)가 끝까지 동작한다는 것뿐, cline-bench 가 이 스택
-(flashnext)을 검증했다는 것은 아니다 — `docs/cline-bench.md` §9 가 Phase 8 매뉴얼에 이 문장을
-쓰지 말라고 명시적으로 못박음. 다음은 Phase 8(한글 사용 매뉴얼).
+**Current focus:** **Phase 7 (cline-bench 동작 검증) gap-closure 포함 완료 — 07-10(docs
+정정 + criteria2.md + ROADMAP/REQUIREMENTS/STATE 동기화 + 과대주장 감사) 로 10/10 plans
+종료, ROADMAP criterion 1 은 여전히 정직하게 `not_met`.** cline-bench 공식 과제 12개 중 두 런
+디렉터리를 통틀어 실제로 실행된 것은 고유 **4개**(`discord-trivia-approval-keyerror`/
+`telegram-plugin-refactor`/`filmarchiver`/`v-edit-workspace-tests`, 실행 인스턴스로는 5회 —
+`discord-trivia-approval-keyerror` 는 수정 전/후 두 번 시도된 동일 과제 1개), 이 중 **3개가
+이 스택의 모델 서버(flashnext)에 실제로 도달**했으며(모델에 도달한 3개 전부 이 스택의 32K
+`MAX_KV_SIZE` 천장에서 `fail-context` 로 거부됨), 통과는 여전히 **0개**다. 07-02 의
+`CLINE_PROVIDER_SETTINGS_PATH` 주입 메커니즘이 07-03 스모크에서 작동하지 않았던 원인은
+07-06 이 실측 진단했다 — `ROOT_CAUSE: schema-rejected`(`cline-cw-providers.json` 이 필수
+`version`/`updatedAt` 필드를 빠뜨려 `ProviderSettingsManager.read()` 가 경고 없이 빈 provider
+레지스트리로 폴백), 07-02 원 판정이 이미 3.0.60 으로 드리프트된 호스트 바이너리를 분석한
+것이었다는 사실도 이 과정에서 드러났지만 **버전 스큐(H1)는 실측으로 기각**됐다(원인 아님,
+같은 플랫폼 대조 스캔으로 확정). 07-07 이 그 스키마 수정을 적용해 실측 증명
+(`SLICE_BYTES=145133`, `model_turns=38`)했고, 07-09 가 두 과제에서 재현했다. 호스트 `cline`
+3.0.60 드리프트는 여전히 사전 존재·미수정 상태로 기록만 되어 있다(`criteria2.md`). 증명된
+것: 파이프라인 전체가 flashnext 까지 실제로 도달한다는 것. 증명되지 않은 것: 이 스택이
+cline-bench 과제를 완료(통과)할 수 있다는 것 — `docs/cline-bench.md` §9 가 Phase 8 매뉴얼에
+"통과했다"/"검증됐다"/"완료할 수 있다"를 쓰지 말라고 명시적으로 못박음(단, "flashnext 에
+도달한다"는 이제 근거를 갖고 쓸 수 있음). 다음은 Phase 8(한글 사용 매뉴얼).
+
+이전(Phase 7 최초 완료, gap-closure 이전): Phase 7 (cline-bench 동작 검증) 완료 — 07-05
+(docs/cline-bench.md + phase-close) 로 5/5 plans 종료, ROADMAP criterion 1 은 정직하게
+`not_met`. cline-bench 공식 과제 12개 중 실제로 실행된 것은 **1개**
+(`discord-trivia-approval-keyerror`, 사용자가 07-03 체크포인트에서 `stop-at-one` 선택), 통과
+0개, 검증 `fail-infra`(flashnext 서버 로그 슬라이스 0바이트 — 컨테이너의 cline 이 실제 OpenAI
+API 를 호출하고 인증 실패). 07-02 의 `CLINE_PROVIDER_SETTINGS_PATH` 주입 판정(`INJECTABLE`,
+소스만으로 도출, 라이브 미검증)이 harbor 의 실제 호출 형태에서는 **적용되지 않는다**는 것이
+이 실행으로 확정됐다(하네스 버그 아님 — compose 머지/exec env 상속 둘 다 격리 재검증 완료).
+증명된 것은 파이프라인 전체(설치→컨테이너 빌드→호출→검증→증거 번들)가 끝까지 동작한다는
+것뿐, cline-bench 가 이 스택(flashnext)을 검증했다는 것은 아니다 — 이 결론은 gap-closure
+(07-06~10)로 절반 뒤집혔다(위 Current focus 참고).
 
 이전(Phase 6 완료): Phase 6 (네트워크 노출) 완료 — 06-06(docs/network-exposure.md + iPad
 체크리스트 + phase-close) 로 8/8 plans 종료. kanban 은
@@ -71,10 +92,10 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 
 ## Current Position
 
-Phase: 7 of 8 (cline-bench 동작 검증) — **GAP CLOSURE 진행 중 (07-05 완료 후 재개, 5개
-gap-closure 플랜 07-06~07-10 추가, 총 10/10 플랜).**
-Plan: 09 of 10 in current phase — **완료(2/2 tasks — Task 1 auto, Task 2 auto — 2개 개별 커밋 +
-메타데이터 커밋).**
+Phase: 7 of 8 (cline-bench 동작 검증) — **GAP CLOSURE 포함 완료 (07-05 완료 후 재개된 5개
+gap-closure 플랜 07-06~07-10 전부 완료, 10/10 플랜).**
+Plan: 10 of 10 in current phase — **완료(3/3 tasks — Task 1 auto, Task 2 auto, Task 3 auto —
+개별 커밋 + 메타데이터 커밋).**
 
 **Phase 7 gap-closure 배경**: 07-05 종료 후 검증(07-VERIFICATION.md, `passed`)이 나온 뒤,
 07-02 의 `CLINE_PROVIDER_SETTINGS_PATH` 주입 `VERDICT: INJECTABLE` 이 **잘못된 바이너리**(호스트
@@ -223,9 +244,32 @@ Bun 바이너리) — 주입 메커니즘과 무관한 별개의 인프라 결�
 재사용 가능 6.858GB 는 이미지가 아니라 build cache 에 있음, 07-10 정리 레시피는 `docker rmi`
 아닌 `docker builder prune` 대상으로 써야 함). **두 런 디렉터리 통틀어 고유 과제 4개
 시도(런 인스턴스 5개), 모델 도달 3개, 통과 0개 — BCH-01 여전히 `not_met`, 이 플랜이 승격
-안 함.** SUMMARY 작성 완료(`07-09-SUMMARY.md`). **다음: 07-10(gap docs/cline-bench.md
-§4/§9 정정 + criteria2.md + ROADMAP/REQUIREMENTS/STATE 동기화 + 과대주장 감사 — Phase 7 마지막
-플랜).**
+안 함.** SUMMARY 작성 완료(`07-09-SUMMARY.md`).
+
+**07-10(docs 정정 + criteria2.md + ROADMAP/REQUIREMENTS/STATE 동기화 + 과대주장 감사, Phase 7
+마지막 플랜) — 완료**: Task 1(커밋 `5458259`): `docs/cline-bench.md` §1/§2/§3/§4/§6/§7/§8/§9
+를 gap-closure 결과에 맞춰 정정 — 거짓이 된 부분(§4 의 "모델 서버에 끝내 도달 못함", §9 의
+"cline-bench 가 flashnext 를 검증했다는 문장 절대 금지")은 수정 전 시대로 명시적으로
+스코프하고 재작성, 여전히 참인 부분("벤치가 돌았다≠통과했다", P=0, 통과 0개, 온와이어 시스템
+프롬프트 미캡처)은 그대로 보존, 새 §4 한계(모델 도달한 3개 전부 32K `MAX_KV_SIZE` 천장에서
+거부됨 — "이 phase 가 배운 가장 유용한 사실"로 명시)를 추가. §9 forbidden-sentence 리스트를
+뒤집어 이제 위험한 문장("통과했다"/"검증됐다"/"완료할 수 있다")을 금지하고, 새로 근거를 갖게
+된 문장("flashnext/litellm 체인에 실제로 도달한다")을 허용 목록에 추가. H1(버전 스큐)은
+기각·비원인으로 명시해 재론 방지. 173줄 → 260줄. Task 2(커밋 예정): 두 런 디렉터리를 세
+ROADMAP 기준에 재매핑한 `phase-07/results/20260830T174325Z-phase-close-2/criteria2.md`
+작성(criterion 1 `not_met` + "모델 도달 3/4" 서브라인, criterion 2·3 `met`, BCH 매핑 표, 호스트
+`cline` 3.0.60 드리프트를 사전 존재·미수정 기록으로 명문화) — `.planning/ROADMAP.md` Phase 7
+세 기준 인라인 재검증(`**Plans**: 10 plans`, 07-06~10 체크박스 `[x]` 전환, 진행률 표
+`10/10 ◆ 완료`), `.planning/REQUIREMENTS.md` BCH-02/03 체크(`[x]`, BCH-01 은 `[ ]` 유지 + 정정
+각주), 세 status 행 갱신. Task 3: 상시 게이트 재스윕(preflight/verify_bench×2+네거티브
+컨트롤/verify_services/verify_no_regression/verify_sandbox/verify_network/verify_config) +
+과대주장 감사(`anti-overclaim.md`) + 부수피해 체크리스트(`collateral.md`). 두 런 디렉터리 모두
+읽기 전용으로 보존(쓰기 0회), `bench/run NO 태스크`(harbor run 0회, 모델 지출 0), 6종 pid·포트
+3000·카나리아·`EXTRA_ALLOW_PATHS` 전부 무변경. SUMMARY 작성 완료(`07-10-SUMMARY.md`).
+**다음: Phase 8(한글 사용 매뉴얼)** — 이 스택이 실제로 무엇을 증명했고(flashnext 도달까지)
+무엇을 증명하지 못했는지(과제 완료/통과) 를 그대로 옮겨 써야 한다. 호스트 `cline` 3.0.60
+드리프트(사전 존재, 미수정)를 언제 어떻게 고칠지는 여전히 열린 질문 — kanban 이 호스트
+`cline` 을 호출하므로 수정 전 kanban/telegram-connect 프로세스가 안 돌고 있는지 확인 필요.
 
 이전(07-05 완료, gap-closure 이전 마지막 정규 플랜): Phase 7 다섯째 플랜(07-05): Task
 1(커밋 `46e6423`): `docs/cline-bench.md`(173줄) 작성 —
