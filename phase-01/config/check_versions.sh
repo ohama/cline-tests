@@ -8,7 +8,11 @@
 #      again, assert unchanged. This is the actual CFG-05 claim: cline background-updates itself
 #      on invocation, so a single --version check at the top of a script is not sufficient proof.
 #   C) every ~/Library/LaunchAgents/*.plist that invokes cline or kanban carries
-#      CLINE_NO_AUTO_UPDATE=1 in its EnvironmentVariables dict. Vacuous pass if none exist yet
+#      CLINE_NO_AUTO_UPDATE=1 in its EnvironmentVariables dict, and every plist that invokes
+#      kanban ALSO carries kanban's own separate auto-update gate, KANBAN_NO_AUTO_UPDATE=1
+#      (confirmed via `strings` on the installed 0.1.70: `if (env2.KANBAN_NO_AUTO_UPDATE === "1")`
+#      guards kanban's own update path independently of cline's — `kanban --update` is a
+#      first-class command CLINE_NO_AUTO_UPDATE does not cover). Vacuous pass if none exist yet
 #      (Phase 5 creates them) — this check is armed for reuse.
 #
 # LAUNCHAGENTS_DIR env override lets tests point the plist scanner at a fixture directory instead
@@ -76,7 +80,7 @@ else
   fail "kanban --version drifted to '$KANBAN_VERSION_B' on a second invocation (expected '$KANBAN_PINNED_VERSION')"
 fi
 
-echo "--- Check C: plist EnvironmentVariables (CFG-05 for launchd surfaces) ---"
+echo "--- Check C: plist EnvironmentVariables (CFG-05 for launchd surfaces, both auto-update gates) ---"
 
 if [ ! -d "$LAUNCHAGENTS_DIR" ]; then
   ok "no LaunchAgents directory at $LAUNCHAGENTS_DIR — vacuous pass"
@@ -98,19 +102,23 @@ haystack = " ".join([program] + [str(a) for a in args]).lower()
 
 if "cline" in haystack or "kanban" in haystack:
     env = data.get("EnvironmentVariables", {}) or {}
-    val = env.get("CLINE_NO_AUTO_UPDATE")
-    status = "PASS" if str(val) == "1" else "FAIL"
-    print(label + "\t" + status + "\t" + repr(val))
+    required = ["CLINE_NO_AUTO_UPDATE"]
+    if "kanban" in haystack:
+        required.append("KANBAN_NO_AUTO_UPDATE")
+    for var in required:
+        val = env.get(var)
+        status = "PASS" if str(val) == "1" else "FAIL"
+        print("\t".join([label, var, status, repr(val)]))
 ' ) || true
 
     if [ -n "$MATCHES" ]; then
       MATCHED_ANY=1
-      while IFS=$'\t' read -r label status val; do
+      while IFS=$'\t' read -r label var status val; do
         [ -z "$label" ] && continue
         if [ "$status" = "PASS" ]; then
-          ok "plist '$label' ($plist) carries CLINE_NO_AUTO_UPDATE=1"
+          ok "plist '$label' ($plist) carries $var=1"
         else
-          fail "plist '$label' ($plist) missing CLINE_NO_AUTO_UPDATE=1 (found: $val)"
+          fail "plist '$label' ($plist) missing $var=1 (found: $val)"
         fi
       done <<< "$MATCHES"
     fi
@@ -118,7 +126,7 @@ if "cline" in haystack or "kanban" in haystack:
   shopt -u nullglob
 
   if [ "$MATCHED_ANY" -eq 0 ]; then
-    ok "no cline/kanban launchd plists exist yet (Phase 5 creates them) — this check is armed for reuse"
+    ok "no cline/kanban launchd plists exist yet (Phase 5 creates them) — this check is armed for reuse (both CLINE_NO_AUTO_UPDATE and KANBAN_NO_AUTO_UPDATE)"
   fi
 fi
 

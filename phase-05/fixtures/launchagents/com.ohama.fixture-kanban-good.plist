@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.ohama.fixture-kanban-good</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/opt/homebrew/bin/kanban</string>
+		<string>--no-open</string>
+		<string>--host</string>
+		<string>127.0.0.1</string>
+		<string>--port</string>
+		<string>3484</string>
+	</array>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>CLINE_NO_AUTO_UPDATE</key>
+		<string>1</string>
+		<key>KANBAN_NO_AUTO_UPDATE</key>
+		<string>1</string>
+	</dict>
+	<key>KeepAlive</key>
+	<true/>
+	<key>RunAtLoad</key>
+	<true/>
+</dict>
+</plist>

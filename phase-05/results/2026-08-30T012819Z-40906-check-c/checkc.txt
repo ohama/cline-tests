@@ -1,0 +1,15 @@
+--- Check A: version pins (CFG-05, CFG-06) ---
+OK: cline --version reports pinned 3.0.53
+OK: kanban --version reports pinned 0.1.70
+OK: cline npm package.json version matches pinned 3.0.53
+OK: kanban npm package.json version matches pinned 0.1.70
+--- Check B: no drift across invocations (the actual CFG-05 claim) ---
+OK: cline --version still reports 3.0.53 after an intervening 'cline config --json' invocation
+OK: kanban --version still reports 0.1.70 on a second invocation
+--- Check C: plist EnvironmentVariables (CFG-05 for launchd surfaces, both auto-update gates) ---
+OK: plist 'com.ohama.fixture-kanban-bad' (phase-05/fixtures/launchagents/com.ohama.fixture-kanban-bad.plist) carries CLINE_NO_AUTO_UPDATE=1
+FAIL: plist 'com.ohama.fixture-kanban-bad' (phase-05/fixtures/launchagents/com.ohama.fixture-kanban-bad.plist) missing KANBAN_NO_AUTO_UPDATE=1 (found: None)
+OK: plist 'com.ohama.fixture-kanban-good' (phase-05/fixtures/launchagents/com.ohama.fixture-kanban-good.plist) carries CLINE_NO_AUTO_UPDATE=1
+OK: plist 'com.ohama.fixture-kanban-good' (phase-05/fixtures/launchagents/com.ohama.fixture-kanban-good.plist) carries KANBAN_NO_AUTO_UPDATE=1
+---
+check_versions: FAIL (1 problems)
