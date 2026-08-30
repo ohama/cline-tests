@@ -1,0 +1,3 @@
+20:| `com.ohama.kanban` | running | 53894 | ✅ 자동 |
+21:| `com.ohama.telegram-connect` | running | 56669 | ✅ 자동 |
+37:| 3484 | Kanban (launchd com.ohama.kanban) | ✅ |

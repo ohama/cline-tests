@@ -1,0 +1,22 @@
+--- phase-05/results/20260830T023144Z-svc05/sync.sh.before	2026-08-29 14:48:46
++++ phase-05/results/20260830T023144Z-svc05/sync.sh.after	2026-08-30 11:32:10
+@@ -25,7 +25,8 @@
+ LABELS=(com.ohama.flashnext com.ohama.role-shim com.ohama.litellm
+         com.ohama.qwen36-35b com.ohama.qwen122b com.ohama.role-shim-35b
+         com.ohama.claude-proxy com.ohama.hermes-webui com.ohama.hermes-for-web
+-        com.openjarvis.gateway com.openjarvis.web)
++        com.openjarvis.gateway com.openjarvis.web
++        com.ohama.kanban com.ohama.telegram-connect)
+ 
+ diffs=0
+ for pair in "${FILES[@]}"; do
+@@ -82,7 +83,8 @@
+   for row in "8000:Flash-Next (mlx_vlm.server)" "8011:role-shim → 8000" "4000:litellm → 8011" \
+              "8001:(옛 qwen122b — 비활성)" "8012:(옛 role-shim-35b — 비활성)" \
+              "8082:claude-proxy" "8787:hermes-webui" "8788:hermes-for-web" \
+-             "8090:openjarvis gateway" "3000:openjarvis web"; do
++             "8090:openjarvis gateway" "3000:openjarvis web" \
++             "3484:Kanban (launchd com.ohama.kanban)"; do
+     p="${row%%:*}"; d="${row##*:}"
+     n=$(lsof -ti tcp:$p 2>/dev/null | wc -l | tr -d ' ')
+     echo "| $p | $d | $([[ "$n" != 0 ]] && echo '✅' || echo '—') |"

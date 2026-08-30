@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+#
+# sync.sh — 현재 시스템 상태를 이 디렉터리로 다시 긁어온다
+#
+#   ./sync.sh            갱신 + 검증 + STATE.md 재생성
+#   ./sync.sh --check    갱신하지 않고 차이만 본다
+#
+# 🔴 이 디렉터리는 **살아 있는 기준점**이다. 시점 스냅샷(백업)이 아니다.
+#    백업은 ~/llm-system/backups/ 에 따로 있다.
+#    설정을 바꿨으면 이 스크립트를 돌려 여기 내용을 실제와 맞춘다.
+set -uo pipefail
+D="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CHECK=0; [[ "${1:-}" == "--check" ]] && CHECK=1
+U=$(id -u)
+
+# 추적 대상 — (원본경로:이 디렉터리 안 상대경로)
+FILES=(
+  "/Users/ohama/agent-stack/litellm/config.yaml:config/litellm-config.yaml"
+  "/Users/ohama/llm-system/role_shim.py:config/role_shim.py"
+  "$HOME/.claude/proxy.env:downstream/claude-proxy.env"
+  "$HOME/.hermes/config.yaml:downstream/hermes-config.yaml"
+  "$HOME/.openjarvis/config.toml:downstream/openjarvis-config.toml"
+)
+# 추적할 launchd 라벨
+LABELS=(com.ohama.flashnext com.ohama.role-shim com.ohama.litellm
+        com.ohama.qwen36-35b com.ohama.qwen122b com.ohama.role-shim-35b
+        com.ohama.claude-proxy com.ohama.hermes-webui com.ohama.hermes-for-web
+        com.openjarvis.gateway com.openjarvis.web)
+
+diffs=0
+for pair in "${FILES[@]}"; do
+  src="${pair%%:*}"; dst="$D/${pair##*:}"
+  [[ -f "$src" ]] || { echo "  ⚠️  원본 없음: $src"; continue; }
+  if [[ -f "$dst" ]] && cmp -s "$src" "$dst"; then continue; fi
+  diffs=$((diffs+1))
+  if [[ $CHECK == 1 ]]; then echo "  차이: ${pair##*:}"
+  else mkdir -p "$(dirname "$dst")"; cp -p "$src" "$dst"; echo "  갱신: ${pair##*:}"; fi
+done
+for L in "${LABELS[@]}"; do
+  p="$HOME/Library/LaunchAgents/$L.plist"
+  [[ -f "$p" ]] || continue
+  dst="$D/launchagents/$L.plist"
+  if [[ -f "$dst" ]] && cmp -s "$p" "$dst"; then continue; fi
+  diffs=$((diffs+1))
+  if [[ $CHECK == 1 ]]; then echo "  차이: launchagents/$L.plist"
+  else cp -p "$p" "$dst"; echo "  갱신: launchagents/$L.plist"; fi
+done
+sysd=/Library/LaunchDaemons/com.ohama.iogpu-wired-limit.plist
+if [[ -f "$sysd" ]] && ! cmp -s "$sysd" "$D/launchagents/$(basename $sysd)"; then
+  diffs=$((diffs+1))
+  [[ $CHECK == 1 ]] && echo "  차이: launchagents/$(basename $sysd)" \
+                    || { cp -p "$sysd" "$D/launchagents/"; echo "  갱신: launchagents/$(basename $sysd)"; }
+fi
+
+if [[ $CHECK == 1 ]]; then
+  [[ $diffs == 0 ]] && echo "  ✅ 실제 시스템과 일치한다" || echo "  🔴 차이 ${diffs}건 — ./sync.sh 로 갱신하라"
+  exit $(( diffs > 0 ))
+fi
+
+# ── STATE.md 재생성 (실측) ────────────────────────────────────────────────
+{
+  echo "# STATE — 실측 상태"
+  echo
+  echo "생성 \`$(date '+%Y-%m-%d %H:%M:%S %Z')\` · \`./sync.sh\` 가 자동 생성한다. 손으로 고치지 말 것."
+  echo
+  echo '## launchd 서비스'
+  echo
+  echo '| 라벨 | 상태 | pid | 부팅 시 |'
+  echo '| --- | --- | ---: | --- |'
+  for L in "${LABELS[@]}"; do
+    st=$(launchctl print gui/$U/$L 2>/dev/null | awk -F'= ' '/^\tstate = /{print $2}')
+    pid=$(launchctl print gui/$U/$L 2>/dev/null | awk -F'= ' '/^\tpid = /{print $2}')
+    dis=$(launchctl print-disabled gui/$U 2>/dev/null | grep "\"$L\"" | grep -o 'enabled\|disabled')
+    boot=$([[ "$dis" == "disabled" ]] && echo '❌ 안 올라옴' || echo '✅ 자동')
+    echo "| \`$L\` | ${st:-—} | ${pid:-—} | $boot |"
+  done
+  echo
+  echo '## 포트'
+  echo
+  echo '| 포트 | 용도 | LISTEN |'
+  echo '| ---: | --- | --- |'
+  for row in "8000:Flash-Next (mlx_vlm.server)" "8011:role-shim → 8000" "4000:litellm → 8011" \
+             "8001:(옛 qwen122b — 비활성)" "8012:(옛 role-shim-35b — 비활성)" \
+             "8082:claude-proxy" "8787:hermes-webui" "8788:hermes-for-web" \
+             "8090:openjarvis gateway" "3000:openjarvis web"; do
+    p="${row%%:*}"; d="${row##*:}"
+    n=$(lsof -ti tcp:$p 2>/dev/null | wc -l | tr -d ' ')
+    echo "| $p | $d | $([[ "$n" != 0 ]] && echo '✅' || echo '—') |"
+  done
+  echo
+  echo '## litellm 별칭'
+  echo
+  python3 - <<'PY' 2>/dev/null || echo '(파싱 실패)'
+import yaml
+d=yaml.safe_load(open('/Users/ohama/agent-stack/litellm/config.yaml'))
+print('| 별칭 | 종류 | upstream |'); print('| --- | --- | --- |')
+for m in d.get('model_list',[]):
+    lp=m['litellm_params']
+    kind='Responses 브릿지' if 'chat_completions' in lp['model'] else 'chat'
+    print(f"| `{m['model_name']}` | {kind} | {lp['api_base']} |")
+PY
+  echo
+  echo '## 시스템'
+  echo
+  echo '```text'
+  echo "iogpu.wired_limit_mb  $(sysctl -n iogpu.wired_limit_mb 2>/dev/null)  ($(python3 -c "print(f'{$(sysctl -n iogpu.wired_limit_mb)*1024**2/1e9:.2f} GB')" 2>/dev/null))"
+  echo "물리 메모리            $(python3 -c "print(f'{$(sysctl -n hw.memsize)/1e9:.2f} GB')" 2>/dev/null)"
+  vm_stat | awk 'NR==1{match($0,/of [0-9]+/);ps=substr($0,RSTART+3,RLENGTH-3)} /Pages free/{gsub(/[ .]/,"",$3); printf "free                  %.1f GiB\n",$3*ps/1073741824} /Pages wired/{gsub(/[ .]/,"",$4); printf "wired                 %.1f GiB\n",$4*ps/1073741824}'
+  echo '```'
+} > "$D/STATE.md"
+
+cd "$D" && find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 shasum -a 256 > SHA256SUMS
+echo "  → STATE.md 재생성 · SHA256SUMS $(wc -l < SHA256SUMS | tr -d ' ')개"
+[[ $diffs == 0 ]] && echo "  변경 없음" || echo "  ${diffs}건 갱신됨"

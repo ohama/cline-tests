@@ -1,0 +1,2 @@
+  ✅ 실제 시스템과 일치한다
+synccheck-before exit=0

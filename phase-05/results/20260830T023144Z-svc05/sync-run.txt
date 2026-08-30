@@ -1,0 +1,5 @@
+  갱신: launchagents/com.ohama.kanban.plist
+  갱신: launchagents/com.ohama.telegram-connect.plist
+  → STATE.md 재생성 · SHA256SUMS 93개
+  2건 갱신됨
+exit=0
