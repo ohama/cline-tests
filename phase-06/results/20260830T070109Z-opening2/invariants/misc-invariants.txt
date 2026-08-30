@@ -1,0 +1,6 @@
+--- EXTRA_ALLOW_PATHS empty ---
+empty: OK
+--- EXTRA_ALLOW_PATHS repo-hygiene grep count under phase-06/ ---
+       2
+--- git diff --stat phase-01..phase-04 ---
+(empty above means clean)

@@ -1,0 +1,23 @@
+--- log line counts now ---
+kanban.log:       16
+telegram-connect.log:        0
+kanban-proxy.log:       15
+
+--- baseline (06-01) was: kanban.log=16, telegram-connect.log=0 (no proxy log existed yet) ---
+
+--- kanban-proxy.log tail (expect rejection lines from negative probes, nothing alarming) ---
+[2026-08-30T06:46:55.800Z] kanban_host_proxy listening on 127.0.0.1:18484 -> upstream http://127.0.0.1:3484 (allowed hosts: ohama-2.tail318f12.ts.net:8444, ohama-2.tail318f12.ts.net, 127.0.0.1:18484, localhost:18484)
+[2026-08-30T06:47:28.942Z] REJECT GET / reason=host offending="evil.invalid"
+[2026-08-30T06:47:28.951Z] REJECT GET / reason=origin offending="https://evil.invalid"
+[2026-08-30T06:47:45.829Z] kanban_host_proxy listening on 127.0.0.1:18484 -> upstream http://127.0.0.1:3484 (allowed hosts: ohama-2.tail318f12.ts.net:8444, ohama-2.tail318f12.ts.net, 127.0.0.1:18484, localhost:18484)
+[2026-08-30T06:51:10.740Z] REJECT GET / reason=host offending="evil.invalid"
+[2026-08-30T06:51:10.756Z] REJECT GET / reason=origin offending="https://evil.invalid"
+[2026-08-30T06:51:35.814Z] REJECT GET / reason=host offending="evil.invalid"
+[2026-08-30T06:51:35.827Z] REJECT GET / reason=origin offending="https://evil.invalid"
+[2026-08-30T06:51:50.611Z] REJECT GET / reason=host offending="evil.invalid"
+[2026-08-30T06:51:50.625Z] REJECT GET / reason=origin offending="https://evil.invalid"
+[2026-08-30T07:03:14.842Z] REJECT GET / reason=host offending="evil.invalid"
+[2026-08-30T07:03:14.855Z] REJECT GET / reason=origin offending="https://evil.invalid"
+[2026-08-30T07:03:31.303Z] REJECT GET / reason=host offending="evil.invalid"
+[2026-08-30T07:03:31.316Z] REJECT GET / reason=origin offending="https://evil.invalid"
+[2026-08-30T07:03:59.804Z] REJECT GET / reason=host offending="evil.invalid"

@@ -1,0 +1,7 @@
+--- telegram-connect inert check ---
+pgrep -f 'connect telegram': 0
+
+--- check 14 no-public-exposure-command-in-repo PASS line (from run2) ---
+--- 14: no-public-exposure-command-in-repo ---
+CHECK: PASS no-public-exposure-command-in-repo
+CHECK: PASS no-public-exposure-command-in-repo

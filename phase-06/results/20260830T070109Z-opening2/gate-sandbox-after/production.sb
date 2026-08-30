@@ -1,0 +1,10 @@
+(version 1)
+;; DO NOT EDIT — generated from /Users/ohama/projs/cline-tests/workspace/ALLOWED_REPOS.json
+;; Generated: 2026-08-30T07:05:10Z
+(allow default)
+(deny file-read* (subpath "/Users/ohama"))
+(deny file-write* (subpath "/Users/ohama"))
+(allow file-read* (subpath "/Users/ohama/projs/cline-tests/workspace/scratch-repo"))
+(allow file-write* (subpath "/Users/ohama/projs/cline-tests/workspace/scratch-repo"))
+(allow file-read* (subpath "/Users/ohama/.cline"))
+(allow file-write* (subpath "/Users/ohama/.cline"))
