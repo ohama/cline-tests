@@ -17,9 +17,28 @@ Phase 4 세 성공기준(HLS-01/02/03) 모두 실측 증거로 동시 성립: HL
 ## Current Position
 
 Phase: 5 of 8 (Kanban·Telegram 서비스화) — 진행 중
-Plan: 05 of 7 in current phase — 완료 (SUMMARY 작성 완료). **Wave 1(05-01/05-02, 병렬) 완료 +
-wave 2(05-03) 완료 + wave 3 전반(05-04) 완료 + wave 4(05-05) 완료.**
-Status: 05-05 완료 — **Phase 5 두 번째이자 마지막 always-on 서비스 등록,** 빈 토큰 슬롯인 채로.
+Plan: 06 of 7 in current phase — 완료 (SUMMARY 작성 완료). **Wave 1(05-01/05-02, 병렬) 완료 +
+wave 2(05-03) 완료 + wave 3 전반(05-04) 완료 + wave 4(05-05) 완료 + wave 5(05-06) 완료.**
+Status: 05-06 완료 — **SVC-05(미러 등록) + Phase 6 용 상시 게이트(`verify_services.sh`).**
+`~/local-llm-settings/sync.sh`(이 repo 의 git 이력 밖 파일)의 하드코딩 `LABELS` 배열/포트 행
+목록에 두 새 라벨(`com.ohama.kanban`/`com.ohama.telegram-connect`)과 `3484` 행을 각각 한 줄씩만
+추가하는 최소·additive 편집(before/after/diff 를 `phase-05/results/20260830T023144Z-svc05/` 에
+캡처 — repo 밖 편집이라 git log 로는 영원히 안 보임). 편집 전 `sync.sh --check` 가 이미
+"일치한다"(exit 0) 를 보고하면서도 새 plist 두 개가 완전히 추적 밖이었던 vacuous pass 를 실측
+확인 후, `sync.sh` 실행(인자 없음, live→mirror 유일 방향) → 두 plist 모두 미러에서 실제 설치본과
+byte-identical, `--check` 재실행 exit 0, 미러 STATE.md 에 두 라벨 running/✅ 자동 + `3484` 행
+확인. `phase-05/services/verify_services.sh`(453줄, house style `CHECK: PASS|FAIL` + 0/1/2 exit
+계약, 15개 체크: 라벨별 pid settled-not-looping, kanban 포트+HTTP, anti-orphan 양쪽, 포트 3000
+위생, 핀게이트 양쪽, `EXTRA_ALLOW_PATHS` 빈 값, 로그 성장 WARN, 미러 최신성) 작성 — 라이브 2회
+연속 실행 모두 exit 0·`CHECK:` 줄 15개 완전 동일, 의도적 음성 대조군(`KANBAN_PORT` 오버라이드)은
+exit 1 로 정확히 포트/HTTP 두 체크만 FAIL. 편차 1건(Rule 1 — 플랜 문서가 05-04 결정 로그와 동일한
+authoring 함정(`ps args` 에 "sandbox-exec" 리터럴 기대, execve() 가 argv 교체하므로 구조적으로
+불가능)을 반복하고 있음을 작성 중 발견, 05-04 의 `vmmap` 방법을 그대로 재사용해 수정 — 아래 결정
+로그 참조). 서비스 등록/재시작 0건, flashnext(46573)/litellm(48525)/role-shim(75548)/
+kanban(53894)/telegram-connect(56669) pid 전 과정 불변, `EXTRA_ALLOW_PATHS` 빈 값,
+`cline` 호출 0회. 두 커밋(`9d6075e`/`a75d75e`) 모두 개별.
+
+이전: 05-05 완료 — **Phase 5 두 번째이자 마지막 always-on 서비스 등록,** 빈 토큰 슬롯인 채로.
 `com.ohama.telegram-connect` 를 house-style plist(`phase-05/plists/com.ohama.telegram-connect.plist`,
 `TELEGRAM_BOT_TOKEN` 이 실제 빈 `<string></string>` 엔트리)로 스테이징·설치(멱등 2회 확인) 후
 유일하게 허용된 헬퍼(`restart_service.sh com.ohama.telegram-connect none`)로 기동 —
@@ -187,7 +206,19 @@ read/write/subprocess/escape-symlink 5건 전부 `DENIED EPERM`으로, `ENOENT` 
 deny-less 프로파일 거부, precheck 우회 시 Group F 4건 전부 `FAIL not-denied`, `--no-canonicalize`
 아래서 F6 실패)이 모두 사양대로 동작. `launchctl print .../com.ohama.flashnext` pid 46573 로
 플랜 전체에서 불변, `cline` 호출 0회.
-Last activity: 2026-08-30 — 05-05-PLAN.md 완료 (`phase-05/plists/com.ohama.telegram-connect.plist`
+Last activity: 2026-08-30 — 05-06-PLAN.md 완료 (`phase-05/services/verify_services.sh` +
+`phase-05/results/20260830T023144Z-svc05/` + `phase-05/results/20260830T023720Z-gate/`: SVC-05
+미러 등록 + Phase 6 용 상시 게이트. `~/local-llm-settings/sync.sh`(이 repo 밖 파일)의 `LABELS`
+배열/포트 행 목록에 두 새 라벨과 `3484` 를 최소·additive 로 추가(before/after/diff 캡처), 편집
+전 vacuous pass(`sync.sh --check` 가 이미 "일치한다" 보고하면서도 두 plist 추적 밖) 를 먼저
+실측 확인 후 `sync.sh` 실행(live→mirror) — 두 plist 모두 byte-identical, `--check` exit 0,
+미러 STATE.md 갱신 확인. `verify_services.sh`(15개 체크, house `CHECK: PASS|FAIL` + 0/1/2 exit
+계약) 라이브 2회 연속 exit 0 동일 결과 + 음성 대조군 exit 1(포트/HTTP 두 체크만 FAIL). 편차
+1건(Rule 1 — 플랜 문서가 05-04 결정 로그의 authoring 함정을 반복하는 것을 발견, `vmmap` 방법
+재사용해 수정). 서비스 등록/재시작 0건, pid 5종(46573/75548/48525/53894/56669) 전 과정 불변,
+`EXTRA_ALLOW_PATHS` 빈 값, `cline` 호출 0회. 두 커밋(`9d6075e`/`a75d75e`) 개별.)
+
+이전 활동: 2026-08-30 — 05-05-PLAN.md 완료 (`phase-05/plists/com.ohama.telegram-connect.plist`
 + `phase-05/results/20260830T021706Z-svc02-telegram/`: `com.ohama.telegram-connect` 를 빈
 `TELEGRAM_BOT_TOKEN` 슬롯인 채로 launchd 등록. criterion 1(SVC-02): pid 20초 간격 불변,
 `ppid=1`/`%cpu` 0.0. orphan sweep(핵심 증명): `pgrep -f 'connect telegram'` ~60초 3샘플 전부 0,
@@ -279,15 +310,16 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [███████▒▒▒] 74% (Phase 4/8 완료, Phase 5/8 진행 중 — wave 1(05-01/05-02) +
-wave 2(05-03) + wave 3 전반(05-04) + wave 4(05-05) 완료, Plan 23/31 누적 추정 — Phase 5 는 총 7개 플랜)
+Progress: [████████▒▒] 77% (Phase 4/8 완료, Phase 5/8 진행 중 — wave 1(05-01/05-02) +
+wave 2(05-03) + wave 3 전반(05-04) + wave 4(05-05) + wave 5(05-06) 완료, Plan 24/31 누적 추정 —
+Phase 5 는 총 7개 플랜, 05-07 하나만 남음)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 23
-- Average duration: ~14.7 min
-- Total execution time: ~5.65 hours
+- Total plans completed: 24
+- Average duration: ~14.5 min
+- Total execution time: ~5.8 hours
 
 **By Phase:**
 
@@ -297,9 +329,33 @@ wave 2(05-03) + wave 3 전반(05-04) + wave 4(05-05) 완료, Plan 23/31 누적 �
 | 2 | 4/4 | ~55 min | ~13.8 min |
 | 3 | 4/4 | ~48 min | ~12 min |
 | 4 | 4/4 | ~42 min | ~10.5 min |
-| 5 | 5/7 | ~87 min | ~17.4 min |
+| 5 | 6/7 | ~96 min | ~16 min |
 
 **Recent Trend:**
+- 05-06 (~9 min, wave 5 — SVC-05 plus a standing Phase 5 gate for Phase 6 to inherit. Extended
+  `~/local-llm-settings/sync.sh` (a file outside this repo's git history) with a minimal, additive
+  edit: its hardcoded `LABELS` array gained both new labels and its STATE.md port-row list gained
+  one row for 3484, nothing else touched. Measured the vacuous-pass failure mode as fact before
+  fixing it (`sync.sh --check` reported agreement while both new plists sat completely untracked),
+  then ran `sync.sh` for real (live -> mirror, the only sanctioned direction): both plists now
+  byte-identical in the mirror, `--check` now exits 0 for real reasons, the mirror's own
+  regenerated STATE.md lists both labels running/boot-enabled. Captured before-copy/after-copy/
+  diff of the out-of-repo edit under `phase-05/results/20260830T023144Z-svc05/` since git here
+  will never show it, and recorded (without touching) pre-existing unrelated drift already sitting
+  in the mirror's own git repo. Wrote `phase-05/services/verify_services.sh`, a 453-line, 15-check
+  standing gate in the same `CHECK: PASS|FAIL` / 0-1-2-exit shape as `verify_no_regression.sh` and
+  `verify_sandbox.sh` — settled-not-looping pid sampling for both labels, kanban port+HTTP,
+  anti-orphan for both services, port-3000 hygiene, both plists' pin gates, `EXTRA_ALLOW_PATHS`
+  emptiness, a log-growth WARN watch, and SVC-05 mirror freshness — run twice live with byte-
+  identical CHECK output both times, plus a deliberate negative control (`KANBAN_PORT` override)
+  that correctly failed exactly the two port/HTTP checks and nothing else. Caught the plan
+  document repeating 05-04's own already-diagnosed authoring trap before writing a single line of
+  the anti-orphan check: `ps args` structurally cannot show the literal string `sandbox-exec` for
+  an exec'd pid (execve() replaces argv), so confinement is proven via `vmmap` (libsandbox.1.dylib
+  mapped into the live kanban pid), reusing 05-04's own established method instead of writing a
+  check that could never pass. Zero services registered or restarted; live pids (flashnext 46573,
+  role-shim 75548, litellm 48525, kanban 53894, telegram-connect 56669) unchanged throughout;
+  `EXTRA_ALLOW_PATHS` empty; `cline` invocations: 0.)
 - 05-05 (~22 min, wave 4 — Phase 5's second and final always-on service, registered with the token
   slot deliberately empty. `com.ohama.telegram-connect` staged as a house-style plist (a real,
   empty, discoverable `TELEGRAM_BOT_TOKEN` entry, both auto-update gates, no `--allowed-user-id`
@@ -914,6 +970,33 @@ Recent decisions affecting current work:
   2건, `.gitignore`/증거 위치 정리 2건). flashnext/litellm/role-shim/kanban pid 4종 전 과정 불변,
   `EXTRA_ALLOW_PATHS` 빈 값, `cline` 호출 0회, `sync.sh` 미실행(05-06 소관). 네 커밋
   (`c3f7b2f`/`ebfbe26`/`b4f0c35`/`9355cee`) 모두 개별.
+- 05-06: **wave 5, SVC-05 + Phase 6 상시 게이트, Phase 5 penultimate 플랜.** `sync.sh` 는
+  `~/Library/LaunchAgents/*.plist` 를 glob 하지 않고 하드코딩 `LABELS` 배열만 미러한다 — 편집
+  없이는 두 새 서비스를 영원히 놓친다. 편집 전 `sync.sh --check` 가 이미 "일치한다"(exit 0)
+  를 보고하는 vacuous pass 를 실측으로 먼저 확인(가정이 아니라 증거), 이후 `LABELS` 배열과
+  STATE.md 포트 행 목록에만 각각 한 줄씩 추가하는 최소·additive 편집. 이 파일은 이 repo 의
+  git 이력 밖(`~/local-llm-settings/`)이므로 before-copy/after-copy/unified-diff 를
+  `phase-05/results/20260830T023144Z-svc05/` 에 캡처해 편집 사실을 이 repo 안에서도 재구성
+  가능하게 함. `sync.sh` 자체 실행(인자 없음, live→mirror 유일 방향)으로 두 plist 를 실제
+  미러링, `cmp` byte-identical 확인, `--check` 재실행 exit 0 로 vacuous pass 종결.
+  `verify_services.sh` 의 anti-orphan 체크 작성 중 **05-04 결정 로그와 동일한 함정을
+  플랜 문서 자신이 반복하고 있음을 발견** — 플랜은 `ps -o args=` 가 "sandbox-exec/kanban 체인"을
+  보여줘야 한다고 서술했지만, `sandbox-exec` 는 실제 `execve()` 를 수행하므로 exec 이후 argv 가
+  완전히 교체되어 어떤 post-exec `ps` 스냅샷도 그 리터럴 문자열을 보여줄 수 없다(05-04 가 이미
+  같은 kanban pid family 로 실측 확정한 사실). 플랜 문구 그대로 grep 을 짰다면 정확성과 무관하게
+  절대 통과할 수 없는 체크가 됐을 것 — 05-04 가 쓴 방법(`vmmap <pid> | grep -i sandbox` 로
+  `libsandbox.1.dylib` 가 그 pid 자신의 메모리에 실제 매핑돼 있는지 확인)을 그대로 재사용해
+  식별(`ps args` 의 `kanban` 매치)과 confinement 증명(vmmap)을 분리된 두 서브체크로 다시 작성.
+  `verify_services.sh`(453줄) 는 `verify_no_regression.sh`/`verify_sandbox.sh` 와 동일한
+  `CHECK: PASS|FAIL <name>` + 0/1/2 exit 계약을 따르는 15개 체크로 구성, 라이브 2회 연속 실행
+  모두 exit 0·`CHECK:` 줄 15개 완전 동일(diff 없음), 의도적 음성 대조군(`KANBAN_PORT` 오버라이드)
+  은 exit 1 로 포트/HTTP 체크 2개만 정확히 FAIL(나머지 13개, 특히 4개의 pid-settled 샘플은 영향
+  없이 PASS) — 게이트가 실제로 실패할 수 있음을 실증. 미러 자체 git repo(사용자 소유, 이 repo
+  와 무관)의 사전 존재 drift(flashnext/litellm plist, SHA256SUMS, STATE.md — Phase 2 의 이전
+  sync 가 남긴 미커밋 변경)는 이 플랜이 만든 것이 아님을 before/after git-status 캡처로 명시하고
+  손대지 않음(커밋 여부는 사용자 결정). 서비스 등록/재시작 0건, flashnext(46573)/litellm(48525)/
+  role-shim(75548)/kanban(53894)/telegram-connect(56669) pid 전 과정 불변, `EXTRA_ALLOW_PATHS`
+  빈 값, `cline` 호출 0회. 두 커밋(`9d6075e`/`a75d75e`) 모두 개별.
 
 ### Pending Todos
 
@@ -991,7 +1074,37 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **05-05-PLAN.md 완료 — wave 4, Phase 5 두 번째이자 마지막 always-on 서비스 등록
+Stopped at: **05-06-PLAN.md 완료 — SVC-05 미러 등록 + Phase 6 용 상시 게이트.**
+`~/local-llm-settings/sync.sh`(이 repo 의 git 이력 밖 파일)의 하드코딩 `LABELS` 배열에
+`com.ohama.kanban`/`com.ohama.telegram-connect` 를, STATE.md 포트 행 목록에 `3484` 를 각각
+추가만 하는 최소·additive 편집(before/after/diff 를 `phase-05/results/20260830T023144Z-svc05/`
+에 캡처 — repo 밖 편집이라 git log 로는 영원히 안 보임). 편집 전 `sync.sh --check` 가 이미
+"일치한다"(exit 0) 를 보고하면서도 새 plist 두 개가 완전히 추적 밖이었던 vacuous pass 를
+실측으로 확인 후, `sync.sh`(인자 없음, live→mirror 유일 허용 방향) 실행 → 두 plist 모두
+`~/local-llm-settings/launchagents/` 에 실제 설치본과 byte-identical, `--check` 재실행 exit 0,
+미러 STATE.md 에 두 라벨 running/✅ 자동 + `3484` 리스닝 행 확인. 미러 자체 git repo(사용자
+소유)의 사전 존재 drift(flashnext/litellm plist, SHA256SUMS, STATE.md — Phase 2 의 이전 sync 가
+남긴 미커밋 변경)는 손대지 않고 README 에만 기록. Task 2: `phase-05/services/verify_services.sh`
+(453줄, house style — `verify_no_regression.sh`/`verify_sandbox.sh` 와 동일한 `CHECK: PASS|FAIL`
++ 0/1/2 exit 계약) 작성 — 라벨별 running+settled pid 3샘플(~20초), kanban 포트+HTTP, anti-orphan
+(kanban 은 `vmmap` 기반 sandbox 매핑 + `ps args` 로 kanban 식별, telegram 은 빈 토큰 orphan
+sweep), 포트 3000 위생, 두 plist 핀게이트(양쪽 NO_AUTO_UPDATE), `EXTRA_ALLOW_PATHS` 빈 값,
+로그 성장 감시(WARN 만, FAIL 아님), SVC-05 미러 최신성 — 총 15개 체크. 라이브 2회 연속 실행 모두
+exit 0 이고 `CHECK:` 줄 15개 전부 동일(diff 없음), 의도적 음성 대조군(`KANBAN_PORT` 를 미사용
+포트로 오버라이드) 은 exit 1 로 포트/HTTP 두 체크만 정확히 FAIL(나머지 13개는 영향 없이 PASS) —
+게이트가 실제로 실패할 수 있음을 실증. 편차 1건(Rule 1, 플랜 문서 자체의 authoring 함정 — 아래
+결정 로그 참조). flashnext(46573)/litellm(48525)/role-shim(75548)/kanban(53894)/
+telegram-connect(56669) pid 전 과정 불변, `EXTRA_ALLOW_PATHS` 빈 값, `cline` 호출 0회. 두 커밋
+(`9d6075e`/`a75d75e`) 모두 개별, SUMMARY 작성 완료, STATE.md 갱신 완료.
+**다음:** 05-07(docs/services.md + 전체 게이트 스윕 + 재부팅 검증 방식 결정 체크포인트, Phase 5
+마지막 플랜)로 진행 — SVC-01~05 전부 실측 증거로 성립, Phase 5 남은 항목은 문서화·전체 스윕·
+재부팅 검증 방침뿐. `docs/headless-wrapper.md` 4절/8절이 남긴 `--auto-approve false` "안전하지만
+무력" 한계에 대한 에스컬레이션 결정은 여전히 검토 필요(이 플랜의 범위 밖). Phase 6 인계 항목
+(변경 없음): 토큰 주입 후 RPC 호스트가 열리는 잔여 이슈(`--rpc-address`/`CLINE_RPC_ADDRESS` 로
+대응), `--allowed-user-id` wrapper-level 강제(NET criterion 4).
+
+이전 세션: 2026-08-30
+정지 지점: **05-05-PLAN.md 완료 — wave 4, Phase 5 두 번째이자 마지막 always-on 서비스 등록
 (빈 토큰 슬롯).** `com.ohama.telegram-connect` 를 `phase-05/plists/com.ohama.telegram-connect.plist`
 (house style, `TELEGRAM_BOT_TOKEN` 이 실제 빈 `<string></string>`, 양쪽 NO_AUTO_UPDATE)로
 스테이징·설치(멱등 2회 확인), `restart_service.sh com.ohama.telegram-connect none` 으로만 기동
