@@ -137,13 +137,15 @@ Plans:
   3. `lsof -i :3000` 결과, 이 프로젝트가 만든 어떤 서비스도 포트 3000 을 점유하지 않는다
   4. `--allowed-user-id` 없이 Telegram 커넥터를 기동하면 즉시 기동 실패한다
   5. 32K 근처 요청 중 Kanban 카드와 Telegram 대화 양쪽 모두에서 "작업 중" 상태가 시각적으로 확인된다
-**Plans**: 6 plans
+**Plans**: 8 plans
 
 Plans:
 - [ ] 06-01-PLAN.md — 변경 전 베이스라인(4개 상시 게이트 + 네트워크 인벤토리) + Phase 6 상수 고정(8444) + 기존 Tailscale 핸들러 3개 동결
 - [ ] 06-02-PLAN.md — NET-04: run_telegram_service.sh 래퍼 프리플라이트 가드 + 실제 기동 실패 실증 후 원복
 - [ ] 06-03-PLAN.md — setup_tailscale_serve.sh + verify_network.sh 오프라인 저작·자가검증(음성 대조군), 네트워크 무변경
-- [ ] 06-04-PLAN.md — 네트워크 개방 1회(serve :8444 → 127.0.0.1:3484) + NET-01 서버측/NET-02/NET-03 실증 + 사후 게이트 스윕
+- [x] 06-04-PLAN.md — 네트워크 개방 시도 1회(serve :8444 → 127.0.0.1:3484): 개방 메커니즘은 정상 입증, 그러나 kanban 자체 Host 화이트리스트가 403 → 즉시 롤백(BLOCKED, 아키텍처 결정 필요)
+- [ ] 06-04.1-PLAN.md — Host/Origin 재작성 루프백 프록시(node 내장 모듈, WebSocket 업그레이드 지원) 작성 + launchd 서비스 등록(com.ohama.kanban-proxy, 127.0.0.1:18484) + sync.sh LABELS 미러(SVC-05) + verify_network.sh 9개 체크 확장 + 루프백 전량 실증 (네트워크 무변경)
+- [ ] 06-04.2-PLAN.md — 네트워크 개방 1회(serve :8444 → 127.0.0.1:18484 → 3484) + NET-01 서버측(200 + WebSocket 101)/NET-02/NET-03 실증 + 사후 게이트 스윕
 - [ ] 06-05-PLAN.md — NET-05 서버측 증거 + 실토큰 Telegram 라이브 트라이얼 결정 체크포인트
 - [ ] 06-06-PLAN.md — docs/network-exposure.md + iPad 체크리스트 + phase-close 게이트 스윕/criteria.md
 
