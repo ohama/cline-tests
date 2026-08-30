@@ -1,0 +1,13 @@
+COMMAND     PID  USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+ARDAgent    547 ohama    9u  IPv6 0x5c7fc6a0b5af537c      0t0  TCP *:3283 (LISTEN)
+limactl     814 ohama   13u  IPv4 0xfbe4276a878a4864      0t0  TCP 127.0.0.1:49276 (LISTEN)
+limactl     817 ohama    8u  IPv6 0x7246e74b212a2aad      0t0  TCP *:53 (LISTEN)
+ssh         873 ohama   12u  IPv4 0x296be206661563aa      0t0  TCP *:5432 (LISTEN)
+ssh         873 ohama   13u  IPv4 0xe8cf680b122ee732      0t0  TCP 127.0.0.1:8080 (LISTEN)
+code-tunn 17611 ohama   14u  IPv4 0x1b59f63c7d224636      0t0  TCP 127.0.0.1:49520 (LISTEN)
+node      39887 ohama   16u  IPv4 0xa59fbbc1ed456a1a      0t0  TCP 127.0.0.1:34562 (LISTEN)
+node      45145 ohama   15u  IPv4 0xf4d94cd12894be9d      0t0  TCP 127.0.0.1:37869 (LISTEN)
+python3.1 46573 ohama    7u  IPv4 0x5bd2b9c8c10fbef7      0t0  TCP 127.0.0.1:8000 (LISTEN)
+python3.1 48525 ohama   13u  IPv4 0x2c77df9a84349cb7      0t0  TCP 127.0.0.1:4000 (LISTEN)
+node      49330 ohama   16u  IPv4 0xaf482c91aba665e4      0t0  TCP 127.0.0.1:3484 (LISTEN)
+python3.1 75548 ohama    3u  IPv4 0x1ae944cb03fc4653      0t0  TCP 127.0.0.1:8011 (LISTEN)

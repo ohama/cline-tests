@@ -1,0 +1,4 @@
+resolved allow list: ['/Users/ohama/projs/cline-tests/workspace/scratch-repo', '/Users/ohama/.cline']
+Cleaning up...
+[kanban] Could not load workspace state for /Users/ohama/projs/cline-tests during shutdown cleanup. No git repository detected at /Users/ohama/projs/cline-tests
+Cleanup done.
