@@ -245,5 +245,14 @@ Phase 5 고유 두 가지 추가:
 CLI 자체(cline 3.0.53)는 여전히 이 플래그 없이도 시작한다 — 보장하는 지점은 CLI 가 아니라 이
 래퍼다. 전체 설명은 `docs/network-exposure.md` §4d 참고.
 
+## 11. Phase 7 인계 — 벤치 배치가 이 두 서비스 옆에서 돈 적이 있다
+
+Phase 7 은 `harbor run --env docker` 로 cline-bench 과제를 실행하는 동안 이 두 서비스를 단 한
+번도 재시작하지 않았다 — 벤치가 도는 동안에도, 끝난 뒤에도 `verify_services.sh` 는 계속
+`CASES 15/15` 를 유지했다. 벤치 과제가 실제로 flashnext 에 요청을 보냈다면 같은
+`--max-num-seqs 1` 큐를 Kanban/Telegram 과 공유해 실측 지연이 발생했을 것이나, Phase 7 이
+실행한 유일한 과제는 flashnext 에 도달하지 못해(`model_turns=0`) 이 경합이 실제로는 관측되지
+않았다. 자세한 내용과 한계는 `docs/cline-bench.md` 참고.
+
 ---
 *Phase: 05-kanban-telegram-services*
