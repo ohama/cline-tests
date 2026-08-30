@@ -17,9 +17,36 @@ Phase 4 세 성공기준(HLS-01/02/03) 모두 실측 증거로 동시 성립: HL
 ## Current Position
 
 Phase: 5 of 8 (Kanban·Telegram 서비스화) — 진행 중
-Plan: 04 of 7 in current phase — 완료 (SUMMARY 작성 완료). **Wave 1(05-01/05-02, 병렬) 완료 +
-wave 2(05-03) 완료 + wave 3 전반(05-04) 완료.**
-Status: 05-04 완료 — **Phase 5 최초의 launchd 서비스 등록.** `com.ohama.kanban` 을 house-style
+Plan: 05 of 7 in current phase — 완료 (SUMMARY 작성 완료). **Wave 1(05-01/05-02, 병렬) 완료 +
+wave 2(05-03) 완료 + wave 3 전반(05-04) 완료 + wave 4(05-05) 완료.**
+Status: 05-05 완료 — **Phase 5 두 번째이자 마지막 always-on 서비스 등록,** 빈 토큰 슬롯인 채로.
+`com.ohama.telegram-connect` 를 house-style plist(`phase-05/plists/com.ohama.telegram-connect.plist`,
+`TELEGRAM_BOT_TOKEN` 이 실제 빈 `<string></string>` 엔트리)로 스테이징·설치(멱등 2회 확인) 후
+유일하게 허용된 헬퍼(`restart_service.sh com.ohama.telegram-connect none`)로 기동 —
+`RESTART OK pid=55660`. criterion 1(SVC-02)을 20초 간격 동일 pid + `ppid=1`/`%cpu` 0.0/올바른
+args 로 증명. **이 플랜의 핵심 — orphan sweep**: `pgrep -f 'connect telegram'` 이 ~60초에 걸친
+3회 샘플 전부 0, 로그 어디에도 self-daemonize 시그니처(`starting background connector pid=`)
+없음 — 05-03 이 포그라운드에서 이미 증명한 빈 토큰 idle 분기가 **실제 launchd 감독 아래서도**
+유효함을 확인(포그라운드 증명이 launchd 환경으로 그대로 전이된다고 가정하지 않음). 로그 정적성
+(60초 동안 줄 수 불변)도 확인. criterion 2(SVC-03)를 `kill -TERM 55660` 1회로 실측: 2초 내
+pid=56315 로 소생, 15초 뒤에도 동일. take-down 경로(`launchctl bootout`)도 실제 집행 — 30초간
+5초 간격 6회 샘플 전부 label 미등록 확인 후 `restart_service.sh` 로 복구(pid=56669). Task 3:
+kanban·telegram 동시 기동 상태에서 포트 인벤토리 실측 — kanban 은 정확히 `127.0.0.1:3484` 하나만,
+telegram 서비스는 TCP 소켓 0개(빈 토큰 idle), 어느 쪽도 포트 3000 없음, kanban 의 포트 집합이
+05-03 베이스라인과 완전 동일함을 명시적으로 diff — 연구 Open Question 2 를 shipped 구성에서
+확정 종결. 두 서비스 동시 기동 상태에서 `verify_no_regression.sh`/`verify_sandbox.sh` 재검증
+모두 PASS. 결과 README 에 토큰 주입 레시피(스테이징 plist 수정 → `install_services.sh` →
+`restart_service.sh` → orphan sweep/포트맵 재확인 → 첫 재시작 로그에서 `unknown option` 감시 →
+토큰은 반드시 BotFather 에서) 명문화. flashnext(46573)/litellm(48525)/role-shim(75548)/
+kanban(53894) pid 전 과정 불변, `EXTRA_ALLOW_PATHS` 빈 값 그대로, `cline` 호출 0회(예산 0),
+`sync.sh`(SVC-05) 는 05-06 소관이라 실행 안 함. 편차 4건 — Rule 1 급 wording collision 2건
+(plist 주석의 `3000`/`allowed-user-id` 리터럴, svc03.txt 의 `pkill` 리터럴이 각각 자신의 grep
+검증과 충돌해 표현만 재작성, 동작 무변경 — 05-01 이 겪은 것과 동일 계열), Rule 3 급 정리 2건
+(`.gitignore` 에 `phase-05/services/backups/` 누락 보완, `verify_sandbox.sh` 기본 출력
+디렉터리(`phase-03/results/`)를 05-04 의 `pre-sandbox/` 관례에 맞춰 플랜 자신의 results 로 이전).
+아래 결정 로그 참조.
+
+이전: 05-04 완료 — **Phase 5 최초의 launchd 서비스 등록.** `com.ohama.kanban` 을 house-style
 plist(`phase-05/plists/com.ohama.kanban.plist`)로 스테이징하고, 쓰기 전용 멱등 설치기
 (`install_services.sh`, launchctl 절대 미호출)로 설치, 유일하게 허용된 헬퍼
 (`phase-02/infra/restart_service.sh`)로만 기동 — `RESTART OK pid=52654`. criterion 1(SVC-01)을
@@ -160,7 +187,31 @@ read/write/subprocess/escape-symlink 5건 전부 `DENIED EPERM`으로, `ENOENT` 
 deny-less 프로파일 거부, precheck 우회 시 Group F 4건 전부 `FAIL not-denied`, `--no-canonicalize`
 아래서 F6 실패)이 모두 사양대로 동작. `launchctl print .../com.ohama.flashnext` pid 46573 로
 플랜 전체에서 불변, `cline` 호출 0회.
-Last activity: 2026-08-30 — 05-03-PLAN.md 완료 (`phase-05/results/20260830T014424Z-svc04/`:
+Last activity: 2026-08-30 — 05-05-PLAN.md 완료 (`phase-05/plists/com.ohama.telegram-connect.plist`
++ `phase-05/results/20260830T021706Z-svc02-telegram/`: `com.ohama.telegram-connect` 를 빈
+`TELEGRAM_BOT_TOKEN` 슬롯인 채로 launchd 등록. criterion 1(SVC-02): pid 20초 간격 불변,
+`ppid=1`/`%cpu` 0.0. orphan sweep(핵심 증명): `pgrep -f 'connect telegram'` ~60초 3샘플 전부 0,
+self-daemonize 시그니처 로그 0건 — 05-03 의 포그라운드 idle 증명이 실제 launchd 감독 아래서도
+유효함을 확정. criterion 2(SVC-03): `kill -TERM 55660` → 2초 내 pid=56315 소생, 15초 뒤 동일.
+take-down(`launchctl bootout`) 실제 집행 후 30초 6샘플 전부 미등록 확인, `restart_service.sh`
+로 복구(pid=56669). kanban·telegram 동시 기동 포트 인벤토리: kanban `127.0.0.1:3484` 단독,
+telegram 소켓 0개, 3000 없음, kanban 포트 집합이 05-03 베이스라인과 동일 — 연구 Open Question 2
+shipped 구성 확정 종결. 두 서비스 동시 기동 상태에서 INF03/`verify_sandbox.sh` 재검증 PASS.
+토큰 주입 레시피 README 명문화(BotFather 유일 출처, `unknown option` 감시 포함). pid 3종+kanban
+불변, `EXTRA_ALLOW_PATHS` 무변경, `cline` 호출 0회. 편차 4건(wording collision 2 + 정리 2, 모두
+동작 무변경) — 아래 결정 로그 참조. 네 커밋(`c3f7b2f`/`ebfbe26`/`b4f0c35`/`9355cee`) 개별.)
+
+이전 활동: 2026-08-30 — 05-04-PLAN.md 완료 (`phase-05/plists/com.ohama.kanban.plist` +
+`phase-05/services/install_services.sh` + `phase-05/results/20260830T020530Z-svc01-kanban/`:
+Phase 5 최초의 launchd 서비스 등록. `com.ohama.kanban` 을 house-style plist 로 스테이징, 쓰기
+전용 멱등 설치기로 설치, `restart_service.sh` 로만 기동 — `RESTART OK pid=52654`. criterion
+1(SVC-01)을 20초 간격 동일 pid + 3484 LISTEN + HTTP 200 으로, anti-orphan 을 `vmmap` 으로
+`libsandbox.1.dylib` 매핑 확인까지 증명. criterion 2(SVC-03)를 `kill -TERM` 1회로 실측(2초 내
+소생, 15초 뒤 동일), take-down 경로도 실제 집행 후 복구. pid 3종 불변, `cline` 호출 0회(
+`kanban --version` 만 1회). 편차 1건(Rule 1, execve() 커널 동작으로 인한 검증 기대치 불일치를
+vmmap 증거로 우회).
+
+이전 활동: 2026-08-30 — 05-03-PLAN.md 완료 (`phase-05/results/20260830T014424Z-svc04/`:
 SVC-03/SVC-04 를 launchd 등록 전 포그라운드에서 직접 증명, README.md 포함. Task 1: 프리플라이트
 2종 PASS 후 dead-port(exit 1 ~36-41s/30s 설정, %cpu 전 샘플 0.0, kanban 미기동) + listening-but-
 not-ready 결정적 케이스(`python3 -m http.server` 로 TCP 는 진짜 성공, health/alias 두 서브케이스
@@ -228,15 +279,15 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [████████▒▒] 81% (Phase 4/8 완료, Phase 5/8 진행 중 — wave 1(05-01/05-02) +
-wave 2(05-03) + wave 3 전반(05-04) 완료, Plan 22/31 누적 추정 — Phase 5 는 총 7개 플랜)
+Progress: [███████▒▒▒] 74% (Phase 4/8 완료, Phase 5/8 진행 중 — wave 1(05-01/05-02) +
+wave 2(05-03) + wave 3 전반(05-04) + wave 4(05-05) 완료, Plan 23/31 누적 추정 — Phase 5 는 총 7개 플랜)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 22
-- Average duration: ~14.4 min
-- Total execution time: ~5.3 hours
+- Total plans completed: 23
+- Average duration: ~14.7 min
+- Total execution time: ~5.65 hours
 
 **By Phase:**
 
@@ -246,9 +297,37 @@ wave 2(05-03) + wave 3 전반(05-04) 완료, Plan 22/31 누적 추정 — Phase 
 | 2 | 4/4 | ~55 min | ~13.8 min |
 | 3 | 4/4 | ~48 min | ~12 min |
 | 4 | 4/4 | ~42 min | ~10.5 min |
-| 5 | 4/7 | ~65 min | ~16.3 min |
+| 5 | 5/7 | ~87 min | ~17.4 min |
 
 **Recent Trend:**
+- 05-05 (~22 min, wave 4 — Phase 5's second and final always-on service, registered with the token
+  slot deliberately empty. `com.ohama.telegram-connect` staged as a house-style plist (a real,
+  empty, discoverable `TELEGRAM_BOT_TOKEN` entry, both auto-update gates, no `--allowed-user-id`
+  yet), installed idempotently (twice), brought up through the same sanctioned helper in its
+  portless mode (`restart_service.sh com.ohama.telegram-connect none` -> `RESTART OK pid=55660`).
+  Criterion 1 (SVC-02): pid stable 20s apart, ppid=1, %cpu 0.0. The plan's central proof — an
+  orphan sweep, not just a crash-loop check — showed `pgrep -f 'connect telegram'` at zero across
+  three ~60s-spaced samples and zero occurrences of the self-daemonize log signature, confirming
+  under real launchd supervision (not just 05-03's foreground test) that the empty-token idle
+  branch never reaches `cline` and never leaks an unsupervised bot child. Criterion 2 (SVC-03): a
+  real `kill -TERM 55660` revived pid=56315 within 2s, settled 15s later. The take-down path
+  (`launchctl bootout`) was executed for real, confirmed to stay down for a full 30s (6 samples,
+  zero revivals, zero orphans), then reversed via the same helper. Brought both services up
+  together and measured: both `state = running` with stable pids 20s apart, kanban holding exactly
+  `127.0.0.1:3484`, the telegram service holding zero TCP sockets, neither on port 3000, and
+  kanban's port set byte-identical to 05-03's pre-registration baseline — the concrete, measured
+  closure of research Open Question 2 for the shipped configuration. Both standing gates re-verified
+  PASS with both services live. Wrote a token-injection recipe (staged-plist edit -> installer ->
+  restart helper -> re-run orphan sweep/port map -> watch the first restart's log for `unknown
+  option` -> BotFather is the only sanctioned token source). Found and fixed four cosmetic
+  deviations before their respective task commits — two wording collisions between explanatory
+  prose and that same task's own grep-based verify (a literal `3000`/`allowed-user-id` in the plist
+  comments, a literal `pkill` inside "never pkill" in svc03.txt — same class 05-01 already hit),
+  one `.gitignore` consistency gap (`phase-05/services/backups/` was untracked and unignored,
+  unlike its Phase 1/2 siblings), and one evidence-location cleanup (`verify_sandbox.sh`'s default
+  output relocated into this plan's own results dir, matching 05-04's `pre-sandbox/` precedent) —
+  zero behavioral changes. Live pids (flashnext 46573, litellm 48525, role-shim 75548, kanban 53894)
+  unchanged throughout; `EXTRA_ALLOW_PATHS` empty; `cline` invocations: 0.)
 - 05-04 (~10 min, wave 3 — Phase 5's first real launchd registration. `com.ohama.kanban` staged as
   a house-style plist (both `CLINE_NO_AUTO_UPDATE`/`KANBAN_NO_AUTO_UPDATE`, `WorkingDirectory` =
   the sandboxed workdir, logs under the punched `~/.cline/logs/`), installed through a write-only
@@ -810,6 +889,31 @@ Recent decisions affecting current work:
   role-shim pid 3종 전 과정 불변, `EXTRA_ALLOW_PATHS` 빈 값, `cline` 호출 0회
   (`kanban --version` 만 1회, 허용), `sync.sh` 미실행(05-06 소관). 세 커밋
   (`5623fce`/`be82fcb`/`91dc343`) 모두 개별.
+- 05-05: **wave 4, Phase 5 두 번째이자 마지막 always-on 서비스, 빈 토큰 슬롯인 채로 등록.**
+  plist 는 kanban 과 구조적으로 완전히 동일(alphabetical keys, tab indentation, bare-boolean
+  `KeepAlive`), 유일한 차이는 `TELEGRAM_BOT_TOKEN` 키 — 이 값은 실제 존재하는 빈
+  `<string></string>` 엔트리로 만들어 "발견 가능한 주입 슬롯"으로 남김(생략된 키가 아님, 사람이
+  나중에 값을 채워 넣을 자리를 명시적으로 보임). **이 플랜이 존재하는 이유이자 핵심 증명은
+  orphan sweep**: `cline connect telegram` 은 `-i` 없이는 self-daemonize 하고(부모가 즉시 종료,
+  KeepAlive 가 매 ThrottleInterval 마다 새 고아 봇 프로세스를 만듦), 빈 토큰은 동기적으로 throw
+  한다 — 두 실패 모드 모두 이 플랜에서 실제로 발생하지 않았음을 코드 읽기가 아니라 외부 관측
+  (`pgrep -f 'connect telegram'` == 0, 3회/~60초, 로그에 self-daemonize 시그니처 0건)으로 증명.
+  05-03 이 이미 포그라운드에서 이 idle 분기를 증명했지만, 이 플랜은 그 증명이 **실제 launchd
+  KeepAlive 감독 아래서도 유효함을 가정하지 않고 재확인**했다는 점이 중요 — 포그라운드와 launchd
+  supervision 은 서로 다른 프로세스 트리/시그널 환경이기 때문. SVC-02/SVC-03 두 성공기준 모두
+  05-04 와 동일한 독립 2차 오라클 방법론으로 실측(20초 간격 동일 pid; `kill -TERM` 1회 후 2초 내
+  새 pid 소생 + 15초 뒤 동일; `launchctl bootout` 실제 집행 후 30초간 5초 간격 재확인, 되살아나지
+  않음, `restart_service.sh` 로 복구). Task 3 에서 kanban·telegram 동시 기동 상태의 포트
+  인벤토리를 05-03 베이스라인과 명시적으로 diff — kanban 의 포트 집합이 정확히 동일함(`{3484}`)을
+  실측으로 확정, 연구 Open Question 2 를 "구조적으로 충돌 불가능(빈 토큰은 소켓 자체를 안 엶)"에서
+  "shipped 구성에서 실측으로 확정"으로 격상. 토큰 주입 레시피(스테이징 plist 수정 →
+  `install_services.sh` → `restart_service.sh` → orphan sweep/포트맵 재확인 → 첫 재시작 로그
+  `unknown option` 감시 → BotFather 유일 출처)를 README 에 명문화 — 다음에 이 서비스를 활성화할
+  사람이 05-01 이 이미 실측해 둔 `cline connect telegram` 의 flag surface 함정(짧은 `-P` 없음,
+  `-m` 은 `--bot-username`)을 재발견할 필요가 없도록. 편차 4건 모두 코드/동작 무변경(표현 재작성
+  2건, `.gitignore`/증거 위치 정리 2건). flashnext/litellm/role-shim/kanban pid 4종 전 과정 불변,
+  `EXTRA_ALLOW_PATHS` 빈 값, `cline` 호출 0회, `sync.sh` 미실행(05-06 소관). 네 커밋
+  (`c3f7b2f`/`ebfbe26`/`b4f0c35`/`9355cee`) 모두 개별.
 
 ### Pending Todos
 
@@ -887,7 +991,34 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **05-04-PLAN.md 완료 — wave 3, Phase 5 최초의 실제 launchd 서비스 등록.**
+Stopped at: **05-05-PLAN.md 완료 — wave 4, Phase 5 두 번째이자 마지막 always-on 서비스 등록
+(빈 토큰 슬롯).** `com.ohama.telegram-connect` 를 `phase-05/plists/com.ohama.telegram-connect.plist`
+(house style, `TELEGRAM_BOT_TOKEN` 이 실제 빈 `<string></string>`, 양쪽 NO_AUTO_UPDATE)로
+스테이징·설치(멱등 2회 확인), `restart_service.sh com.ohama.telegram-connect none` 으로만 기동
+(`RESTART OK pid=55660`). criterion 1(SVC-02): pid 20초 간격 불변, `ppid=1`/`%cpu` 0.0. **핵심
+증명 — orphan sweep**: `pgrep -f 'connect telegram'` 이 ~60초 3샘플 전부 0, self-daemonize
+로그 시그니처 0건 — 05-03 의 포그라운드 idle 증명이 실제 launchd 감독 아래서도 유효함을 확정
+(가정이 아니라 실측). criterion 2(SVC-03): `kill -TERM 55660` → 2초 내 pid=56315 소생, 15초 뒤
+동일. take-down(`launchctl bootout`) 실제 집행 → 30초 6샘플 전부 미등록 확인 → `restart_service.sh`
+로 복구(pid=56669). kanban·telegram 동시 기동 포트 인벤토리: kanban `127.0.0.1:3484` 단독,
+telegram 소켓 0개, 3000 없음, kanban 포트 집합이 05-03 베이스라인과 동일 — 연구 Open Question 2
+shipped 구성 확정 종결. 두 서비스 동시 기동 상태에서 INF03/`verify_sandbox.sh` 재검증 모두 PASS.
+`phase-05/results/20260830T021706Z-svc02-telegram/`(README.md 포함, 토큰 주입 레시피 명문화 —
+BotFather 유일 출처, 첫 재시작 로그 `unknown option` 감시)에 전 증거 기록. 편차 4건(wording
+collision 2건 — plist 주석 `3000`/`allowed-user-id`, svc03.txt `pkill`, 각각 자신의 grep 검증과
+충돌해 표현만 재작성; 정리 2건 — `.gitignore` 에 `phase-05/services/backups/` 누락 보완,
+`verify_sandbox.sh` 기본 출력을 05-04 의 `pre-sandbox/` 관례에 맞춰 이전 — 모두 동작 무변경).
+flashnext(46573)/litellm(48525)/role-shim(75548)/kanban(53894) pid 전 과정 불변, `EXTRA_ALLOW_PATHS`
+빈 값, `cline` 호출 0회, `sync.sh` 미실행(05-06 소관). 네 커밋
+(`c3f7b2f`/`ebfbe26`/`b4f0c35`/`9355cee`) 모두 개별, SUMMARY 작성 완료, STATE.md 갱신 완료.
+**다음:** 05-06(sync.sh 소관)으로 진행 — Phase 5 의 두 always-on 서비스는 이제 둘 다 등록·기동·
+증명 완료. `docs/headless-wrapper.md` 4절/8절이 남긴 `--auto-approve false` "안전하지만 무력"
+한계에 대한 에스컬레이션 결정은 여전히 검토 필요(이 플랜의 범위 밖). Phase 6 인계 항목: 토큰
+주입 후 RPC 호스트가 열리는 잔여 이슈(`--rpc-address`/`CLINE_RPC_ADDRESS` 로 대응), `--allowed-user-id`
+wrapper-level 강제(NET criterion 4).
+
+이전 세션: 2026-08-30
+정지 지점: **05-04-PLAN.md 완료 — wave 3, Phase 5 최초의 실제 launchd 서비스 등록.**
 `com.ohama.kanban` 을 `phase-05/plists/com.ohama.kanban.plist`(house style, 양쪽
 NO_AUTO_UPDATE, `WorkingDirectory`=scratch-repo, 로그=`~/.cline/logs/`)로 스테이징, 쓰기 전용
 멱등 설치기(`phase-05/services/install_services.sh`, launchctl 미호출, 두 번째 실행
@@ -906,7 +1037,7 @@ NO_AUTO_UPDATE, `WorkingDirectory`=scratch-repo, 로그=`~/.cline/logs/`)로 스
 그대로 재사용 가능. `docs/headless-wrapper.md` 4절/8절이 남긴 `--auto-approve false` "안전하지만
 무력" 한계에 대한 에스컬레이션 결정은 여전히 검토 필요(이 플랜의 범위 밖).
 
-이전 세션: 2026-08-30
+더 이전 세션: 2026-08-30
 정지 지점: **05-03-PLAN.md 완료 — wave 2, prove-before-register.**
 `phase-05/results/20260830T014424Z-svc04/`(README.md 포함)에 SVC-03/SVC-04 를 launchd 등록 전에
 포그라운드에서 직접 증명한 증거 전부 기록: dead-port(exit 1 ~36-41s/30s, %cpu 전 샘플 0.0),
