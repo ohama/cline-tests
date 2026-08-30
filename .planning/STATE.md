@@ -60,31 +60,56 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 ## Current Position
 
 Phase: 7 of 8 (cline-bench 동작 검증) — 진행 중
-Plan: 03 of 5 in current phase — **완료(3/3 tasks — Task 1/2 auto, Task 3 checkpoint:decision
-`stop-at-one` 로 응답됨 — 3개 개별 커밋).**
-Phase 7 셋째 플랜(07-03): 스모크 1개 과제 실행(`harbor run --env docker`, foreground, 232s) +
-분석 + 비용 결정 체크포인트. Task 1(커밋 `380e951`): `discord-trivia-approval-keyerror`(easy,
-memory_mb=2048) 실행, `preflight.sh` 11/11 사전 통과, wall-clock 232s 측정. **Verdict
-`fail-infra`** — flashnext 서버로그 바이트-오프셋 슬라이스가 0바이트, 컨테이너의 cline 이 실제
-OpenAI API 기본 엔드포인트에 붙어 "Incorrect API key provided... platform.openai.com" 로 실패,
-07-02 의 `CLINE_PROVIDER_SETTINGS_PATH` 주입(`VERDICT: INJECTABLE`, 소스 유래·실측 미검증)이
-harbor 의 실제 `-P/-k/-m --json --yolo` 호출 형태에서는 발동하지 않음을 증명. `run_task.sh` 버그
-3건(JOB_DIR 레이스, `grep -c` 이중 출력, `agent-command.txt` fallback 부재) 캡처 도중 발견·수정,
-이미 완료된 실행분을 재실행 없이 백필. Task 2(커밋 `c784e11`): `ANALYSIS.md`(279줄, 7문항 전부
-파일/라인 인용) — compose-merge/`docker exec` env 상속 두 레이어를 실행 예산 0 으로 독립 재검증해
-harness 버그가 아닌 cline 레벨 결과임을 확정, 시간 분해(environment_setup 141.5s/agent_setup
-57.3s/agent_execution 5.3s/verifier 12.4s, ~86% 가 셋업). 상시 게이트 재스윕 중 자체 발견한
-`verify_sandbox.sh` SBX-04 P4 컨트롤런 회귀(이 플랜 자신의 런 디렉터리가 `cat` 의 "Is a
-directory" 를 유발) 를 `find -type f -exec cat {} +` 로 좁게 수정(phase-03 소유 파일, 이 플랜이
-건드린 유일한 phase-07 밖 파일) — 재검증 `CASES 16/16`, `CRITERION 4 PASS`. **Task
-3(체크포인트, `gate="blocking"`) — 사용자가 `stop-at-one` 선택**(커밋 `9bcd62f`): 추가 벤치 실행
-0회, 추가 모델 지출 0. 이유(verbatim, `phase-07/results/20260830T093515Z-smoke/decision.md`):
-모든 과제의 호출 형태가 동일하므로 더 돌려봤자 동일한 구조적 `fail-infra` 를 재현할 가능성이
-높다 — 새로운 정보가 아니라 이미 아는 한계의 반복 증거만 사는 셈. `phase-07/bench/
-SELECTED_TASKS` 는 빈 채로 작성(선택 옵션 id 만 주석으로 명시) — 07-04 는 이를 "이 플랜의
-실패가 아닌" 문서화된 경로로 취급해야 함. **ROADMAP criterion 1(과제 5~8개)은 정직하게 `NOT
-MET` 으로 기록** — 1개만 실행됐고, 반올림·재해석 없이 그대로 기록. SUMMARY 작성 완료
-(`07-03-SUMMARY.md`). **다음: 07-04(`SELECTED_TASKS` 빈 파일을 읽고 stop-at-one 경로로 진행).**
+Plan: 04 of 5 in current phase — **완료(3/3 tasks, 전부 auto — 3개 개별 커밋).**
+Phase 7 넷째 플랜(07-04): `SELECTED_TASKS` 빈 파일(stop-at-one 경로) → 추가 `harbor run` 0회,
+추가 모델 지출 0. Task 1(커밋 `0de5bb4`): `SELECTED_TASKS` 가 빈 것을 확인하고 Task 2 로 직행
+(계획 자신의 `<action>` 이 명시한 경로), `phase-07/results/20260830T101803Z-batch/README.md` 에
+07-03 의 `decision.md` 원문을 그대로 인용해 "이 플랜의 실패가 아님" 을 기록. `meta/*.json` 개수
+1 = 1 + 0(SELECTED_TASKS 줄 수) 재확인. Task 2(커밋 `021cafa`): `make_summary.sh` 재실행(1개
+시도·11개 not-run·pool=12·한계 섹션 유지), `prompts/INDEX.md` 신규 작성(BCH-02 를 프롬프트+결과
+아티팩트로 증명 — instruction.md/task.toml/agent-command.txt/system-prompt-probe.txt/
+reward.txt/test-stdout.txt/agent/cline.txt 전부 바이트 크기와 함께), 런 디렉터리 총
+140K(`du -sh`, 5MB 초과 파일 0건) `MANIFEST.txt` 에 기록, `verify_bench.sh --out ...` 실행 —
+**`CASES 10/10` 전부 PASS**. B3 의 `fail-infra` 밸브는 **발동 안 함**(07-03 이 이미
+`agent-command.txt` 를 fallback 으로 캡처해뒀으므로 예외 처리 불필요) — 계획의 "밸브 미발동 시
+README 에 아무것도 안 씀" 지시대로 예외 언급 0건. Task 3(커밋 `f759867`): 7개 상시 게이트 전부
+재통과(`preflight.sh` 11/11, `verify_services.sh` 15/15, `verify_no_regression.sh` INF03:PASS,
+`verify_network.sh` CASES 24/24, `verify_sandbox.sh` SBX-04 PASS, `verify_config.sh` exit 0,
+`check_versions.sh` **SKIPPED**(`verify_config.sh` 1차 통과라 드리프트 조사 불필요, 게이트 줄
+정확히 1개, `cline` 예산 0/1 소비)), 6종 pid·포트 3000·`ALLOWED_REPOS.json`·`CANARY.txt`·
+`tailscale serve status`(07-01 프리플라이트 캡처와 byte-identical) 전부 무변경 확인. **편차 보고
+1건(개선 아님)**: `docker ps -q` 가 계획의 `<verify>` 리터럴 기대치 0 이 아니라 **7** — 전부
+이 호스트의 무관한 타 프로젝트(nextcloud-*, safestacktutorial-db-1) 컨테이너로 이 플랜 시작
+수주~수개월 전부터 떠 있던 것들(harbor 흔적 0건, 이 플랜의 `harbor run` 호출 자체가 0회이므로
+누출된 harbor 컨테이너는 원천적으로 존재 불가) — 조용히 재해석하지 않고 `gates/README.md` 에
+컨테이너별 표로 그대로 보고. `README.md` 에 "the bench ran" vs "the bench passed" 구분 문장
+기록. **ROADMAP criterion 1(과제 5~8개)은 07-04 에서도 그대로 `NOT MET` 유지** — 반올림·재해석
+없음. SUMMARY 작성 완료(`07-04-SUMMARY.md`). **다음: 07-05(`docs/cline-bench.md` +
+phase-close 게이트 스윕 — Phase 7 마지막 플랜).**
+
+이전(07-03 완료): Phase 7 셋째 플랜(07-03): 스모크 1개 과제 실행(`harbor run --env docker`,
+foreground, 232s) + 분석 + 비용 결정 체크포인트. Task 1(커밋 `380e951`):
+`discord-trivia-approval-keyerror`(easy, memory_mb=2048) 실행, `preflight.sh` 11/11 사전 통과,
+wall-clock 232s 측정. **Verdict `fail-infra`** — flashnext 서버로그 바이트-오프셋 슬라이스가
+0바이트, 컨테이너의 cline 이 실제 OpenAI API 기본 엔드포인트에 붙어 "Incorrect API key
+provided... platform.openai.com" 로 실패, 07-02 의 `CLINE_PROVIDER_SETTINGS_PATH` 주입
+(`VERDICT: INJECTABLE`, 소스 유래·실측 미검증)이 harbor 의 실제 `-P/-k/-m --json --yolo` 호출
+형태에서는 발동하지 않음을 증명. `run_task.sh` 버그 3건(JOB_DIR 레이스, `grep -c` 이중 출력,
+`agent-command.txt` fallback 부재) 캡처 도중 발견·수정, 이미 완료된 실행분을 재실행 없이 백필.
+Task 2(커밋 `c784e11`): `ANALYSIS.md`(279줄, 7문항 전부 파일/라인 인용) — compose-merge/
+`docker exec` env 상속 두 레이어를 실행 예산 0 으로 독립 재검증해 harness 버그가 아닌 cline
+레벨 결과임을 확정, 시간 분해(environment_setup 141.5s/agent_setup 57.3s/agent_execution
+5.3s/verifier 12.4s, ~86% 가 셋업). 상시 게이트 재스윕 중 자체 발견한 `verify_sandbox.sh`
+SBX-04 P4 컨트롤런 회귀(이 플랜 자신의 런 디렉터리가 `cat` 의 "Is a directory" 를 유발) 를
+`find -type f -exec cat {} +` 로 좁게 수정(phase-03 소유 파일, 이 플랜이 건드린 유일한 phase-07
+밖 파일) — 재검증 `CASES 16/16`, `CRITERION 4 PASS`. **Task 3(체크포인트, `gate="blocking"`) —
+사용자가 `stop-at-one` 선택**(커밋 `9bcd62f`): 추가 벤치 실행 0회, 추가 모델 지출 0. 이유
+(verbatim, `phase-07/results/20260830T093515Z-smoke/decision.md`): 모든 과제의 호출 형태가
+동일하므로 더 돌려봤자 동일한 구조적 `fail-infra` 를 재현할 가능성이 높다 — 새로운 정보가 아니라
+이미 아는 한계의 반복 증거만 사는 셈. `phase-07/bench/SELECTED_TASKS` 는 빈 채로 작성(선택 옵션
+id 만 주석으로 명시) — 07-04 는 이를 "이 플랜의 실패가 아닌" 문서화된 경로로 취급해야 함.
+**ROADMAP criterion 1(과제 5~8개)은 정직하게 `NOT MET` 으로 기록** — 1개만 실행됐고,
+반올림·재해석 없이 그대로 기록. SUMMARY 작성 완료(`07-03-SUMMARY.md`).
 
 이전(07-02 완료): Phase 7 둘째 플랜(07-02): contextWindow 주입 가능성 판정 + 벤치 스크립트 3종. Task
 1(커밋 `c4a660c`): 설치된 harbor 0.22.0 어댑터 소스(`cline.py`/`docker.py`/`cli/jobs.py`/
@@ -836,14 +861,15 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [██████████] Phase 1-6/8 완료, Phase 7 진행 중 (알려진 36/38 plans 완료 —
+Progress: [██████████] Phase 1-6/8 완료, Phase 7 진행 중 (알려진 37/38 plans 완료 —
 Phase 1(6) + Phase 2(4) + Phase 3(4) + Phase 4(4) + Phase 5(7) + Phase 6(8, 06-04.1/06-04.2
-삽입 포함) + Phase 7(3/5, 07-03 완료). Phase 6 는 8/8 plans 로 종료 — **네트워크 OPEN,
+삽입 포함) + Phase 7(4/5, 07-04 완료). Phase 6 는 8/8 plans 로 종료 — **네트워크 OPEN,
 ROADMAP 다섯 기준 중 NET-02/03/04 `met`, NET-01/05 정직하게 `human_needed`.** Phase 7 은
-5개 plan 문서(07-01~07-05)가 이미 작성돼 있고 07-01~07-03 실행 완료 — 사용자가 07-03 체크포인트에서
-`stop-at-one` 을 선택해 추가 벤치 태스크 실행 없이 07-04 가 빈 `SELECTED_TASKS` 경로로 진행 예정,
-criterion 1(5~8개)은 이미 `NOT MET` 으로 확정. Phase 8 은 아직 plan 수가 확정되지 않음(TBD) —
-다음은 07-04)
+5개 plan 문서(07-01~07-05)가 이미 작성돼 있고 07-01~07-04 실행 완료 — 사용자가 07-03 체크포인트에서
+`stop-at-one` 을 선택해 추가 벤치 태스크 실행 없이 07-04 가 빈 `SELECTED_TASKS` 경로로 진행,
+추가 `harbor run` 0회로 BCH-02/03 완결(`verify_bench.sh` CASES 10/10) + 상시 게이트 7종 재통과,
+criterion 1(5~8개)은 07-04 에서도 그대로 `NOT MET` 유지. Phase 8 은 아직 plan 수가 확정되지
+않음(TBD) — 다음은 07-05(`docs/cline-bench.md` + phase-close, Phase 7 마지막 plan))
 
 ## Performance Metrics
 
@@ -1796,6 +1822,12 @@ Recent decisions affecting current work:
   `decline` 해 열린 질문으로 남았다** — "probable-but-unobserved"(64초 대기를 버티지 못할
   가능성이 높지만 관측된 적 없음)로만 기록됨, "확인됨"으로 격상 금지. 나중에 사용자가 직접
   실행할 7단계 체크리스트: `phase-06/results/20260830T071532Z-net05/decision.md`.
+- **(환경 노트, 블로커 아님, 07-04 발견) 이 호스트의 `docker ps -q` 는 이 프로젝트와 무관하게
+  절대 0 이 아니다.** `nextcloud-*` 6개 컨테이너 + `safestacktutorial-db-1` 1개, 전부 이
+  Phase 7 시작보다 수주~수개월 앞서 뜬 별개 프로젝트 소유. 어떤 미래 게이트/플랜도 `docker ps
+  -q | wc -l == 0` 을 리터럴로 요구하면 안 됨 — 대신 harbor/cline-bench 관련 컨테이너(이미지명·
+  compose 프로젝트 라벨로 식별)만 0인지 좁혀서 확인할 것. 근거: `phase-07/results/
+  20260830T101803Z-batch/gates/README.md`.
 
 - 🔴 **2026-08-30 — Phase 1 의 결론이 정정됨.** 32k 압축은 **정상 작동한다.**
   `contextWindow` 를 `providers.json` 의 `settings` **최상위**에 넣어야 하며(`models[]` 아님),
@@ -1867,7 +1899,29 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **07-03-PLAN.md 완료 (3/3 tasks — Task 1/2 auto, Task 3 checkpoint:decision
+Stopped at: **07-04-PLAN.md 완료 (3/3 tasks, 전부 auto — 3개 개별 커밋), STATE.md 갱신 완료.**
+Task 1(`0de5bb4`): `SELECTED_TASKS` 빈 파일 확인 → Task 2 로 직행(계획 자신의 지정 경로),
+`README.md` 에 07-03 `decision.md` 원문 인용, `meta/*.json` 개수 1 재확인(= 1+0). Task
+2(`021cafa`): `make_summary.sh` 재실행(1개 시도·11개 not-run 유지), `prompts/INDEX.md` 신규(BCH-02
+증명 — instruction.md/task.toml/agent-command.txt/system-prompt-probe.txt/reward.txt/
+test-stdout.txt/agent/cline.txt 바이트 크기), 런 디렉터리 140K 기록, `verify_bench.sh` **`CASES
+10/10`** 전부 PASS(B3 의 fail-infra 밸브는 07-03 이 이미 agent-command.txt 를 캡처해뒀으므로
+발동 안 함 — 예외 언급 0건). Task 3(`f759867`): 7개 상시 게이트 전부 재통과(`preflight.sh`
+11/11, `verify_services.sh` 15/15, `verify_no_regression.sh` INF03:PASS, `verify_network.sh`
+CASES 24/24, `verify_sandbox.sh` SBX-04 PASS, `verify_config.sh` exit 0, `check_versions.sh`
+**SKIPPED**(`verify_config.sh` 1차 클린이라 드리프트 조사 불필요, 게이트 줄 정확히 1개, `cline`
+예산 0/1)), `tailscale serve status` 가 07-01 프리플라이트 캡처와 byte-identical. **편차 보고
+1건**: `docker ps -q` 가 계획의 리터럴 기대치 0 이 아니라 **7** — 전부 이 호스트의 무관한 타
+프로젝트(nextcloud-*, safestacktutorial-db-1) 컨테이너로 수주~수개월 전부터 떠 있던 것들(harbor
+흔적 0건, 이 플랜의 `harbor run` 호출 자체가 0회이므로 누출 가능성 자체가 없음) — 조용히
+재해석하지 않고 `gates/README.md` 에 컨테이너별 표로 그대로 보고. **ROADMAP criterion 1(과제
+5~8개)은 07-04 에서도 그대로 `NOT MET` 유지**(반올림 금지). 추가 `harbor run` 0회, 추가 모델
+지출 0. 6종 pid·포트 3000·`EXTRA_ALLOW_PATHS`·`ALLOWED_REPOS.json`·`bench/runs/CANARY.txt` 전
+구간 불변. **다음: 07-05(`docs/cline-bench.md` + phase-close 게이트 스윕 — Phase 7 마지막
+plan).**
+
+이전 세션: 2026-08-30
+정지 지점: **07-03-PLAN.md 완료 (3/3 tasks — Task 1/2 auto, Task 3 checkpoint:decision
 `stop-at-one` 로 응답됨 — 3개 개별 커밋), STATE.md 갱신 완료.** Task 1(`380e951`):
 `discord-trivia-approval-keyerror` 를 `harbor run --env docker` 로 foreground 실행, wall-clock
 232s 측정, **verdict `fail-infra`**(flashnext 서버로그 슬라이스 0바이트, 컨테이너의 cline 이
@@ -1881,8 +1935,7 @@ phase-07 밖 파일) — `CASES 16/16` 재확인. **Task 3(체크포인트) — 
 선택**(`9bcd62f`): 추가 벤치 실행 0회, `phase-07/bench/SELECTED_TASKS` 빈 파일로 확정,
 **ROADMAP criterion 1(과제 5~8개)은 정직하게 `NOT MET`** 으로 기록(반올림 금지). 이 두 durable
 decision(주입 메커니즘 실측 미발동, stop-at-one)은 위 결정 로그에 별도 항목으로 기록됨.
-6종 pid·포트 3000·`EXTRA_ALLOW_PATHS`·`bench/runs/CANARY.txt` 전 구간 불변. **다음: 07-04
-(`SELECTED_TASKS` 빈 파일을 읽고 stop-at-one 경로로 진행 — 추가 `harbor run` 없음).**
+6종 pid·포트 3000·`EXTRA_ALLOW_PATHS`·`bench/runs/CANARY.txt` 전 구간 불변.
 
 이전 세션: 2026-08-30
 정지 지점: **07-02-PLAN.md 완료 (3/3 tasks, 모두 auto — 3개 개별 커밋), STATE.md 갱신 완료.**
