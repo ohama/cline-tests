@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<!--
+  phase-05/plists/com.ohama.telegram-connect.plist — versioned staging source
+  for ~/Library/LaunchAgents/com.ohama.telegram-connect.plist (installed by
+  phase-05/services/install_services.sh, brought up only by
+  phase-02/infra/restart_service.sh com.ohama.telegram-connect none — never
+  hand-loaded, this label binds no port).
+
+  Non-obvious choices, recorded here because the dict below must stay
+  plutil-clean and cannot itself carry prose:
+
+  - TELEGRAM_BOT_TOKEN is a real, present, EMPTY <string></string> entry —
+    not an omitted key. The wrapper's ${TELEGRAM_BOT_TOKEN:-} idiom treats
+    both the same way at runtime, but an explicit empty entry is what makes
+    this the discoverable injection slot for whoever activates the bot
+    later (see the token-injection recipe in the plan-05-05 results README).
+    THIS PROJECT NEVER GENERATES, FETCHES, OR FABRICATES A TOKEN. The value
+    stays empty until a human pastes one in from BotFather.
+  - Both CLINE_NO_AUTO_UPDATE and KANBAN_NO_AUTO_UPDATE are set even though
+    this plist runs cline, not kanban — defence in depth, and it keeps the
+    two Phase 5 plists structurally identical apart from the token key.
+    (check_versions.sh Check C's "cline" branch matches this plist
+    regardless, because the wrapper script itself lives under
+    /Users/ohama/projs/cline-tests/.)
+  - EnvironmentVariables.PATH mirrors the kanban plist's: cline itself and
+    the sandbox helper it execs through both need node/bash reachable.
+  - WorkingDirectory is the sandboxed workdir (workspace/scratch-repo), not
+    the repo root: THE CWD RULE (docs/headless-wrapper.md sec 6) — a
+    launchd-supervised process whose OS-level cwd is not already inside
+    workspace/ALLOWED_REPOS.json dies at Bun/Node startup with a generic,
+    path-less error that looks exactly like a sandbox tightening, not a cwd
+    bug. The wrapper script also `cd`s and asserts this — belt and braces.
+  - StandardOutPath/StandardErrorPath live under ~/.cline/logs/ (same
+    reasoning as the kanban plist): launchd opens these fds itself and the
+    sandboxed child inherits them across exec; only ~/.cline is punched
+    read+write through the sandbox profile. Redirecting sandboxed stdio at
+    an unpunched path has produced a bare SIGABRT five separate times in
+    this project — this is the fix, not a style choice.
+  - ThrottleInterval 30 matches THROTTLE_INTERVAL in
+    phase-05/services/config.env, inside the house range (10-60s). This
+    also bounds how often a would-be crash loop (empty token, if the idle
+    branch were ever broken) could cycle — belt and braces alongside the
+    wrapper's own never-exit idle loop.
+  - RunAtLoad true is the reboot-persistence mechanism.
+  - TELEGRAM_ALLOWED_USER_ID is a real, present, EMPTY <string></string>
+    entry, alongside TELEGRAM_BOT_TOKEN — the discoverable injection slot
+    for ROADMAP Phase 6 criterion 4. The wrapper
+    (phase-05/services/run_telegram_service.sh) now enforces this: it
+    refuses to exec the connector at all when a token is present but this
+    id is unset/empty/non-numeric, exiting non-zero with an ABORT-NET04
+    message. cline 3.0.53 itself still does not refuse to start without the
+    allowed-user-id flag — that is unchanged. BOTH slots must be filled
+    together to activate the bot; a token with no id is a deliberate
+    startup failure under this wrapper, never a silent unrestricted bot.
+  - kanban's other well-known default port never appears anywhere in this
+    file (ROADMAP Phase 6 criterion 3) — this label binds no port at all
+    while the token is empty, and even once activated cline connect
+    telegram is not an HTTP listener on that port either.
+-->
+<dict>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>CLINE_NO_AUTO_UPDATE</key>
+		<string>1</string>
+		<key>KANBAN_NO_AUTO_UPDATE</key>
+		<string>1</string>
+		<key>PATH</key>
+		<string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+		<key>TELEGRAM_ALLOWED_USER_ID</key>
+		<string></string>
+		<key>TELEGRAM_BOT_TOKEN</key>
+		<string></string>
+	</dict>
+	<key>KeepAlive</key>
+	<true/>
+	<key>Label</key>
+	<string>com.ohama.telegram-connect</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/bash</string>
+		<string>/Users/ohama/projs/cline-tests/phase-05/services/run_telegram_service.sh</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StandardErrorPath</key>
+	<string>/Users/ohama/.cline/logs/telegram-connect.err</string>
+	<key>StandardOutPath</key>
+	<string>/Users/ohama/.cline/logs/telegram-connect.log</string>
+	<key>ThrottleInterval</key>
+	<integer>30</integer>
+	<key>WorkingDirectory</key>
+	<string>/Users/ohama/projs/cline-tests/workspace/scratch-repo</string>
+</dict>
+</plist>

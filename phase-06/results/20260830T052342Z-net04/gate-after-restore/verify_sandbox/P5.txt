@@ -1,0 +1,10 @@
+=== CASE P5 ===
+--- command ---
+/bin/cat
+/Users/ohama/projs/cline-tests/workspace/ALLOWED_REPOS.json
+--- rc ---
+1
+--- stdout ---
+--- stderr ---
+cat: /Users/ohama/projs/cline-tests/workspace/ALLOWED_REPOS.json: Operation not permitted
+

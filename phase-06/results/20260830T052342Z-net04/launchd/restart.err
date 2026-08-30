@@ -1,0 +1,8 @@
+
+teardown confirmed after 0s
+.RESTART FAILED: com.ohama.telegram-connect (health poll timeout, rc=1)
+ROLLBACK:
+  (no backup found in phase-02/infra/backups)
+  plutil -lint /Users/ohama/Library/LaunchAgents/com.ohama.telegram-connect.plist          # must print OK
+  launchctl bootout   gui/501/com.ohama.telegram-connect   # ignore "No such process"
+  launchctl bootstrap gui/501 /Users/ohama/Library/LaunchAgents/com.ohama.telegram-connect.plist

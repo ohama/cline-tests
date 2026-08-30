@@ -1,0 +1,5 @@
+
+teardown confirmed after 0s
+.
+sampled pid=99162 after 2s; waiting 10s before re-sampling for stability
+RESTART OK: com.ohama.telegram-connect pid=99162 port=none waited=12s

@@ -1,0 +1,11 @@
+baseline ABORT-NET04 count = 1
+sample 1 @ 2026-08-30T05:32:40Z connect-telegram-procs=0 abort-net04-count=1 state=[	state = spawn scheduled;	last exit code = 1;		state = active;		state = active;]
+sample 2 @ 2026-08-30T05:32:50Z connect-telegram-procs=0 abort-net04-count=2 state=[	state = spawn scheduled;	last exit code = 1;		state = active;		state = active;]
+sample 3 @ 2026-08-30T05:33:00Z connect-telegram-procs=0 abort-net04-count=2 state=[	state = spawn scheduled;	last exit code = 1;		state = active;		state = active;]
+sample 4 @ 2026-08-30T05:33:10Z connect-telegram-procs=0 abort-net04-count=2 state=[	state = spawn scheduled;	last exit code = 1;		state = active;		state = active;]
+sample 5 @ 2026-08-30T05:33:20Z connect-telegram-procs=0 abort-net04-count=3 state=[	state = spawn scheduled;	last exit code = 1;		state = active;		state = active;]
+sample 6 @ 2026-08-30T05:33:30Z connect-telegram-procs=0 abort-net04-count=3 state=[	state = spawn scheduled;	last exit code = 1;		state = active;		state = active;]
+sample 7 @ 2026-08-30T05:33:41Z connect-telegram-procs=0 abort-net04-count=3 state=[	state = spawn scheduled;	last exit code = 1;		state = active;		state = active;]
+sample 8 @ 2026-08-30T05:33:51Z connect-telegram-procs=0 abort-net04-count=4 state=[	state = spawn scheduled;	last exit code = 1;		state = active;		state = active;]
+sample 9 @ 2026-08-30T05:34:01Z connect-telegram-procs=0 abort-net04-count=4 state=[	state = spawn scheduled;	last exit code = 1;		state = active;		state = active;]
+final ABORT-NET04 count = 4
