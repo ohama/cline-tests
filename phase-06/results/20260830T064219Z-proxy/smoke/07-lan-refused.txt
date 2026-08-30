@@ -1,0 +1,2 @@
+=== 7: LAN refused ===
+curl rc=7

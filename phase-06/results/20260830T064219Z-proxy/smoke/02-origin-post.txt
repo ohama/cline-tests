@@ -1,0 +1,3 @@
+=== 2: POST with tailnet Origin to /api/health, not 403 ===
+404
+{"error":"Not found"}

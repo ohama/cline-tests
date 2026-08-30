@@ -1,0 +1,3 @@
+=== direct-to-kanban POST with tailnet Origin (still 403 without proxy) ===
+403
+{"error":"Origin not allowed."}

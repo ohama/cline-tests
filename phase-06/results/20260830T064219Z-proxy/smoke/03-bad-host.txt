@@ -1,0 +1,3 @@
+=== 3: bad Host -> 403 Host not allowed ===
+403
+{"error":"Host not allowed."}

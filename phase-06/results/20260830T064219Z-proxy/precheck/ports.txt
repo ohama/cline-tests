@@ -1,0 +1,9 @@
+=== 2026-08-30T06:42:19Z precheck ===
+lsof :3000 count:
+       0
+lsof :8444 count:
+       0
+lsof :18484 count:
+       0
+lsof :18485 count:
+       0
