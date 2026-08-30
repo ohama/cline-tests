@@ -5,8 +5,10 @@
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
-**Current focus:** **Phase 6 (네트워크 노출) 진행 중 — 06-04 BLOCKED(사람 결정 대기, 3/6 plans
-완료, 네트워크는 닫힌 채 안전).** Phase 5 는 7개
+**Current focus:** **Phase 6 (네트워크 노출) 진행 중 — 06-04.2 완료, 네트워크 OPEN.** kanban 은
+이제 `https://ohama-2.tail318f12.ts.net:8444/` 로 tailnet 멤버(`ohama100@`)에게만 실측
+도달 가능(LAN/공용 인터넷 아님). `verify_network.sh` 신규 상시 시그니처는 `CASES 24/24`(연속
+2회 재현). 다음은 06-05/06-06. Phase 5 는 7개
 플랜 전부 완료 — wave 1(05-01/05-02, 병렬: launchd 래퍼+readiness 게이트,
 check_versions.sh/restart_service.sh 확장), wave 2(05-03: 등록 전 포그라운드 증명), wave
 3(05-04: kanban 최초 등록), wave 4(05-05: telegram-connect 등록, 빈 토큰), wave 5(05-06: SVC-05
@@ -55,11 +57,45 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 ## Current Position
 
 Phase: 6 of 8 (네트워크 노출) — **진행 중**
-Plan: 04.1 of ~8 in current phase (누적 계획: 01/02/03/04/04.1/04.2/05/06) — **완료(3/3
-tasks, 개별 커밋).** 06-04 가 발견한 빠진 연결고리(kanban 자체 Host 화이트리스트)를
-loopback 전용 Host/Origin 재작성 프록시로 메꿈. **이 플랜 전체에서 네트워크는 CLOSED 유지 —
-`tailscale serve` 변경성 명령 0회.**
-Status: 06-04.1 완료 — **kanban 자체 컴파일된 Host 화이트리스트(`getAllowedHostHeaders()`,
+Plan: 04.2 of ~8 in current phase (누적 계획: 01/02/03/04/04.1/04.2/05/06) — **완료(3/3
+tasks, 개별 커밋).** 06-04 가 발견하고 06-04.1 이 loopback 으로 증명한 Host/Origin 재작성
+프록시 앞에서, 06-04 와 정확히 동일한 단일 명령을 프록시 대상으로 재적용 — **네트워크가
+OPEN 으로 전환됨. 이 플랜에서 `tailscale serve` 변경성 명령 정확히 1회
+(`serve --bg --https=8444 http://127.0.0.1:18484`), `tailscale funnel`/`reset` 0회.**
+Status: 06-04.2 완료 — **두 번째이자 마지막 개통 시도, 실측 성공, 롤백 불필요.** Task
+1(커밋 `cdbdbf8`): 변경 직전 재확인(P5b 프리플라이트 포함 — 프록시가 이미 tailnet Host 로
+200 을 반환하지 않으면 apply 자체가 거부되는 안전장치, PASS) 후
+`setup_tailscale_serve.sh --apply` 로 정확히 한 개 명령 실행, exit 0, 스크립트 자체
+Q1-Q5 전부 OK. 독립 재검증(스크립트 자체 단언에 의존하지 않음) 전부 일치: `AllowFunnel`
+여전히 기존 `:8443` 키 하나만, `Web` 정확히 4개 핸들러(기존 3개 byte-identical + 신규
+`:8444 → 프록시`), `TCP` 정확히 4개 키, diff 는 8444 추가분만. kanban 바인드/pid(53894),
+프록시 바인드/pid(19669), 포트 3000 전부 불변, passcode 배너 0건. Task 2(커밋
+`5d1498f`): `verify_network.sh` 연속 2회 실행 — **`CASES 24/24`** 양쪽 다, `CHECK:` 라인
+집합 완전 동일(재현 가능한 상시 게이트 확인) — 06-04.1 이 남긴 닫힌-상태 네거티브 컨트롤
+세 개(`kanban-serve-entry-present`/`tailnet-https-200`/`tailnet-websocket-101`) 전부 PASS
+로 전환. NET-01 서버측 실측: tailnet MagicDNS 이름으로 curl 시 200 + 실제 board markup(TLS
+override 불필요), `probe_proxy.js` 로 `wss://.../api/runtime/ws` 업그레이드가 `UPGRADE
+status=101`. NET-02 는 LAN IP(`192.168.75.108`)에서 3484/8444/18484 세 포트 전부 curl
+rc=7(connection refused)로 양성 실측. 게이트 밖 수동 프로브로 실제 tailnet 체인에 잘못된
+Host 헤더를 보내도 프록시 자신의 403 이 그대로 발동함을 확인(재작성이 아무것도 새어나가게
+하지 않음). Task 3(커밋 `07c8dbb`): 네트워크 개통 상태에서 4개 상시 게이트 전부 재통과
+(`verify_services.sh` 15/15, `verify_no_regression.sh` INF03:PASS, `verify_sandbox.sh`
+16/16 CRASHED 0, `verify_config.sh` exit 0), 6종 라이브 pid(flashnext/litellm/role-shim/
+kanban/telegram-connect/kanban-proxy) 전부 불변, `EXTRA_ALLOW_PATHS` 빈 값,
+`git diff phase-01..04` 없음, 로그 줄수(`kanban.log`=16, `telegram-connect.log`=0)가
+06-01 베이스라인과 동일, `kanban-proxy.log` 는 시작 줄 + 음성 프로브의 예상된 REJECT 줄만,
+telegram 여전히 inert. `README.md` 에 개통 명령/전후 diff/롤백 원라이너/체인
+다이어그램/양쪽 게이트 전문/invariant 표/도달범위 문장("`ohama100@` tailnet 멤버만, LAN도
+공용 인터넷도 아님") 전부 기록. 편차 0건(Rule 1-4 해당 없음) — 계획대로 첫 시도에 완전
+성공, 롤백 전혀 필요 없었음. 자체 위생 조정 1건: 이 플랜 자신의 증거 파일이
+`EXTRA_ALLOW_PATHS=` repo-hygiene grep 의 기존 문서화된 false-positive(06-04.1 이 이미
+"고치지 않고 기록" 하기로 결정)에 세 번째 hit 를 추가하는 것을 피하려 자신의 헤더 문구만
+재작성(기존 2건은 06-04/06-04.1 자신의 이미 닫힌 README 안 self-referential 산문이라
+그대로 둠 — 과거 결정 기록을 다시 쓰는 것과 같다는 06-04.1 의 논리 재사용). 세 커밋 모두
+개별, SUMMARY 작성 완료(`06-04.2-SUMMARY.md`). **다음: 06-05/06-06 진행 가능. iPad 클라이언트
+측 NET-01 검증은 여전히 human_needed 로 남음(이 플랜 범위 밖).**
+
+이전: 06-04.1 완료 — **kanban 자체 컴파일된 Host 화이트리스트(`getAllowedHostHeaders()`,
 오버라이드 플래그/env 전혀 없음)를 우회하는 작은 loopback 프록시 `com.ohama.kanban-proxy`
 (node 빌트인만 사용, npm 의존성 0, `127.0.0.1:18484`)를 저작·등록·전 과정 loopback 증명
 완료.** Task 1(커밋 `3c50158`): `phase-05/services/config.env`에 `KANBAN_PROXY_LABEL`/
@@ -606,19 +642,19 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [████████▊·] 88% (Phase 5/8 완료, Phase 6/8 진행 중 — 06-01/06-02/06-03/06-04.1(4/8
-plans, 06-04.1 이 04.2 를 위해 04 와 05 사이에 새로 삽입됨) 완료, 06-04 는 BLOCKED 상태로
-plan-count 에서는 미완료 취급(사람이 이미 host-rewrite-proxy 선택 완료, 06-04.1 이 그 결정을
-구현), 06-04.2/06-05/06-06 미착수, Plan 29/33 누적 추정 — 다음은 06-04.2(이미 검증된 프록시
-앞에서 Serve 엔트리 실제 개통))
+Progress: [█████████░] 91% (Phase 5/8 완료, Phase 6/8 진행 중 — 06-01/06-02/06-03/06-04.1/
+06-04.2(5/8 plans, 06-04.1/06-04.2 이 04 와 05 사이에 새로 삽입됨) 완료 — **네트워크
+OPEN, NET-01~04 실측 증명 완료.** 06-04 는 여전히 BLOCKED 상태로 plan-count 에서는
+미완료 취급(그 안의 아키텍처 결정은 06-04.1/06-04.2 가 구현·완료했으나 06-04 자신의 시도는
+403 으로 중단된 채임), 06-05/06-06 미착수, Plan 30/33 누적 추정 — 다음은 06-05)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 29 (06-04 excluded — BLOCKED, not counted as completed; its 35 min is
+- Total plans completed: 30 (06-04 excluded — BLOCKED, not counted as completed; its 35 min is
   tracked separately below)
-- Average duration: ~15.0 min
-- Total execution time: ~7.25 hours
+- Average duration: ~14.7 min
+- Total execution time: ~7.35 hours
 
 **By Phase:**
 
@@ -629,9 +665,21 @@ plan-count 에서는 미완료 취급(사람이 이미 host-rewrite-proxy 선택
 | 3 | 4/4 | ~48 min | ~12 min |
 | 4 | 4/4 | ~42 min | ~10.5 min |
 | 5 | 7/7 | ~116 min | ~16.6 min |
-| 6 | 4/8 | ~64 min (+35 min BLOCKED 06-04, uncounted above) | ~16 min |
+| 6 | 5/8 | ~70 min (+35 min BLOCKED 06-04, uncounted above) | ~14 min |
 
 **Recent Trend:**
+- 06-04.2 (~6 min, Phase 6's second and final opening attempt — re-applied the exact same
+  single Serve entry 06-04 first tried, this time pointed at 06-04.1's proxy instead of kanban
+  directly. `setup_tailscale_serve.sh --apply` succeeded on the first try (P5b preflight caught
+  nothing, because 06-04.1 had already proven the proxy healthy): exactly one command
+  (`serve --bg --https=8444 http://127.0.0.1:18484`), independently re-verified byte-for-byte
+  (AllowFunnel unchanged, Web +1 handler, TCP +1 key, diff shows only additions).
+  `verify_network.sh` reached `CASES 24/24` twice in a row with identical CHECK-line sets --
+  the tailnet URL returns 200 with real board markup and a WebSocket upgrade to
+  `/api/runtime/ws` returns 101 over the real chain, not just loopback. NET-02 proven
+  positively against 3484/8444/18484 from the LAN IP (curl rc=7, all three). All four standing
+  gates re-passed with the network open; six live pids unchanged. Zero deviations, zero
+  rollback needed. Three commits (`cdbdbf8`/`5d1498f`/`07c8dbb`) all individual.)
 - 06-04.1 (~13 min, Phase 6's inserted plan — the Host/Origin-rewriting loopback proxy that
   unblocks 06-04. Built `kanban_host_proxy.js` (node builtins only, zero deps) rewriting both
   Host and Origin (confirmed live: rewriting only one still 403s), handling WebSocket `upgrade`
@@ -1443,6 +1491,15 @@ Recent decisions affecting current work:
   보안 태세 변경이므로 조용히 플래그만 바꾸면 안 된다. 기록: `docs/headless-wrapper.md` §4·§8.
 - (Phase 6 도구) `phase-05/services/verify_services.sh` 는 읽기 전용·재실행 가능한 상시 게이트다
   (15개 체크, 0/1/2 exit 계약, 음성 대조군 검증됨). 네트워크를 열기 전후로 호출할 것.
+- **(Phase 6·7·8 인계, 2026-08-30 06-04.2 로 network OPEN)** kanban 은 이제
+  `https://ohama-2.tail318f12.ts.net:8444/` 로 tailnet 멤버(`ohama100@`)에게 실측
+  도달 가능. `verify_network.sh` 의 상시 시그니처는 이제 **`CASES 24/24`**(과거
+  `21/24`/`13/15` 는 역사적 값) — Phase 7/8 은 `--baseline
+  phase-06/results/20260830T051403Z-baseline` 를 전달해 24/24 를 기대치로 상속해야 한다.
+  **NET-01 의 iPad/클라이언트측 절반은 여전히 human_needed 로 남아 있다** — 이 프로젝트의
+  어떤 자동화 플랜도 실제 iOS Tailscale 앱에서 방문해 확인했다고 주장하지 않는다. 포트
+  3000 은 기존 `:8443` 공용 Funnel 이 여전히 그쪽으로 포워딩하므로 앞으로도 영구히
+  미바인딩 상태를 유지해야 한다.
 
 - 🔴 **2026-08-30 — Phase 1 의 결론이 정정됨.** 32k 압축은 **정상 작동한다.**
   `contextWindow` 를 `providers.json` 의 `settings` **최상위**에 넣어야 하며(`models[]` 아님),
@@ -1514,7 +1571,43 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **06-04.1-PLAN.md 완료 (3/3 tasks, 개별 커밋) — kanban 자체 Host 화이트리스트를
+Stopped at: **06-04.2-PLAN.md 완료 (3/3 tasks, 개별 커밋) — 네트워크 개통, 두 번째이자
+마지막 시도가 첫 실측에서 완전 성공.** Task 1(`cdbdbf8`): 변경 직전 재확인(P5b 프리플라이트
+PASS — 프록시가 이미 200 응답 중임을 재확인) 후 `setup_tailscale_serve.sh --apply` 로
+정확히 한 개 명령(`serve --bg --https=8444 http://127.0.0.1:18484`) 실행, exit 0, 스크립트
+자체 Q1-Q5 전부 OK. 독립 재검증 전부 일치: `AllowFunnel` 여전히 기존 `:8443` 키 하나,
+`Web` 정확히 4개 핸들러(기존 3개 byte-identical + 신규 `:8444→프록시`), `TCP` 정확히 4개
+키, diff 는 8444 추가분만. kanban(pid 53894)/프록시(pid 19669) 바인드·pid 불변, 포트 3000
+불변, passcode 배너 0건. Task 2(`5d1498f`): `verify_network.sh` 연속 2회 실행 —
+**`CASES 24/24`** 양쪽 다, `CHECK:` 라인 집합 완전 동일 — 06-04.1 이 남긴 닫힌-상태
+네거티브 컨트롤 세 개(`kanban-serve-entry-present`/`tailnet-https-200`/
+`tailnet-websocket-101`) 전부 PASS 로 전환. NET-01 서버측: tailnet MagicDNS 이름으로
+200+실제 board markup(TLS override 불필요), `probe_proxy.js` 로 `wss://.../api/runtime/ws`
+가 `UPGRADE status=101`(iPad 클라이언트측 검증은 여전히 human_needed, 이 플랜 범위 밖).
+NET-02: LAN IP(`192.168.75.108`)에서 3484/8444/18484 세 포트 전부 curl rc=7 양성 실측.
+게이트 밖 수동 프로브로 잘못된 Host 헤더가 실제 tailnet 체인에서도 프록시 자신의 403 을
+그대로 발동시킴을 확인(재작성이 아무것도 새어나가게 하지 않음). Task 3(`07c8dbb`): 개통
+상태에서 4개 상시 게이트 전부 재통과(`verify_services.sh` 15/15, `verify_no_regression.sh`
+INF03:PASS, `verify_sandbox.sh` 16/16 CRASHED 0, `verify_config.sh` exit 0), 6종 라이브
+pid(flashnext/litellm/role-shim/kanban/telegram-connect/kanban-proxy) 전부 불변,
+`EXTRA_ALLOW_PATHS` 빈 값, `git diff phase-01..04` 없음, 로그 줄수(kanban.log=16,
+telegram-connect.log=0)가 06-01 베이스라인과 동일, `kanban-proxy.log` 는 시작줄+예상된
+REJECT 줄만, telegram 여전히 inert. `README.md` 에 개통 명령/전후 diff/롤백 원라이너(reset
+금지 명시)/체인 다이어그램/양쪽 게이트 전문/invariant 표/도달범위 문장 전부 기록. 편차
+0건 — 계획대로 첫 시도에 완전 성공, 롤백 전혀 필요 없었음. 자체 위생 조정 1건: 이 플랜의
+새 증거 파일이 `EXTRA_ALLOW_PATHS=` repo-hygiene grep 의 기존 문서화된 false-positive
+(06-04.1 이 이미 "고치지 않고 기록"으로 결정)에 세 번째 hit 를 보태는 것을 피하려 자신의
+헤더 문구만 재작성(기존 2건은 06-04/06-04.1 자신의 이미 닫힌 README 안 self-referential
+산문이라 그대로 둠). 세 커밋 모두 개별, SUMMARY 작성 완료(`06-04.2-SUMMARY.md`), STATE.md
+갱신 완료.
+**다음: 06-05/06-06 진행 가능. Phase 6 는 5/8 plans 완료(누적 30/33), 네트워크 상시
+시그니처는 이제 `CASES 24/24`(과거 `21/24`/`13/15` 는 역사적 값) — Phase 7/8 은
+`verify_network.sh --baseline phase-06/results/20260830T051403Z-baseline` 를 24/24 기대치로
+상속.** iPad 클라이언트측 NET-01 검증(실제 iOS Tailscale 앱으로 방문)은 여전히
+human_needed 로 남음 — 이 프로젝트 어떤 자동화 플랜도 그것을 claim 하지 않음.
+
+이전 세션: 2026-08-30
+정지 지점: **06-04.1-PLAN.md 완료 (3/3 tasks, 개별 커밋) — kanban 자체 Host 화이트리스트를
 우회하는 loopback 전용 Host/Origin 재작성 프록시 `com.ohama.kanban-proxy` 저작·등록·전 과정
 loopback 증명 완료. 네트워크는 플랜 전체에서 CLOSED 유지.** Task 1(`3c50158`): config.env 2곳
 (정체성 additive/행동 상수) 확장, `TS_SERVE_TARGET` 프록시로 재조준, `kanban_host_proxy.js`
