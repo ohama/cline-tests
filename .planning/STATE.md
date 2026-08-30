@@ -60,8 +60,33 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 ## Current Position
 
 Phase: 7 of 8 (cline-bench 동작 검증) — 진행 중
-Plan: 02 of 5 in current phase — **완료(3/3 tasks, 모두 auto — 3개 개별 커밋).**
-Phase 7 둘째 플랜(07-02): contextWindow 주입 가능성 판정 + 벤치 스크립트 3종. Task
+Plan: 03 of 5 in current phase — **완료(3/3 tasks — Task 1/2 auto, Task 3 checkpoint:decision
+`stop-at-one` 로 응답됨 — 3개 개별 커밋).**
+Phase 7 셋째 플랜(07-03): 스모크 1개 과제 실행(`harbor run --env docker`, foreground, 232s) +
+분석 + 비용 결정 체크포인트. Task 1(커밋 `380e951`): `discord-trivia-approval-keyerror`(easy,
+memory_mb=2048) 실행, `preflight.sh` 11/11 사전 통과, wall-clock 232s 측정. **Verdict
+`fail-infra`** — flashnext 서버로그 바이트-오프셋 슬라이스가 0바이트, 컨테이너의 cline 이 실제
+OpenAI API 기본 엔드포인트에 붙어 "Incorrect API key provided... platform.openai.com" 로 실패,
+07-02 의 `CLINE_PROVIDER_SETTINGS_PATH` 주입(`VERDICT: INJECTABLE`, 소스 유래·실측 미검증)이
+harbor 의 실제 `-P/-k/-m --json --yolo` 호출 형태에서는 발동하지 않음을 증명. `run_task.sh` 버그
+3건(JOB_DIR 레이스, `grep -c` 이중 출력, `agent-command.txt` fallback 부재) 캡처 도중 발견·수정,
+이미 완료된 실행분을 재실행 없이 백필. Task 2(커밋 `c784e11`): `ANALYSIS.md`(279줄, 7문항 전부
+파일/라인 인용) — compose-merge/`docker exec` env 상속 두 레이어를 실행 예산 0 으로 독립 재검증해
+harness 버그가 아닌 cline 레벨 결과임을 확정, 시간 분해(environment_setup 141.5s/agent_setup
+57.3s/agent_execution 5.3s/verifier 12.4s, ~86% 가 셋업). 상시 게이트 재스윕 중 자체 발견한
+`verify_sandbox.sh` SBX-04 P4 컨트롤런 회귀(이 플랜 자신의 런 디렉터리가 `cat` 의 "Is a
+directory" 를 유발) 를 `find -type f -exec cat {} +` 로 좁게 수정(phase-03 소유 파일, 이 플랜이
+건드린 유일한 phase-07 밖 파일) — 재검증 `CASES 16/16`, `CRITERION 4 PASS`. **Task
+3(체크포인트, `gate="blocking"`) — 사용자가 `stop-at-one` 선택**(커밋 `9bcd62f`): 추가 벤치 실행
+0회, 추가 모델 지출 0. 이유(verbatim, `phase-07/results/20260830T093515Z-smoke/decision.md`):
+모든 과제의 호출 형태가 동일하므로 더 돌려봤자 동일한 구조적 `fail-infra` 를 재현할 가능성이
+높다 — 새로운 정보가 아니라 이미 아는 한계의 반복 증거만 사는 셈. `phase-07/bench/
+SELECTED_TASKS` 는 빈 채로 작성(선택 옵션 id 만 주석으로 명시) — 07-04 는 이를 "이 플랜의
+실패가 아닌" 문서화된 경로로 취급해야 함. **ROADMAP criterion 1(과제 5~8개)은 정직하게 `NOT
+MET` 으로 기록** — 1개만 실행됐고, 반올림·재해석 없이 그대로 기록. SUMMARY 작성 완료
+(`07-03-SUMMARY.md`). **다음: 07-04(`SELECTED_TASKS` 빈 파일을 읽고 stop-at-one 경로로 진행).**
+
+이전(07-02 완료): Phase 7 둘째 플랜(07-02): contextWindow 주입 가능성 판정 + 벤치 스크립트 3종. Task
 1(커밋 `c4a660c`): 설치된 harbor 0.22.0 어댑터 소스(`cline.py`/`docker.py`/`cli/jobs.py`/
 `utils/env.py`, GitHub 사본 아님 — 실제 설치 경로)와 설치된 cline 3.0.53 컴파일 바이너리를
 직접 읽어 다섯 경로(A~E) 전부 조사, **`VERDICT: INJECTABLE`**(phase 자체 프레이밍이
@@ -811,21 +836,22 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [██████████] Phase 1-6/8 완료, Phase 7 진행 중 (알려진 34/38 plans 완료 —
+Progress: [██████████] Phase 1-6/8 완료, Phase 7 진행 중 (알려진 36/38 plans 완료 —
 Phase 1(6) + Phase 2(4) + Phase 3(4) + Phase 4(4) + Phase 5(7) + Phase 6(8, 06-04.1/06-04.2
-삽입 포함) + Phase 7(1/5, 07-01 완료). Phase 6 는 8/8 plans 로 종료 — **네트워크 OPEN,
+삽입 포함) + Phase 7(3/5, 07-03 완료). Phase 6 는 8/8 plans 로 종료 — **네트워크 OPEN,
 ROADMAP 다섯 기준 중 NET-02/03/04 `met`, NET-01/05 정직하게 `human_needed`.** Phase 7 은
-5개 plan 문서(07-01~07-05)가 이미 작성돼 있으나 실행은 07-01 뿐 — 총 plan 수는 여전히
-07-02~07-05 실행 결과에 따라 변동 가능. Phase 8 은 아직 plan 수가 확정되지 않음(TBD) —
-다음은 07-02)
+5개 plan 문서(07-01~07-05)가 이미 작성돼 있고 07-01~07-03 실행 완료 — 사용자가 07-03 체크포인트에서
+`stop-at-one` 을 선택해 추가 벤치 태스크 실행 없이 07-04 가 빈 `SELECTED_TASKS` 경로로 진행 예정,
+criterion 1(5~8개)은 이미 `NOT MET` 으로 확정. Phase 8 은 아직 plan 수가 확정되지 않음(TBD) —
+다음은 07-04)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 34 (06-04 excluded — BLOCKED, not counted as completed; its 35 min is
+- Total plans completed: 36 (06-04 excluded — BLOCKED, not counted as completed; its 35 min is
   tracked separately below)
-- Average duration: ~14.8 min
-- Total execution time: ~7.68 hours
+- Average duration: ~15.5 min
+- Total execution time: ~9.4 hours
 
 **By Phase:**
 
@@ -837,9 +863,29 @@ ROADMAP 다섯 기준 중 NET-02/03/04 `met`, NET-01/05 정직하게 `human_need
 | 4 | 4/4 | ~42 min | ~10.5 min |
 | 5 | 7/7 | ~116 min | ~16.6 min |
 | 6 | 8/8 | ~70 min (+35 min BLOCKED 06-04, uncounted above) | ~14 min |
-| 7 | 1/5 (known) | ~20 min | ~20 min |
+| 7 | 3/5 (known) | ~82 min | ~27.3 min |
 
 **Recent Trend:**
+- 07-03 (~42 min total across Tasks 1-3, Phase 7's third plan — one smoke task run foreground
+  under `harbor run --env docker`, measured wall-clock 232s, verdict `fail-infra` (0 bytes in
+  flashnext's server-log slice; container's cline hit the real OpenAI API default endpoint
+  instead), falsifying 07-02's source-derived `VERDICT: INJECTABLE` in live practice for
+  harbor's exact `-P/-k/-m --json --yolo` invocation shape. Two supporting layers (compose merge,
+  `docker exec` env inheritance) independently re-verified live and confirmed sound before
+  accepting this as a cline-level, not harness-level, finding. Seven-question `ANALYSIS.md`
+  (279 lines, all citations) plus a full post-run standing-gate sweep (all seven green, after a
+  self-found-and-fixed `verify_sandbox.sh` SBX-04 P4 control-run regression). At the blocking
+  cost-decision checkpoint the user selected `stop-at-one`: zero further bench tasks,
+  `SELECTED_TASKS` written empty, ROADMAP criterion 1 (5-8 tasks) recorded as `NOT MET` exactly
+  as written, no rounding up. Three commits (`380e951`/`c784e11`/`9bcd62f`) all individual.)
+- 07-02 (~20 min, Phase 7's second plan — contextWindow-injection verdict + three bench scripts.
+  Read the installed harbor 0.22.0 adapter source and installed cline 3.0.53 binary directly,
+  landed `VERDICT: INJECTABLE` (not the NOT-INJECTABLE the phase's own framing leaned toward) via
+  `--extra-docker-compose` + `CLINE_PROVIDER_SETTINGS_PATH`, never live-tested (budget 0) --
+  07-03 later falsified this in live practice. Wrote `run_task.sh`/`make_summary.sh`/
+  `verify_bench.sh` (evidence capture, BCH-03 table, 10-check standing gate), exercised against
+  three synthetic run directories, zero model spend. Three commits (`c4a660c`/`c4eec49`/
+  `f115ffe`) all individual.)
 - 07-01 (~20 min, Phase 7's first plan — preflight (11-check standing gate composing all five
   prior phases' own gates plus six Phase-7-specific checks) + idempotent harbor/cline-bench
   install + live task inventory. `CASES 11/11` twice, negative control proved P5 can FAIL.
@@ -1684,6 +1730,27 @@ Recent decisions affecting current work:
   명시적으로 플래그됨(root-cause transcript:
   `phase-06/results/20260830T071532Z-net05/kanban-registration-blocker.txt`), 재발견되지
   않도록 여기 보존.**
+- **07-03: 07-02 의 contextWindow/BASE_URL 주입 메커니즘(`VERDICT: INJECTABLE`, 소스 유래·실측
+  미검증)이 harbor 의 실제 호출 형태(`-P openai-compatible -k $API_KEY -m $MODELID --json
+  --yolo`)에서는 발동하지 않는다 — 첫 실측(스모크런)에서 라이브로 반증됨.** 컨테이너의 cline 이
+  이 스택의 flashnext 대신 실제 OpenAI API 기본 엔드포인트에 붙어 "Incorrect API key
+  provided... platform.openai.com" 로 실패, flashnext 서버로그 바이트-오프셋 슬라이스는 0바이트
+  (요청 자체가 이 스택에 전혀 도달 안 함). 메커니즘 하위 두 레이어(docker-compose 오버레이
+  merge, `docker exec` env 상속)는 각각 독립적으로 실측 재검증돼 정상 작동 확인 — harness 버그가
+  아니라 cline 자신의 이 정확한 호출 형태에 대한 런타임 리졸브 갭. **이것은 Phase 8 로 넘어가는
+  durable decision 이다: Phase 8 매뉴얼은 cline-bench 가 이 스택의 모델 서버(flashnext)를
+  실제로 exercise 했다고 서술하면 안 된다** — 실행된 유일한 과제는 flashnext 에 전혀 도달하지
+  못했다. 증거: `phase-07/results/20260830T093515Z-smoke/ANALYSIS.md` Q1/Q3,
+  `phase-07/results/20260830T093515Z-smoke/decision.md`.
+- **07-03: 사용자가 비용 결정 체크포인트에서 추가 벤치 태스크 실행을 명시적으로 거절
+  (`stop-at-one`, 2026-08-30).** 이유(verbatim): 모든 과제의 호출 형태가 동일하므로 더 돌려봤자
+  같은 구조적 `fail-infra` 를 재현할 가능성이 높다 — 새로운 정보가 아니라 이미 아는 한계의 반복
+  증거만 사는 셈. 결과: `phase-07/bench/SELECTED_TASKS` 빈 파일로 확정(07-04 는 이를 이 플랜의
+  실패가 아닌 문서화된 경로로 취급), **ROADMAP Phase 7 criterion 1(`harbor run --env docker`
+  로 공식 과제 5~8개 실행)은 정직하게 `NOT MET` 으로 기록** — 반올림·재해석 금지, 1개만 실행됐다는
+  사실을 그대로 유지. 이 결정은 07-04/07-05/Phase 8 전체로 그대로 넘어간다: 어느 후속 플랜도
+  criterion 1 을 "충족"으로 격상하거나 1개 실행을 5~8개 범위로 재서술하면 안 된다. 기록:
+  `phase-07/results/20260830T093515Z-smoke/decision.md`.
 
 ### Pending Todos
 
@@ -1800,7 +1867,34 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **07-01-PLAN.md 완료 (3/3 tasks, 모두 auto — 3개 개별 커밋), STATE.md 갱신 완료.**
+Stopped at: **07-03-PLAN.md 완료 (3/3 tasks — Task 1/2 auto, Task 3 checkpoint:decision
+`stop-at-one` 로 응답됨 — 3개 개별 커밋), STATE.md 갱신 완료.** Task 1(`380e951`):
+`discord-trivia-approval-keyerror` 를 `harbor run --env docker` 로 foreground 실행, wall-clock
+232s 측정, **verdict `fail-infra`**(flashnext 서버로그 슬라이스 0바이트, 컨테이너의 cline 이
+실제 OpenAI API 기본 엔드포인트에 붙어 실패 — 07-02 의 `CLINE_PROVIDER_SETTINGS_PATH` 주입이
+harbor 의 실제 호출 형태에서는 발동하지 않음을 최초로 라이브 반증). `run_task.sh` 버그 3건
+발견·수정 후 재실행 없이 백필. Task 2(`c784e11`): `ANALYSIS.md`(279줄, 7문항 전부 인용) —
+compose-merge/`docker exec` env 상속 두 레이어 독립 재검증으로 harness 버그 아님을 확정, 시간
+분해(232s 중 ~86% 가 셋업). 재스윕 중 자체 발견한 `verify_sandbox.sh` SBX-04 P4 컨트롤런
+회귀를 `find -type f -exec cat {} +` 로 좁게 수정(phase-03 소유, 이 플랜이 건드린 유일한
+phase-07 밖 파일) — `CASES 16/16` 재확인. **Task 3(체크포인트) — 사용자가 `stop-at-one`
+선택**(`9bcd62f`): 추가 벤치 실행 0회, `phase-07/bench/SELECTED_TASKS` 빈 파일로 확정,
+**ROADMAP criterion 1(과제 5~8개)은 정직하게 `NOT MET`** 으로 기록(반올림 금지). 이 두 durable
+decision(주입 메커니즘 실측 미발동, stop-at-one)은 위 결정 로그에 별도 항목으로 기록됨.
+6종 pid·포트 3000·`EXTRA_ALLOW_PATHS`·`bench/runs/CANARY.txt` 전 구간 불변. **다음: 07-04
+(`SELECTED_TASKS` 빈 파일을 읽고 stop-at-one 경로로 진행 — 추가 `harbor run` 없음).**
+
+이전 세션: 2026-08-30
+정지 지점: **07-02-PLAN.md 완료 (3/3 tasks, 모두 auto — 3개 개별 커밋), STATE.md 갱신 완료.**
+Task 1(`c4a660c`): 설치된 harbor 0.22.0 어댑터 소스 + 설치된 cline 3.0.53 바이너리를 직접 읽어
+`VERDICT: INJECTABLE` 판정(`--extra-docker-compose` + `CLINE_PROVIDER_SETTINGS_PATH`, 소스
+유래·실측 미검증 — 07-03 이 이후 라이브로 반증함). Task 2(`c4eec49`): `run_task.sh`(505줄,
+한 태스크 실행에 필요한 전부). Task 3(`f115ffe`): `make_summary.sh`+`verify_bench.sh`(10-check
+게이트, 네거티브 컨트롤 검증). 편차 3건(config.json gap-fill, bash 3.2 빈 배열 버그,
+wording-collision 보고). `cline`/`harbor run` 호출 0회. **다음: 07-03.**
+
+이전 세션: 2026-08-30
+정지 지점: **07-01-PLAN.md 완료 (3/3 tasks, 모두 auto — 3개 개별 커밋), STATE.md 갱신 완료.**
 Task 1(`f669831`): `phase-07/bench/config.env` + `preflight.sh`(P1-P11, `CASES 11/11` 연속
 2회 + 네거티브 컨트롤로 게이트가 FAIL 할 수 있음을 증명). Task 2(`47a8b0a`):
 `install_bench.sh` 로 harbor 0.22.0 + cline-bench@`d108556` 멱등 설치, REMOVAL 레시피 기록,
