@@ -71,11 +71,60 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 
 ## Current Position
 
-Phase: 7 of 8 (cline-bench 동작 검증) — ✓ Complete (5/5 plans)
-Plan: 05 of 5 in current phase — **완료(2/2 tasks, 전부 auto — 2개 개별 커밋).** Phase 7 은
-이걸로 종료.
+Phase: 7 of 8 (cline-bench 동작 검증) — **GAP CLOSURE 진행 중 (07-05 완료 후 재개, 5개
+gap-closure 플랜 07-06~07-10 추가, 총 10/10 플랜).**
+Plan: 06 of 10 in current phase — **완료(3/3 tasks, 전부 auto — 3개 개별 커밋).**
 
-Phase 7 다섯째(마지막) 플랜(07-05): Task 1(커밋 `46e6423`): `docs/cline-bench.md`(173줄) 작성 —
+**Phase 7 gap-closure 배경**: 07-05 종료 후 검증(07-VERIFICATION.md, `passed`)이 나온 뒤,
+07-02 의 `CLINE_PROVIDER_SETTINGS_PATH` 주입 `VERDICT: INJECTABLE` 이 **잘못된 바이너리**(호스트
+3.0.60, 드리프트분)를 정적 분석한 것이었다는 사실이 별도로 드러나 gap-closure 5개 플랜(07-06~10)
+이 추가됨. **07-06(진단 플랜, 이번 플랜) — 완료**: Task 1(커밋 `249d049`): 7개 상시 게이트
+전부 통과 확인 후, `@cline/cli-linux-arm64@3.0.53`(컨테이너가 실제 실행하는 플랫폼, `docker info`
+로 실측 확인 — aarch64/linux) 를 `npm pack` 으로 받아 언팩 — 계획이 경고한 함정을 실측으로도
+확인(`cline@3.0.53` bare 패키지의 `bin/cline` 은 4446바이트 Node 리졸버 스크립트일 뿐, 진짜
+~142MB ELF 바이너리는 별도 플랫폼 옵셔널-디펜던시 패키지 안에 있음). 컨파운드된 페어(다윈
+3.0.60 vs 리눅스 3.0.53)에서 5개 항목 중 2개가 카운트 차이를 보여 필수 동일-플랫폼 컨트롤
+(`@cline/cli-linux-arm64@3.0.60`)을 실행 — 순수 버전 페어에서도 동일 델타가 나왔지만 직접
+대조해보니 두 버전 사이에 추가된 무관한 기능("modes")이 원인, 실제 주입 프리미티브(env var
+리졸버, `getProviderConfig()`, 영속 설정 스키마+`read()`의 침묵 폴백)는 두 버전에서 구조적으로
+동일함 확정. **`H1_VERDICT: ruled-out`**(버전 스큐 아님). H1 조사 중 진짜 원인을 발견:
+영속 `providers.json` 스키마가 최상위 `"version":1` 과 provider 별 `"updatedAt"`(ISO datetime)
+을 **필수**로 요구하는데 `cline-cw-providers.json` 은 둘 다 빠져 있고, `read()` 는
+`Ox.safeParse()` 를 써서 검증 실패 시 **경고 없이** 빈 providers 레지스트리로 조용히
+폴백함 — 07-03 이 관측한 "컨테이너의 cline 이 실제 OpenAI 기본 엔드포인트로 붙는" 증상과 정확히
+일치. Task 2(커밋 `331a662`): `phase-07/bench/injection_probe.sh`(574줄, 재실행 가능·멱등,
+house `CHECK:`/`CASES` 계약) 작성 — R1(compose-merge-replay, 오프라인): harbor 의 실제
+멀티파일 compose 머지(오버레이 뒤에 harbor 자신이 자동 생성하는 env/mounts 오버라이드 파일까지
+포함, 빈 `volumes: []` 오버라이드도 포함)를 재현해 바인드 마운트와 env var 둘 다 생존함을
+확인(07-03 이 커버 못한 마운트-생존 케이스까지 확장). R2(container-env-and-mount): 제네릭
+컨테이너에서 env var 가시성+파일 읽기 가능(컨테이너 자체 root 유저로, 포트 미공개) 확인 —
+**H5(파일 읽기불가) 실측으로 기각**. R3(settings-parse) — 계획이 상정한 "비대화형 config
+리포트 서브커맨드" 가 실제로는 존재하지 않음을 실측으로 발견(`cline config` 는 파일 유효성과
+무관하게 항상 TTY 요구, `auth` 는 리포트가 아니라 변경 커맨드) → 대체 메커니즘 사용: `cline
+config --json` 이 겪는 read-then-persist 라운드트립이 실제 호출 경로와 **동일한** `read()`
+를 거치므로, 다시 써지는 결과 파일 내용으로 파싱 성패를 판별 — base/a(주석 제거)/c(기본
+경로) 세 변형 전부 실측으로 침묵 거부되어 cline 자체 내장 `"cline"` provider 기본값으로
+덮어써짐 확인, 스키마-수정 서플리먼트(version+updatedAt 추가)는 주입된 항목(baseUrl/apiKey/
+model/contextWindow) 을 온전히 보존함을 실측 확인 — **H4 CONFIRMED, 실측(정적 추론 아님).**
+Task 3(커밋 `7e9eb89`): `DIAGNOSIS.md` 작성 — **`ROOT_CAUSE: schema-rejected`,
+`FIX_AVAILABLE: yes`**, H1~H5 전부 판정 표(H1/H2/H5 기각, H3 도 기각 — 실제 호출 형태에
+`baseUrl` 을 설정할 CLI 플래그 자체가 없음을 정적+실측 이중 확인, H4 확정), 순위 매긴 후보
+수정안 5개(1순위: `cline-cw-providers.json` 에 `version`/`updatedAt` 추가, 실측 검증됨).
+7개 상시 게이트 재스윕 — pre/post 시그니처 완전 일치(`verify_bench` 10/10, `verify_sandbox`
+16/16 SBX-04 PASS, `verify_services` 15/15, `verify_network` 24/24, `verify_no_regression`
+INF03 PASS, `verify_config` exit 0, `preflight` 11/11). **R4(실제 모델 호출 1회 허용된
+유일한 rung)는 `--with-model-call` 로 시도했으나 실행 에이전트 자신의 auto-mode 권한
+classifier 가 컨테이너 기동 전에 명령 자체를 거부** — classifier 자신의 지시대로 우회 시도
+안 하고 미실행으로 정직히 기록(`probe/R4/skipped.txt`), R3 의 실측(컨테이너 내부, 모델 비용
+0)만으로 `FIX_AVAILABLE: yes` 판정 근거는 이미 충분(계획이 명시한 "라이브 baseUrl 해석 확인"
+조건 충족). 6종 pid·포트 3000·카나리아·`ALLOWED_REPOS.json`·`EXTRA_ALLOW_PATHS` 전부 무변경,
+호스트 `cline` 호출 0회, `harbor run` 0회. 스크래치 바이너리 트리(~400MB) 는 `.gitignore` 에
+추가(증거 텍스트만 추적, 원본 바이너리는 미추적). SUMMARY 작성 완료(`07-06-SUMMARY.md`).
+**다음: 07-07(진단이 지목한 수정을 실제로 적용 — `cline-cw-providers.json` 에 `version`/
+`updatedAt` 추가).**
+
+이전(07-05 완료, gap-closure 이전 마지막 정규 플랜): Phase 7 다섯째 플랜(07-05): Task
+1(커밋 `46e6423`): `docs/cline-bench.md`(173줄) 작성 —
 결론/실행 내역/재현/⚠️ 한계(독립 최상위 섹션)/보안 태세/운영 부작용/제거 방법/증거 인덱스/Phase
 8 인계 9개 섹션. 모든 숫자(과제 풀 12, 실행 1, 통과 0, 232초, 141.5/57.3/5.3/12.4초 내역)를
 `bench/runs/20260830T093657Z-phase07/summary.md` 와 대조 확인. 하우스 룰 9 그렙 셋 다 통과:
@@ -911,10 +960,10 @@ ROADMAP 다섯 기준 중 NET-02/03/04 `met`, NET-01/05 정직하게 `human_need
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 38 (06-04 excluded — BLOCKED, not counted as completed; its 35 min is
+- Total plans completed: 39 (06-04 excluded — BLOCKED, not counted as completed; its 35 min is
   tracked separately below)
 - Average duration: ~16 min
-- Total execution time: ~10.1 hours
+- Total execution time: ~10.7 hours
 
 **By Phase:**
 
@@ -926,10 +975,22 @@ ROADMAP 다섯 기준 중 NET-02/03/04 `met`, NET-01/05 정직하게 `human_need
 | 4 | 4/4 | ~42 min | ~10.5 min |
 | 5 | 7/7 | ~116 min | ~16.6 min |
 | 6 | 8/8 | ~70 min (+35 min BLOCKED 06-04, uncounted above) | ~14 min |
-| 7 | 5/5 | ~125 min | ~25 min |
+| 7 | 6/10 (gap closure in progress) | ~162 min | ~27 min |
 
 **Recent Trend:**
-- 07-05 (~35 min, Phase 7's fifth and final plan — `docs/cline-bench.md` (173 lines, house
+- 07-06 (~37 min, Phase 7's first gap-closure plan — diagnosed why 07-02's contextWindow/
+  BASE_URL injection doesn't take effect. Settled H1 (version skew) against the REAL
+  container-side cline 3.0.53 build, not the host's drifted 3.0.60 (`H1_VERDICT: ruled-out`,
+  same-platform 3.0.53-vs-3.0.60-linux control). Surfaced and CONFIRMED the real cause live,
+  container-side, zero model cost: `cline-cw-providers.json` fails cline's persisted-settings
+  schema (missing required `version`/`updatedAt` fields), so `read()` silently falls back to an
+  empty providers registry. `ROOT_CAUSE: schema-rejected`, `FIX_AVAILABLE: yes` (candidate fix
+  demonstrated working). Built `injection_probe.sh` (574 lines, re-runnable probe ladder R1-R4).
+  R4 (the one real-model-call rung) blocked by the executing agent's own auto-mode permission
+  classifier, left unrun rather than worked around; R3's live evidence stands on its own. All
+  seven standing gates re-swept, signatures unchanged. Zero host `cline`, zero `harbor run`.
+  Three commits (`249d049`/`331a662`/`7e9eb89`) all individual.)
+- 07-05 (~35 min, Phase 7's fifth (of the original five) plan — `docs/cline-bench.md` (173 lines, house
   style, limits and removal as their own top-level sections) + phase-close. Every number
   cross-checked against `summary.md`; house-rule-9 greps (funnel/tailscale adjacency,
   `EXTRA_ALLOW_PATHS=`) all clean. Eight standing gates re-run fresh, all exit 0 (preflight
@@ -1833,6 +1894,25 @@ Recent decisions affecting current work:
   사실을 그대로 유지. 이 결정은 07-04/07-05/Phase 8 전체로 그대로 넘어간다: 어느 후속 플랜도
   criterion 1 을 "충족"으로 격상하거나 1개 실행을 5~8개 범위로 재서술하면 안 된다. 기록:
   `phase-07/results/20260830T093515Z-smoke/decision.md`.
+- **07-06 (gap closure): 07-03 이 관측한 "cline-cw-providers.json 주입 미발동" 의 진짜 원인이
+  확정됨 — 버전 스큐(H1)가 아니라 스키마 거부(H4).** `@cline/cli-linux-arm64@3.0.53`(컨테이너가
+  실제 실행하는 빌드)을 직접 받아 3.0.60(호스트, 07-02 가 실제로 분석했던 것)과 동일-플랫폼
+  컨트롤로 대조 — 주입 프리미티브(`CLINE_PROVIDER_SETTINGS_PATH` 리졸버,
+  `getProviderConfig()`, 영속 설정 스키마+`read()`) 는 두 버전에서 구조적으로 동일함 확정
+  (`H1_VERDICT: ruled-out`). 실제 원인: 영속 `providers.json` 스키마가 최상위 `"version":1`
+  과 provider 별 `"updatedAt"`(ISO datetime) 을 필수로 요구하는데
+  `phase-07/bench/cline-cw-providers.json` 은 둘 다 누락 — `ProviderSettingsManager.read()`
+  가 `Ox.safeParse()` 로 검증하고 실패 시 **경고 없이** 빈 providers 레지스트리로 폴백. 컨테이너
+  내부(모델 비용 0)에서 `cline config --json` 의 read-then-persist 라운드트립으로 실측
+  확정(정적 추론 아님) — 미수정 파일은 항상 cline 자체 `"cline"` provider 기본값으로 조용히
+  덮어써지고, `version`/`updatedAt` 을 추가한 서플리먼트는 주입된 `openai-compatible` 항목을
+  온전히 보존함. **`ROOT_CAUSE: schema-rejected`, `FIX_AVAILABLE: yes`(실측 검증된 수정안:
+  `cline-cw-providers.json` 에 `version`/`updatedAt` 추가) — 07-07 이 이 수정을 그대로 적용해야
+  한다.** H2(오버레이 미도달)/H3(CLI 플래그가 설정 파일을 override)/H5(파일 읽기불가) 는 전부
+  실측으로 기각(H3 는 실제 호출 형태에 `baseUrl` 설정용 CLI 플래그 자체가 없음을 정적+실측
+  이중 확인). 부수 발견: `cline config --json` 은 (3.0.53 도) 파일 유효성과 무관하게 항상 TTY
+  요구 — 01-01 이 이미 기록한 동일 사실("cline config --json/cline config 는 헤드리스로 동작
+  안 함")의 재확인, 새로운 리스크 아님. 증거: `phase-07/results/20260830T113923Z-injection-diag/DIAGNOSIS.md`.
 
 ### Pending Todos
 
@@ -1964,8 +2044,19 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **07-05-PLAN.md 완료 (2/2 tasks, 전부 auto — 2개 개별 커밋), STATE.md 갱신 완료.
-Phase 7 전체 종료(5/5 plans).** Resume file: None.
+Stopped at: **07-06-PLAN.md 완료 (3/3 tasks, 전부 auto — 3개 개별 커밋), STATE.md 갱신 완료.
+Phase 7 gap-closure 진행 중 (6/10 plans, 07-07~07-10 남음).** Resume file: None.
+
+`ROOT_CAUSE: schema-rejected`, `FIX_AVAILABLE: yes` — `cline-cw-providers.json` 이 cline
+3.0.53(과 3.0.60) 의 영속 설정 스키마가 요구하는 `version`/`updatedAt` 필드가 빠져 있어
+`read()` 가 침묵 폴백함을 실측(컨테이너 내부, 모델 비용 0)으로 확정. 상세는 위 Current
+Position 블록 및 `phase-07/results/20260830T113923Z-injection-diag/DIAGNOSIS.md` 참고.
+**다음: 07-07(수정 실제 적용 — `cline-cw-providers.json` 에 `version`/`updatedAt` 추가 후
+재검증).**
+
+이전 세션(07-05 완료, gap-closure 이전): 2026-08-30
+정지 지점: **07-05-PLAN.md 완료 (2/2 tasks, 전부 auto — 2개 개별 커밋), STATE.md 갱신 완료.
+Phase 7 전체 종료(5/5 plans) — 이후 gap-closure 로 재개됨(위 참고).**
 
 Task 1(`46e6423`): `docs/cline-bench.md`(173줄, 9개 최상위 섹션) 작성 — 결론(1개 실행/0개
 통과)/실행 내역(harbor 0.22.0, cline-bench SHA, 과제 풀 12, 모델 스펙)/재현 3커맨드+상시
@@ -1989,9 +2080,7 @@ ROADMAP.md` Phase 7 5/5 `[x]`, criterion 1 의 `not_met` 사유를 Success Crite
 직접 기입(진행률 표 셀에만 두지 않음 — criteria.md 와 완전히 미러링), 진행률 표 갱신. 6종
 pid·포트 3000·카나리아·`EXTRA_ALLOW_PATHS` 전부 무변경, 벤치 실행 0회, 모델 지출 0.
 
-**다음: Phase 8(한글 사용 매뉴얼).** DOC-01~04, 전체 완료(Phase 1-7) 후 최종 단계. Phase 8
-작성자는 `docs/cline-bench.md` §9(Phase 8 인계)의 "쓰면 안 되는 문장" 목록을 먼저 읽을 것 —
-특히 cline-bench 가 flashnext 를 검증했다는 문장은 절대 금지.
+(당시 기록된 "다음: Phase 8" 은 gap-closure 발견으로 인해 취소되고 07-06~10 으로 대체됨.)
 
 이전 세션: 2026-08-30
 정지 지점: **07-04-PLAN.md 완료 (3/3 tasks, 전부 auto — 3개 개별 커밋), STATE.md 갱신 완료.**
