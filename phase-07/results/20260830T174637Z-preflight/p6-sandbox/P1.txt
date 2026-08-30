@@ -1,0 +1,15 @@
+=== CASE P1 ===
+--- command ---
+/bin/cat
+/Users/ohama/projs/cline-tests/workspace/scratch-repo/README.md
+--- rc ---
+0
+--- stdout ---
+# scratch-repo
+
+This is the default sandboxed working directory for Phase 4's headless
+wrapper. It is intentionally empty and disposable — nothing of value should
+be kept here; it exists only so `workspace/ALLOWED_REPOS.json` has at least
+one real, existing directory to whitelist while this phase is built out.
+--- stderr ---
+

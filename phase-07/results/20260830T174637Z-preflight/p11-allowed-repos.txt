@@ -1,0 +1,1 @@
+PASS entries=1 ['/Users/ohama/projs/cline-tests/workspace/scratch-repo']

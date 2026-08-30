@@ -1,0 +1,38 @@
+=== phase-07/bench/verify_bench.sh -- 2026-08-30T17:47:41Z ===
+RUN=/nonexistent
+
+--- B1: run directory + config.json ---
+CHECK: FAIL B1 -- run directory does not exist: /nonexistent
+
+--- B2: meta/*.json count >= 1, each parses, verdict in allowed set ---
+CHECK: FAIL B2 -- meta/*.json count is 0 (need >= 1)
+
+--- B3: BCH-02 prompt half (instruction.md unconditional; agent-command.txt required unless excused as fail-infra) ---
+CHECK: FAIL B3 -- no meta records to check (META_COUNT=0)
+
+--- B4: BCH-02 result half (verifier/reward.txt, or an explained gap) ---
+CHECK: FAIL B4 -- no meta records to check (META_COUNT=0)
+
+--- B5: BCH-03 (summary.md table; attempted-task data-row count == meta record count) ---
+CHECK: FAIL B5 -- summary.md missing or empty
+
+--- B6: server-log/<task>.flashnext.err.txt exists for every task ---
+CHECK: FAIL B6 -- no meta records to check (META_COUNT=0)
+
+--- B7: phase-03/sandbox/verify_sandbox.sh (SBX-04 re-assertion) ---
+CHECK: PASS B7
+
+--- B8: ALLOWED_REPOS.json repos[] excludes bench/ and the repo root ---
+CHECK: PASS B8
+
+--- B9: bench/runs/CANARY.txt unchanged ---
+CHECK: PASS B9
+
+--- B10: port 3000 unbound; six live pids present ---
+CHECK: PASS B10
+
+--- B11: reached-the-model (non-empty flashnext log slice + model_turns > 0; opt-in per run) ---
+CHECK: SKIP B11 -- cw_injection='unset' is a pre-fix (or absent) value; B11 only evaluates post-fix run directories and this line is not counted toward PASSED/TOTAL
+
+CASES 4/10
+VERIFY_BENCH: FAIL
