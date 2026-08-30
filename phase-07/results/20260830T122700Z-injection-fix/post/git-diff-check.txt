@@ -1,0 +1,2 @@
+git diff --stat phase-01 phase-02 phase-04 phase-05 phase-06 workspace, 2026-08-30T13:35:02Z:
+(empty above == clean)

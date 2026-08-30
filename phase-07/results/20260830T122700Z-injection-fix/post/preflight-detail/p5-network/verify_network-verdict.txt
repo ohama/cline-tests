@@ -1,0 +1,77 @@
+=== phase-06/net/verify_network.sh -- 2026-08-30T13:31:36Z ===
+
+--- 1: tailscale-reachable ---
+CHECK: PASS tailscale-reachable
+
+--- 2: no-new-public-exposure ---
+CHECK: PASS no-new-public-exposure
+
+--- 3: preexisting-serve-entries-untouched ---
+CHECK: PASS preexisting-serve-entries-untouched
+
+--- 4: kanban-serve-entry-present ---
+CHECK: PASS kanban-serve-entry-present
+
+--- 5: port-3000-unbound ---
+CHECK: PASS port-3000-unbound
+
+--- 6: kanban-bind-loopback-only ---
+CHECK: PASS kanban-bind-loopback-only
+
+--- 7: lan-refused-kanban-port ---
+CHECK: PASS lan-refused-kanban-port
+
+--- 8: lan-refused-serve-port ---
+CHECK: PASS lan-refused-serve-port
+
+--- 9: tailnet-https-200 ---
+CHECK: PASS tailnet-https-200
+
+--- 10: tailnet-no-passcode-gate ---
+CHECK: PASS tailnet-no-passcode-gate
+
+--- 11: net04-guard-present ---
+CHECK: PASS net04-guard-present
+
+--- 12: net04-guard-refuses ---
+CHECK: PASS net04-guard-refuses
+
+--- 13: no-wildcard-bind-in-repo ---
+CHECK: PASS no-wildcard-bind-in-repo
+
+--- 14: no-public-exposure-command-in-repo ---
+CHECK: PASS no-public-exposure-command-in-repo
+
+--- 15: live-pids-stable ---
+CHECK: PASS live-pids-stable
+
+--- 16: proxy-state-settled ---
+CHECK: PASS proxy-state-settled
+
+--- 17: proxy-bind-loopback-only ---
+CHECK: PASS proxy-bind-loopback-only
+
+--- 18: proxy-rewrites-host ---
+CHECK: PASS proxy-rewrites-host
+
+--- 19: proxy-rejects-unknown-host ---
+CHECK: PASS proxy-rejects-unknown-host
+
+--- 20: proxy-rejects-unknown-origin ---
+CHECK: PASS proxy-rejects-unknown-origin
+
+--- 21: proxy-websocket-upgrade ---
+CHECK: PASS proxy-websocket-upgrade
+
+--- 22: proxy-lan-refused ---
+CHECK: PASS proxy-lan-refused
+
+--- 23: proxy-pin-gate ---
+CHECK: PASS proxy-pin-gate
+
+--- 24: tailnet-websocket-101 ---
+CHECK: PASS tailnet-websocket-101
+
+CASES 24/24
+CRASHED 0
+VERIFY_NETWORK: PASS
