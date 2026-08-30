@@ -1,0 +1,85 @@
+=== Check 1: hardening flags still in place ===
+--- com.ohama.flashnext.plist ProgramArguments ---
+Array {
+    /Users/ohama/projs/qwen38-flash-next-tests/.venv-mlxvlm-new/bin/python3
+    -m
+    mlx_vlm.server
+    --model
+    /Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4
+    --host
+    127.0.0.1
+    --port
+    8000
+    --draft-model
+    /Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MTP-drafter
+    --draft-kind
+    mtp
+    --max-kv-size
+    32768
+    --log-level
+    INFO
+    --max-num-seqs
+    1
+}
+--- com.ohama.litellm.plist ProgramArguments ---
+Array {
+    /Users/ohama/agent-stack/venv/bin/litellm
+    --config
+    /Users/ohama/agent-stack/litellm/config.yaml
+    --port
+    4000
+    --host
+    127.0.0.1
+}
+CHECK: PASS hardening-flags-present
+
+=== Check 2: all three services running ===
+--- com.ohama.flashnext ---
+	state = running
+	pid = 46573
+		state = active
+		state = active
+--- com.ohama.role-shim ---
+	state = running
+	pid = 75548
+		state = active
+		state = active
+--- com.ohama.litellm ---
+	state = running
+	pid = 48525
+		state = active
+		state = active
+CHECK: PASS services-running
+
+=== Check 3: hop 3 - mlx_vlm.server :8000 /v1/models ===
+http_code=200
+CHECK: PASS hop3-mlx-vlm-server
+
+=== Check 4: hop 2 - role-shim :8011 /v1/models ===
+oracle=/v1/models http_code=200
+CHECK: PASS hop2-role-shim
+
+=== Check 5: hop 1 - litellm :4000 /v1/models advertises flashnext ===
+http_code=200
+CHECK: PASS hop1-litellm-advertises-flashnext
+
+=== Check 6: full chain completion via 127.0.0.1 ===
+http_code=200
+body: {"id":"chatcmpl-308ea97b-68ea-41f6-baec-e323082c415d","created":1788079632,"model":"flashnext","object":"chat.completion","choices":[{"finish_reason":"length","index":0,"message":{"content":"Hi there! How can I help you","role":"assistant","provider_specific_fields":{"reasoning":null,"name":null,"refusal":null,"tool_call_id":null}},"provider_specific_fields":{}}],"usage":{"completion_tokens":8,"prompt_tokens":14,"total_tokens":22,"prompt_tokens_details":{"cached_tokens":0}},"timings":{"prompt_n":14,"cache_n":0,"predicted_n":8,"prompt_ms":1266.283500008285,"prompt_per_token_ms":90.44882142916322,"prompt_per_second":11.055976011618569,"predicted_ms":231.35404800996184,"predicted_per_token_ms":28.91925600124523,"predicted_per_second":34.57903619501626,"peak_memory":124.487242952,"draft_kind":"mtp","draft_rounds":4,"draft_n":4,"draft_n_accepted":3}}
+usage: {'completion_tokens': 8, 'prompt_tokens': 14, 'total_tokens': 22, 'prompt_tokens_details': {'cached_tokens': 0}}
+parsed: CONTENT_OK
+CHECK: PASS full-chain-127.0.0.1
+
+=== Check 7: full chain completion via localhost hostname ===
+http_code=200
+body: {"id":"chatcmpl-d555254d-a6bd-46bc-9915-788ffef23af1","created":1788079633,"model":"flashnext","object":"chat.completion","choices":[{"finish_reason":"length","index":0,"message":{"content":"Hi there! How can I help you","role":"assistant","provider_specific_fields":{"reasoning":null,"name":null,"refusal":null,"tool_call_id":null}},"provider_specific_fields":{}}],"usage":{"completion_tokens":8,"prompt_tokens":14,"total_tokens":22,"prompt_tokens_details":{"cached_tokens":0}},"timings":{"prompt_n":14,"cache_n":0,"predicted_n":8,"prompt_ms":99.49508297722785,"prompt_per_token_ms":7.1067916412305605,"prompt_per_second":140.7104711215154,"predicted_ms":241.545095973249,"predicted_per_token_ms":30.193136996656126,"predicted_per_second":33.12010938481647,"peak_memory":124.487242952,"draft_kind":"mtp","draft_rounds":4,"draft_n":4,"draft_n_accepted":3}}
+parsed: CONTENT_OK
+CHECK: PASS full-chain-localhost
+
+=== Check 8: direct :8000 probe (no queue deadlock) ===
+http_code=200
+body: {"id":"chatcmpl-55d24286-2418-47b0-ad04-e0ec8e339f48","object":"chat.completion","created":1788079633,"model":"/Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4","choices":[{"index":0,"finish_reason":"length","message":{"role":"assistant","content":"Hi there! How can I help you","reasoning_content":null,"reasoning":null,"tool_calls":null,"tool_call_id":null,"name":null},"logprobs":null}],"usage":{"prompt_tokens":14,"completion_tokens":8,"total_tokens":22,"prompt_tokens_details":{"cached_tokens":0}},"timings":{"prompt_n":14,"cache_n":0,"predicted_n":8,"prompt_ms":98.4853330301121,"prompt_per_token_ms":7.0346666450080075,"prompt_per_second":142.1531467606397,"predicted_ms":242.41081033168098,"predicted_per_token_ms":30.301351291460122,"predicted_per_second":33.001828544914815,"peak_memory":124.487242952,"draft_kind":"mtp","draft_rounds":4,"draft_n":4,"draft_n_accepted":3}}
+parsed: CONTENT_OK
+CHECK: PASS no-queue-deadlock
+
+INF03: PASS
