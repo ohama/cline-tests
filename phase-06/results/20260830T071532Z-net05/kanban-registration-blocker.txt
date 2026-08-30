@@ -1,0 +1,14 @@
+=== root cause diagnosis: git-config sandbox denial (blocks project REGISTRATION, not the CLI surface itself) ===
+Reproduced directly via run_sandboxed.sh (same profile shape the live kanban service pid 53894 runs under):
+resolved allow list: ['/Users/ohama/projs/cline-tests/workspace/scratch-repo', '/Users/ohama/.cline']
+fatal: unable to access '/Users/ohama/.gitconfig': Operation not permitted
+exit=128
+
+Root cause: workspace/sandbox.sb denies file-read* under all of /Users/ohama except
+workspace/scratch-repo and ~/.cline -- ~/.gitconfig is NOT in the allow list, and this git
+version refuses even 'rev-parse --is-inside-work-tree' without being able to touch it.
+This is a Phase-3-owned sandbox punch-list gap, orthogonal to NET-05, and fixing it would mean
+loosening workspace/ALLOWED_REPOS.json-derived file-read allowlist or restarting the live
+kanban service with a different git config path -- both outside this plan's declared file
+scope (phase-06/results/ only) and outside its house rules (no service/plist changes here).
+NOT fixed. Documented as a deviation, not auto-fixed.

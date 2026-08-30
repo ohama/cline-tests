@@ -1,0 +1,9 @@
+Usage: kanban task start [options]
+
+Start a task session and move task to in_progress.
+
+Options:
+  --task-id <id>         Task ID.
+  --project-path <path>  Workspace path. Defaults to current directory
+                         workspace.
+  -h, --help             display help for command

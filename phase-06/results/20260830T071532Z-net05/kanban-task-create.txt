@@ -1,0 +1,6 @@
+=== kanban task create (registers project, one backlog task, no worktree/session) ===
+{
+  "ok": false,
+  "error": "Task command failed at http://127.0.0.1:3484: This folder is not a git repository. Cline requires git to manage worktrees. Initialize git to continue."
+}
+EXIT=1

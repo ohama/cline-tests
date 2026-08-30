@@ -1,0 +1,6 @@
+=== kanban task list --column in_progress (BEFORE any workspace registration) ===
+{
+  "ok": false,
+  "error": "Task command failed at http://127.0.0.1:3484: Project /Users/ohama/projs/cline-tests is not added to Kanban yet."
+}
+EXIT_BEFORE_REGISTRATION=1

@@ -1,0 +1,10 @@
+Usage: kanban task list [options]
+
+List Kanban tasks for a workspace.
+
+Options:
+  --project-path <path>  Workspace path. Defaults to current directory
+                         workspace.
+  --column <column>      Filter column: backlog | in_progress | review | done.
+                         trash is also accepted.
+  -h, --help             display help for command

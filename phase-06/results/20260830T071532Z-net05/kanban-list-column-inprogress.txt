@@ -1,0 +1,6 @@
+=== kanban task list --column in_progress (project never registered -- ground truth, current live state) ===
+{
+  "ok": false,
+  "error": "Task command failed at http://127.0.0.1:3484: Unknown workspace ID: scratch-repo"
+}
+EXIT=1

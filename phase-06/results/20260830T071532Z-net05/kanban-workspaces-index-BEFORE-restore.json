@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "entries": {
+    "scratch-repo": {
+      "workspaceId": "scratch-repo",
+      "repoPath": "/Users/ohama/projs/cline-tests/workspace/scratch-repo"
+    }
+  },
+  "repoPathToId": {
+    "/Users/ohama/projs/cline-tests/workspace/scratch-repo": "scratch-repo"
+  }
+}
