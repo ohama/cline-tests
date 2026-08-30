@@ -73,7 +73,7 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 
 Phase: 7 of 8 (cline-bench 동작 검증) — **GAP CLOSURE 진행 중 (07-05 완료 후 재개, 5개
 gap-closure 플랜 07-06~07-10 추가, 총 10/10 플랜).**
-Plan: 06 of 10 in current phase — **완료(3/3 tasks, 전부 auto — 3개 개별 커밋).**
+Plan: 07 of 10 in current phase — **완료(3/3 tasks, 전부 auto — 3개 개별 커밋).**
 
 **Phase 7 gap-closure 배경**: 07-05 종료 후 검증(07-VERIFICATION.md, `passed`)이 나온 뒤,
 07-02 의 `CLINE_PROVIDER_SETTINGS_PATH` 주입 `VERDICT: INJECTABLE` 이 **잘못된 바이너리**(호스트
@@ -122,6 +122,47 @@ classifier 가 컨테이너 기동 전에 명령 자체를 거부** — classifi
 추가(증거 텍스트만 추적, 원본 바이너리는 미추적). SUMMARY 작성 완료(`07-06-SUMMARY.md`).
 **다음: 07-07(진단이 지목한 수정을 실제로 적용 — `cline-cw-providers.json` 에 `version`/
 `updatedAt` 추가).**
+
+**07-07(수정 적용+실측 증명, 이번 플랜) — 완료**: `ROOT_CAUSE: schema-rejected` 진단(07-06)에
+따라 `cline-cw-providers.json` 에 최상위 `"version": 1` 과 provider 별 `"updatedAt"`(ISO8601)
+추가(07-06 R3 가 실측 확인한 스키마-수정 서플리먼트와 동일 모양). Task 1(커밋 `81fd055`):
+스키마 수정 + `config.env` `CW_INJECTION` `applied`→`applied-v2`(옛 값은 더 이상 현재 파일을
+설명하지 않음, `export INJECTION_MECHANISM`/`INJECTION_EVIDENCE` 추가) + `run_task.sh` 에
+사전-실행 단언 추가(`injection_probe.sh --rung R1` **재사용**, 복사 아님 — compose 머지가
+마운트+env 를 절대경로로 해석 못 하면 `harbor run` 자체를 호출 안 하고 exit) +
+`verify_bench.sh` 신규 체크 **B11**(reached-the-model: `server-log/<task>.flashnext.err.txt`
+0바이트 아님 **AND** `model_turns>0`, 런 디렉터리별 opt-in — `config.json.cw_injection` 이
+pre-fix 값이면 `CHECK: SKIP B11`(PASSED/TOTAL 미포함, 하지만 출력엔 항상 보임), post-fix
+값이면 정식 PASS/FAIL). 저작 중 자체 발견 편차 1건(Rule 1 — bash `${VAR:-...}` 파라미터
+확장 기본값 안의 이스케이프 안 된 apostrophe 가 이중따옴표로 감싸져 있어도 `bash -n` 파싱
+에러를 냄 → 두 기본 문자열 재작성으로 수정). Task 2(커밋 `fd3b863`): `preflight.sh` 11/11
+확인 후 **정확히 harbor run 1회**, 새 런 디렉터리(`bench/runs/20260830T122809Z-phase07-fix/`)로
+07-03 과 동일 과제(`discord-trivia-approval-keyerror`) 실행 — 포그라운드, 중단 없이 완주
+(exit 0, wall_clock 1665/1666초). **결정적 증거: `SLICE_BYTES=145133`(pre-fix 런은 0),
+`MODEL_TURNS=38`(pre-fix 런은 0)** — 이번 phase 최초로 07-03 의 `fail-infra` 진단(주입
+메커니즘이 전혀 발동 안 함)을 뒤집는 실측. Task 3(커밋 `7f9bbc0`): `PROOF.md` 작성 —
+두 결정적 숫자(경로 포함), flashnext 로그 슬라이스 첫/끝 줄 원문, 결정적 32K 천장 거부 줄
+(litellm `Error code: 400`, cline 자신의 iteration 38/38, "33227 context tokens... but
+MAX_KV_SIZE is 32768" — `docs/32k-compaction-policy.md` 가 이미 문서화한 그 한계), 과제 자체
+판정은 `fail-context`(reward=0, "모델 도달"과 "과제 통과"는 별개 주장이라는 문장 명시),
+harbor 자체 `result.json` phase 타임스탬프에서 뽑은 **실측 `agent_execution=1589.8초`**(약
+26.5분 — 07-08 체크포인트가 필요로 하는 숫자, pre-fix 런의 5.3초와 대조 — 그 5.3초는 애초에
+에이전트 루프를 돈 시간이 아니라 실제 OpenAI 엔드포인트에 인증 실패로 즉시 죽은 시간이었음),
+harbor 자체 1800초 타임아웃엔 걸리지 않음(1663.4초 완주) 확인, `stop-at-one` 전제가 더 이상
+자동으로 유효하지 않다는 문장(다음에 뭘 할지는 07-08 이 묻는다, 이 문서가 선점 안 함) 포함.
+7개 상시 게이트 재스윕 — `preflight` 11/11, `verify_bench`(pre-fix 런 `CASES 10/10`
+PASS+B11 SKIP, post-fix 런 `CASES 10/11` — B5 는 이 단일-과제 런에 `make_summary.sh` 를
+안 돌려서 실패, 범위 밖, **B11 은 PASS**, 이 플랜의 결정적 체크), `verify_services` 15/15,
+`verify_no_regression` INF03 PASS, `verify_sandbox` 16/16 **CRITERION 4 PASS**(새 런
+디렉터리가 `bench/runs/` 아래 존재한 **이후**에 재확인), `verify_network --baseline`
+24/24(저작 중 자체 발견 편차 1건 — Rule 3, 첫 시도에서 이 세션의 shell 이 `config.env` 를
+재-source 안 해 `$NET_BASELINE` 빈 값으로 CRASHED 1 이 남, 파일 변경 없이 재-source 후
+재실행으로 24/24 정상 확인), `verify_config` exit 0 클린(`check_versions.sh` 미실행,
+호스트 `cline` 예산 0 유지). 6종 pid·포트 3000·카나리아·`ALLOWED_REPOS.json`·
+`EXTRA_ALLOW_PATHS`·호스트 `cline` 바이너리(mtime 불변, 07-06 이 이미 기록한 pre-existing
+드리프트) 전부 무변경, `harbor run` 은 정확히 1회(이 플랜의 전체 예산). SUMMARY 작성 완료
+(`07-07-SUMMARY.md`). **다음: 07-08(07-07 이 뒤집은 `stop-at-one` 전제를 07-08 체크포인트가
+`agent_execution=1589.8초`/`wall_clock=1665초` 를 입력으로 다시 묻는다).**
 
 이전(07-05 완료, gap-closure 이전 마지막 정규 플랜): Phase 7 다섯째 플랜(07-05): Task
 1(커밋 `46e6423`): `docs/cline-bench.md`(173줄) 작성 —
@@ -2044,15 +2085,25 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **07-06-PLAN.md 완료 (3/3 tasks, 전부 auto — 3개 개별 커밋), STATE.md 갱신 완료.
-Phase 7 gap-closure 진행 중 (6/10 plans, 07-07~07-10 남음).** Resume file: None.
+Stopped at: **07-07-PLAN.md 완료 (3/3 tasks, 전부 auto — 3개 개별 커밋), STATE.md 갱신 완료.
+Phase 7 gap-closure 진행 중 (7/10 plans, 07-08~07-10 남음).** Resume file: None.
 
+`OUTCOME: reached-model` — 07-06 이 지목한 스키마 수정(`cline-cw-providers.json` 에
+`version`/`updatedAt` 추가)을 실제 적용 후 `harbor run` 1회로 실측 증명: `SLICE_BYTES=145133`,
+`MODEL_TURNS=38`(pre-fix 런은 둘 다 0) — 07-03 의 `fail-infra` 를 뒤집는 첫 실측.
+`agent_execution=1589.8초`(07-08 체크포인트 입력값), 과제 판정은 `fail-context`(32K
+천장, reward=0 — "모델 도달"≠"과제 통과" 명시). 상세는 위 Current Position 블록 및
+`phase-07/results/20260830T122700Z-injection-fix/PROOF.md` 참고.
+**다음: 07-08(`stop-at-one` 전제가 더 이상 자동 유효하지 않다는 사실을 놓고 사용자에게
+다음 방향을 묻는 체크포인트, `agent_execution=1589.8초`/`wall_clock=1665초` 입력).**
+
+이전 세션(07-06 완료): 2026-08-30
+정지 지점: **07-06-PLAN.md 완료 (3/3 tasks, 전부 auto — 3개 개별 커밋), STATE.md 갱신 완료.
+Phase 7 gap-closure 진행 중 (6/10 plans, 07-07~07-10 남음).**
 `ROOT_CAUSE: schema-rejected`, `FIX_AVAILABLE: yes` — `cline-cw-providers.json` 이 cline
 3.0.53(과 3.0.60) 의 영속 설정 스키마가 요구하는 `version`/`updatedAt` 필드가 빠져 있어
-`read()` 가 침묵 폴백함을 실측(컨테이너 내부, 모델 비용 0)으로 확정. 상세는 위 Current
-Position 블록 및 `phase-07/results/20260830T113923Z-injection-diag/DIAGNOSIS.md` 참고.
-**다음: 07-07(수정 실제 적용 — `cline-cw-providers.json` 에 `version`/`updatedAt` 추가 후
-재검증).**
+`read()` 가 침묵 폴백함을 실측(컨테이너 내부, 모델 비용 0)으로 확정. 상세는
+`phase-07/results/20260830T113923Z-injection-diag/DIAGNOSIS.md` 참고.
 
 이전 세션(07-05 완료, gap-closure 이전): 2026-08-30
 정지 지점: **07-05-PLAN.md 완료 (2/2 tasks, 전부 auto — 2개 개별 커밋), STATE.md 갱신 완료.
