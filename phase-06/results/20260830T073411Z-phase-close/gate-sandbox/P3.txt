@@ -1,0 +1,10 @@
+=== CASE P3 ===
+--- command ---
+/bin/cat
+/Users/ohama/projs/cline-tests/bench/runs/CANARY.txt
+--- rc ---
+1
+--- stdout ---
+--- stderr ---
+cat: /Users/ohama/projs/cline-tests/bench/runs/CANARY.txt: Operation not permitted
+

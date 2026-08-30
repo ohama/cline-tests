@@ -1,0 +1,23 @@
+== AllowFunnel ==
+{
+  "ohama-2.tail318f12.ts.net:8443": true
+}
+
+== port 3000 listener count ==
+       0
+
+== kanban listening (3484) ==
+COMMAND   PID  USER   FD   TYPE            DEVICE SIZE/OFF NODE NAME
+node    53894 ohama   16u  IPv4 0x58b50914dca014c      0t0  TCP 127.0.0.1:3484 (LISTEN)
+
+== wildcard-bind literal grep in phase-05/ phase-06/ (excluding this file) ==
+       0
+
+== public-exposure subcommand grep in phase-06/net/ ==
+       0
+
+== EXTRA_ALLOW_PATHS env value ==
+value=[]
+
+== allow-paths-override assignment grep under phase-06/ (excluding prose in prior closed results) ==
+       0

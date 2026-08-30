@@ -1,0 +1,6 @@
+== git diff --stat phase-01/ phase-02/ phase-03/ phase-04/ ==
+(exit=0)
+
+== sync.sh --check ==
+  ✅ 실제 시스템과 일치한다
+EXIT=0

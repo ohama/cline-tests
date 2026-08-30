@@ -1,0 +1,18 @@
+== pid sample 2 (>=10s later) ==
+2026-08-30T07:36:55Z
+	state = running
+	pid = 53894
+		state = active
+		state = active
+	state = running
+	pid = 99162
+		state = active
+		state = active
+	state = running
+	pid = 19669
+		state = active
+		state = active
+  PID COMM
+46573 /Users/ohama/projs/qwen38-flash-next-tests/.venv-mlxvlm-new/bin/python3
+48525 /Users/ohama/agent-stack/venv/bin/python
+75548 /Users/ohama/agent-stack/venv/bin/python

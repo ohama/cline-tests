@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: 샌드박스 + 저장소 화이트리스트** - 원격에서 트리거 가능한 어떤 것도 이 안전망 없이는 만들지 않는다
 - [x] **Phase 4: 헤드리스 CLI 래퍼** - 설정+샌드박스가 실제로 맞물리는지 가장 싼 값으로 확인하는 단발 스모크 테스트
 - [x] **Phase 5: Kanban·Telegram 서비스화** - 두 표면이 launchd 상시 서비스로 뜨고 스스로 회복한다 (아직 loopback-only)
-- [ ] **Phase 6: 네트워크 노출** - Tailscale 무인증 + LAN 토큰 게이팅으로 처음 이 시스템을 localhost 밖에 연다 (build 단계 중 최후)
+- [x] **Phase 6: 네트워크 노출** - Tailscale 무인증 + LAN 토큰 게이팅으로 처음 이 시스템을 localhost 밖에 연다 (build 단계 중 최후)
 - [ ] **Phase 7: cline-bench 동작 검증** - 공식 과제 일부를 로컬 Docker 로 돌려 파이프라인 전체가 실제로 동작함을 증명한다
 - [ ] **Phase 8: 한글 사용 매뉴얼** - 실제로 출하된 것을 기준으로 CLI·웹·iPad/iPhone 사용법을 쓴다 (최종 단계)
 
@@ -140,14 +140,14 @@ Plans:
 **Plans**: 8 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — 변경 전 베이스라인(4개 상시 게이트 + 네트워크 인벤토리) + Phase 6 상수 고정(8444) + 기존 Tailscale 핸들러 3개 동결
-- [ ] 06-02-PLAN.md — NET-04: run_telegram_service.sh 래퍼 프리플라이트 가드 + 실제 기동 실패 실증 후 원복
-- [ ] 06-03-PLAN.md — setup_tailscale_serve.sh + verify_network.sh 오프라인 저작·자가검증(음성 대조군), 네트워크 무변경
+- [x] 06-01-PLAN.md — 변경 전 베이스라인(4개 상시 게이트 + 네트워크 인벤토리) + Phase 6 상수 고정(8444) + 기존 Tailscale 핸들러 3개 동결
+- [x] 06-02-PLAN.md — NET-04: run_telegram_service.sh 래퍼 프리플라이트 가드 + 실제 기동 실패 실증 후 원복
+- [x] 06-03-PLAN.md — setup_tailscale_serve.sh + verify_network.sh 오프라인 저작·자가검증(음성 대조군), 네트워크 무변경
 - [x] 06-04-PLAN.md — 네트워크 개방 시도 1회(serve :8444 → 127.0.0.1:3484): 개방 메커니즘은 정상 입증, 그러나 kanban 자체 Host 화이트리스트가 403 → 즉시 롤백(BLOCKED, 아키텍처 결정 필요)
-- [ ] 06-04.1-PLAN.md — Host/Origin 재작성 루프백 프록시(node 내장 모듈, WebSocket 업그레이드 지원) 작성 + launchd 서비스 등록(com.ohama.kanban-proxy, 127.0.0.1:18484) + sync.sh LABELS 미러(SVC-05) + verify_network.sh 9개 체크 확장 + 루프백 전량 실증 (네트워크 무변경)
-- [ ] 06-04.2-PLAN.md — 네트워크 개방 1회(serve :8444 → 127.0.0.1:18484 → 3484) + NET-01 서버측(200 + WebSocket 101)/NET-02/NET-03 실증 + 사후 게이트 스윕
-- [ ] 06-05-PLAN.md — NET-05 서버측 증거 + 실토큰 Telegram 라이브 트라이얼 결정 체크포인트
-- [ ] 06-06-PLAN.md — docs/network-exposure.md + iPad 체크리스트 + phase-close 게이트 스윕/criteria.md
+- [x] 06-04.1-PLAN.md — Host/Origin 재작성 루프백 프록시(node 내장 모듈, WebSocket 업그레이드 지원) 작성 + launchd 서비스 등록(com.ohama.kanban-proxy, 127.0.0.1:18484) + sync.sh LABELS 미러(SVC-05) + verify_network.sh 9개 체크 확장 + 루프백 전량 실증 (네트워크 무변경)
+- [x] 06-04.2-PLAN.md — 네트워크 개방 1회(serve :8444 → 127.0.0.1:18484 → 3484) + NET-01 서버측(200 + WebSocket 101)/NET-02/NET-03 실증 + 사후 게이트 스윕
+- [x] 06-05-PLAN.md — NET-05 서버측 증거 + 실토큰 Telegram 라이브 트라이얼 결정 체크포인트
+- [x] 06-06-PLAN.md — docs/network-exposure.md + iPad 체크리스트 + phase-close 게이트 스윕/criteria.md
 
 ### Phase 7: cline-bench 동작 검증
 **Goal**: cline-bench 공식 과제 일부를 로컬 Docker 로 실행해, 압축/설정(Phase 1)과 샌드박스
@@ -194,6 +194,6 @@ Phase 1·2·3 은 서로 병렬 가능(의존성 없음). Phase 4·5 는 1·2·3
 | 3. 샌드박스 + 저장소 화이트리스트 | 4/4 | ✓ Complete | 2026-08-30 |
 | 4. 헤드리스 CLI 래퍼 | 4/4 | ✓ Complete | 2026-08-30 |
 | 5. Kanban·Telegram 서비스화 | 7/7 | ✓ Complete | 2026-08-30 |
-| 6. 네트워크 노출 | 0/6 | Planned | - |
+| 6. 네트워크 노출 | 8/8 | ✓ Complete (criteria 1·5 사람 확인 필요, 위 참고) | 2026-08-30 |
 | 7. cline-bench 동작 검증 | 0/TBD | Not started | - |
 | 8. 한글 사용 매뉴얼 | 0/TBD | Not started | - |
