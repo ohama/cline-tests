@@ -1,0 +1,31 @@
+=== SVC-03 KeepAlive revival test (ROADMAP criterion 2) ===
+This kill is the ROADMAP criterion-2 KeepAlive test ONLY -- it is NOT the take-down path.
+The take-down path is launchctl bootout (section (b) below).
+PID_BEFORE=52654
+kill -TERM 52654 sent at 2026-08-30T02:08:43Z
+PID_AFTER=53505 (revived, new pid, != PID_BEFORE=52654)
+revival elapsed: <2s (first poll sample already showed the new pid running)
+15s-later sample: state=running pid=53505 (matches PID_AFTER -- revival, not a crash loop)
+127.0.0.1:3484 confirmed LISTEN under pid=53505
+=== end of section (a) ===
+
+=== (b) Take-down path (launchctl bootout) ===
+launchctl bootout gui/501/com.ohama.kanban -> rc=0 out=[]
+teardown confirmed after 0s (label unregistered AND 3484 free), gone=1
+confirming service STAYS down for 30s (KeepAlive cannot revive a booted-out job)...
+  t+5s: still down (label unregistered, port free)
+  t+10s: still down (label unregistered, port free)
+  t+15s: still down (label unregistered, port free)
+  t+20s: still down (label unregistered, port free)
+  t+25s: still down (label unregistered, port free)
+  t+30s: still down (label unregistered, port free)
+STAYED_DOWN=1 (1=confirmed stayed down for full 30s)
+
+=== (c) Bring it back (this is also the reboot-persistence proxy for 05-07) ===
+
+teardown confirmed after 0s
+.
+RESTART OK: com.ohama.kanban pid=53894 port=3484 waited=2s
+...
+COMMAND   PID  USER   FD   TYPE            DEVICE SIZE/OFF NODE NAME
+node    53894 ohama   16u  IPv4 0x58b50914dca014c      0t0  TCP 127.0.0.1:3484 (LISTEN)
