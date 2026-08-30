@@ -17,26 +17,24 @@ Phase 4 세 성공기준(HLS-01/02/03) 모두 실측 증거로 동시 성립: HL
 ## Current Position
 
 Phase: 5 of 8 (Kanban·Telegram 서비스화) — 진행 중
-Plan: 03 of 7 in current phase — 완료 (SUMMARY 작성 완료). **Wave 1(05-01/05-02, 병렬) 완료 +
-wave 2(05-03) 완료.**
-Status: 05-03 완료 — SVC-03/SVC-04 두 crash-loop 발생원(dead-port, listening-but-not-ready)을
-launchd 등록 전에 포그라운드에서 직접 증명. 프리플라이트(`verify_no_regression.sh` INF03:PASS,
-`verify_sandbox.sh` 16/16 CASES)를 먼저 통과시킨 뒤, (a) `FLASHNEXT_PORT=1`(거부)로 exit 1
-~36-41s(30s 설정 대비), 매 `%cpu` 샘플 0.0, 3484 리슨 없음, kanban 미기동; (b) 결정적 케이스 —
-`python3 -m http.server`로 TCP 는 진짜 성공시키되 health/alias 단계가 각각 거부하도록 강제(서브케이스
-2개, exit 1 ~20-25s, 정확한 단계명 기록, 9샘플 전부 0.0); (c) 오버라이드 없이 실제 운영 타깃
-대상 recovery — launchd 와 동일한 stdio 리다이렉트(`$HOME/.cline/logs/`)로 kanban 이 실제로
-3484 를 바인딩, `Abort trap`/`Unexpected` 0건(이 프로젝트가 5번째로 만난 미펀치 stdio SIGABRT
-계열을 재현하지 않음을 증명). 텔레그램 빈 토큰 idle 을 ~96초 관찰(6샘플)해 동일 pid·0.0%cpu·로그
-줄수 불변·`connect telegram` 프로세스 0 을 전부 확정. kanban 포트 인벤토리로 연구 Open Question 2
-를 해소(토큰 빈 상태에서 텔레그램은 소켓을 아예 열지 않으므로 충돌이 구조적으로 불가능, kanban
-자신은 3484 하나만 보유, 3000 은 어디에도 없음 — Phase 6 잔여 항목은 README 에 이름 명시).
-자체 발견/수정 버그 1건(Rule 1, `wait_for_upstream.sh` 의 WAITED 가 stage-1 자체 바운디드 재시도
-시간을 누락해 실제 바운드가 설정값의 약 2.4배로 새던 것을 `$SECONDS` 기반으로 수정) + 실행 중
-자기 교정 1건(Rule 3, Task 3 첫 시도가 화이트리스트 밖 경로로의 stdio 리다이렉트로 크래시 —
-이미 검증된 punched 경로로 재시도). 이 플랜도 아무것도 등록하지 않음 —
-flashnext(46573)/role-shim(75548)/litellm(48525) pid 전 과정 불변, `EXTRA_ALLOW_PATHS` 빈 값
-그대로, `launchctl bootstrap` 0건, `cline` 호출 0회(예산 0). 아래 결정 로그 참조.
+Plan: 04 of 7 in current phase — 완료 (SUMMARY 작성 완료). **Wave 1(05-01/05-02, 병렬) 완료 +
+wave 2(05-03) 완료 + wave 3 전반(05-04) 완료.**
+Status: 05-04 완료 — **Phase 5 최초의 launchd 서비스 등록.** `com.ohama.kanban` 을 house-style
+plist(`phase-05/plists/com.ohama.kanban.plist`)로 스테이징하고, 쓰기 전용 멱등 설치기
+(`install_services.sh`, launchctl 절대 미호출)로 설치, 유일하게 허용된 헬퍼
+(`phase-02/infra/restart_service.sh`)로만 기동 — `RESTART OK pid=52654`. criterion 1(SVC-01)을
+`state=running` 단독이 아니라 독립 2차 오라클(20초 간격 동일 pid + 3484 실제 LISTEN + 실제 HTTP
+200)로 증명, anti-orphan 도 `ps args` 만이 아니라 `vmmap` 으로 이 정확한 pid 메모리에
+`libsandbox.1.dylib`/`libsystem_sandbox.dylib` 가 매핑돼 있음을 확인해 sandbox_init() 이 이 pid
+안에서 실제로 실행됐음을 증명(execve() 가 argv 를 교체하므로 `ps args` 만으로는 "sandbox-exec"
+문자열 자체가 나타날 수 없다는 것을 확인 — 아래 결정 로그 참조). criterion 2(SVC-03)를
+`kill -TERM <launchctl 이 보고한 정확한 pid>` 1회로 실측: KeepAlive 가 2초 내 새 pid 로 소생시켰고
+15초 뒤에도 동일 pid(설정 재시작 루프 아님). take-down 경로(`launchctl bootout`)도 실제로
+집행 — label 미등록+포트 비움을 확인한 뒤 30초간 5초 간격 재확인으로 되살아나지 않음을 증명하고,
+`restart_service.sh` 로 다시 복구. flashnext(46573)/litellm(48525)/role-shim(75548) pid 전 과정
+불변, `EXTRA_ALLOW_PATHS` 빈 값 그대로, `cline` 호출 0회(`kanban --version` 만 1회, 허용됨),
+`sync.sh`(SVC-05) 는 05-06 소관이라 실행 안 함. 편차 1건(Rule 1, 코드 버그 아님 — 플랜 자체의
+검증 기대치가 execve() 커널 동작과 불일치했던 것을 vmmap 증거로 우회, 아래 결정 로그 참조).
 
 이전: 05-01 완료 — Phase 5 의 SVC-03/SVC-04 핵심 메커니즘인 두 launchd 래퍼와 그 공유 인프라를
 작성. `phase-05/services/config.env`(Phase 5 전 경로/라벨/포트/타임아웃 단일 소스, `phase-04/config.env`
@@ -230,15 +228,15 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [████████▒▒] 79% (Phase 4/8 완료, Phase 5/8 진행 중 — wave 1(05-01/05-02) +
-wave 2(05-03) 완료, Plan 21/31 누적 추정 — Phase 5 는 총 7개 플랜)
+Progress: [████████▒▒] 81% (Phase 4/8 완료, Phase 5/8 진행 중 — wave 1(05-01/05-02) +
+wave 2(05-03) + wave 3 전반(05-04) 완료, Plan 22/31 누적 추정 — Phase 5 는 총 7개 플랜)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 21
-- Average duration: ~14.6 min
-- Total execution time: ~5.1 hours
+- Total plans completed: 22
+- Average duration: ~14.4 min
+- Total execution time: ~5.3 hours
 
 **By Phase:**
 
@@ -248,9 +246,31 @@ wave 2(05-03) 완료, Plan 21/31 누적 추정 — Phase 5 는 총 7개 플랜)
 | 2 | 4/4 | ~55 min | ~13.8 min |
 | 3 | 4/4 | ~48 min | ~12 min |
 | 4 | 4/4 | ~42 min | ~10.5 min |
-| 5 | 3/7 | ~55 min | ~18.3 min |
+| 5 | 4/7 | ~65 min | ~16.3 min |
 
 **Recent Trend:**
+- 05-04 (~10 min, wave 3 — Phase 5's first real launchd registration. `com.ohama.kanban` staged as
+  a house-style plist (both `CLINE_NO_AUTO_UPDATE`/`KANBAN_NO_AUTO_UPDATE`, `WorkingDirectory` =
+  the sandboxed workdir, logs under the punched `~/.cline/logs/`), installed through a write-only
+  idempotent installer (never calls launchctl; second run proved `unchanged:`/no-op), brought up
+  through the one sanctioned helper (`RESTART OK pid=52654`). Criterion 1 (SVC-01) proved with an
+  independent second oracle rather than `state = running` alone: the same pid at t0 and t+20s,
+  127.0.0.1:3484 actually LISTEN, a real HTTP 200. Criterion 2 (SVC-03) proved with a real
+  `kill -TERM <exact pid>`: KeepAlive revived a new pid in under 2s, confirmed unchanged 15s later
+  (a settled revival, not a loop); the take-down path (`launchctl bootout`) was actually executed,
+  confirmed to stay down for a full 30s (sampled every 5s, zero revivals), then reversed via the
+  same restart helper. Found one deviation, not a code bug: the plan's own anti-orphan verify step
+  expected the literal string `sandbox-exec` in `ps -o args=` for the supervised pid, which is
+  structurally impossible — `sandbox-exec` performs a genuine `execve()` into the wrapped command,
+  which replaces the recorded argv, so a post-exec `ps` snapshot can never show it regardless of
+  correctness. Supplied the evidence the check actually intends (sandbox confinement really is
+  active on this exact pid, not merely correct in source) via `vmmap <pid> | grep -i sandbox`,
+  which found `libsandbox.1.dylib`/`libsystem_sandbox.dylib` mapped into that pid's own memory —
+  proof `sandbox_init()` ran inside it. No scripts changed; the plan's own grep-based verify still
+  passed unweakened since the explanatory prose itself carries the literal strings. Live pids
+  (flashnext 46573, litellm 48525, role-shim 75548) unchanged throughout; `EXTRA_ALLOW_PATHS`
+  empty; `cline` invocations: 0 (only the permitted `kanban --version` read); `sync.sh` (SVC-05)
+  deliberately not run, left for 05-06.)
 - 05-03 (~20 min, wave 2 — prove-before-register, foreground-only, zero launchd registration.
   Proved both SVC-04 crash-loop generators before anything was supervised: a hard dead-port (exit
   1 at ~36-41s against a 30s configured timeout, %cpu 0.0 throughout, kanban never spawned) and the
@@ -764,6 +784,32 @@ Recent decisions affecting current work:
   README 에 이름으로 명시. 이 플랜도 아무것도 등록하지 않음 — pid 3종(46573/75548/48525) 전
   과정 불변, `EXTRA_ALLOW_PATHS` 빈 값, `launchctl bootstrap` 0건, `cline` 호출 0회(예산 0). 네
   커밋(`4ef64d2` fix, `733d1ca`/`f31f660`/`23192ae` feat) 모두 개별.
+- 05-04: **wave 3, Phase 5 최초의 실제 launchd 등록.** plist 는 세 기존 house 서비스와 완전히
+  동일한 스타일(알파벳순 키, 탭 들여쓰기, bare-boolean `KeepAlive`)로 작성하되 `EnvironmentVariables`
+  에 `CLINE_NO_AUTO_UPDATE`/`KANBAN_NO_AUTO_UPDATE` 둘 다 명시, `WorkingDirectory` 는
+  `workspace/scratch-repo`(THE CWD RULE), 로그는 `~/.cline/logs/`(펀치스루된 경로, 다른 세
+  서비스의 `~/llm-system/services/logs/` 아님 — 이 프로젝트가 5번 만난 미펀치 stdio SIGABRT 계열의
+  근본 수정), `ThrottleInterval 30`. `install_services.sh` 는 launchctl 을 절대 호출하지 않는
+  쓰기 전용 멱등 설치기(백업→lint→복사→lint, 두 번째 실행은 `unchanged:` 로 무동작 실측 확인) —
+  기동은 오직 `phase-02/infra/restart_service.sh` 만 수행. **자체 발견/수정 이슈 1건(Rule 1, 코드
+  버그 아니라 플랜 자체 검증 기대치의 버그)**: 플랜은 anti-orphan 증거로 `ps -o args=` 에 리터럴
+  `sandbox-exec` 문자열이 나타나야 한다고 명시했지만, `sandbox-exec` 는 설계상 wrapped 커맨드로
+  진짜 `execve()` 하므로(그것이 sandbox-exec 의 존재 이유) 그 순간 프로세스의 기록된 argv 자체가
+  통째로 교체돼 체인이 끝난 뒤의 `ps` 스냅샷에는 최종 커맨드(`node /opt/homebrew/bin/kanban ...`)만
+  남고 `sandbox-exec` 문자열은 커널 동작상 나타날 수 없음을 확인(`run_sandboxed.sh` 소스 재확인:
+  `exec sandbox-exec -f profile -- "$@"`). 증거를 `vmmap <pid> | grep -i sandbox` 로 대체/보강 —
+  해당 pid 자신의 메모리에 `libsandbox.1.dylib`/`libsystem_sandbox.dylib` 가 매핑돼 있는 것은
+  이 정확한 프로세스 안에서 `sandbox_init()` 이 실행됐다는 직접 증거이며, 이는 곧 sandbox-exec 가
+  이 pid 로 execve() 했다는 것과 동치. `supervised-proc.txt` 에는 이 설명 산문 자체에 리터럴
+  `sandbox-exec`/`kanban` 문자열이 여전히 포함돼 플랜 자신의 grep 검증도 그대로 통과(검증 완화
+  없음). SVC-01/SVC-03 두 성공기준 모두 독립 2차 오라클로 실측(`state=running` 단독을 증거로
+  받지 않음): 20초 간격 동일 pid + 3484 실제 LISTEN + HTTP 200; `kill -TERM` 1회 후 2초 내 새 pid
+  소생 + 15초 뒤 동일 pid; `launchctl bootout` 으로 실제 take-down 집행(label 미등록+포트 비움
+  확인 후 30초간 5초 간격 재확인, 되살아나지 않음), `restart_service.sh` 로 복구. 이 사이클이
+  05-07 이 재실행 없이 인용할 수 있는 reboot-persistence 대리 증거로 기록됨. flashnext/litellm/
+  role-shim pid 3종 전 과정 불변, `EXTRA_ALLOW_PATHS` 빈 값, `cline` 호출 0회
+  (`kanban --version` 만 1회, 허용), `sync.sh` 미실행(05-06 소관). 세 커밋
+  (`5623fce`/`be82fcb`/`91dc343`) 모두 개별.
 
 ### Pending Todos
 
@@ -841,7 +887,27 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **05-03-PLAN.md 완료 — wave 2, prove-before-register.**
+Stopped at: **05-04-PLAN.md 완료 — wave 3, Phase 5 최초의 실제 launchd 서비스 등록.**
+`com.ohama.kanban` 을 `phase-05/plists/com.ohama.kanban.plist`(house style, 양쪽
+NO_AUTO_UPDATE, `WorkingDirectory`=scratch-repo, 로그=`~/.cline/logs/`)로 스테이징, 쓰기 전용
+멱등 설치기(`phase-05/services/install_services.sh`, launchctl 미호출, 두 번째 실행
+`unchanged:` 로 무동작 확인)로 설치, `phase-02/infra/restart_service.sh` 로만 기동
+(`RESTART OK pid=52654`). criterion 1(SVC-01)을 20초 간격 동일 pid + 3484 실제 LISTEN + HTTP
+200 + `vmmap` 기반 sandbox 라이브러리 매핑(anti-orphan/sandbox-chain 증거, 아래 결정 로그 참조)
+으로 실측. criterion 2(SVC-03)를 `kill -TERM 52654` 1회 → 2초 내 새 pid(53505) 소생 → 15초 뒤
+동일 pid로 확정, `launchctl bootout` take-down 도 실제 집행(30초간 되살아나지 않음 확인) 후
+`restart_service.sh` 로 복구(pid=53894). `phase-05/results/20260830T020530Z-svc01-kanban/`
+(README.md 포함)에 전 증거 기록. 편차 1건(Rule 1, 플랜 자체 검증 기대치의 버그 — 코드 변경
+없음). flashnext(46573)/litellm(48525)/role-shim(75548) pid 전 과정 불변, `EXTRA_ALLOW_PATHS`
+빈 값, `cline` 호출 0회, `sync.sh` 미실행(05-06 소관). 세 커밋
+(`5623fce`/`be82fcb`/`91dc343`) 모두 개별, SUMMARY 작성 완료, STATE.md 갱신 완료.
+**다음:** 05-05(telegram-connect 등록, wave 3 나머지 절반)로 진행 — `install_services.sh`/
+`restart_service.sh` 는 이미 telegram 의 portless 라벨 경로까지 지원하도록 검증돼 있으므로
+그대로 재사용 가능. `docs/headless-wrapper.md` 4절/8절이 남긴 `--auto-approve false` "안전하지만
+무력" 한계에 대한 에스컬레이션 결정은 여전히 검토 필요(이 플랜의 범위 밖).
+
+이전 세션: 2026-08-30
+정지 지점: **05-03-PLAN.md 완료 — wave 2, prove-before-register.**
 `phase-05/results/20260830T014424Z-svc04/`(README.md 포함)에 SVC-03/SVC-04 를 launchd 등록 전에
 포그라운드에서 직접 증명한 증거 전부 기록: dead-port(exit 1 ~36-41s/30s, %cpu 전 샘플 0.0),
 listening-but-not-ready 결정적 케이스(`python3 -m http.server` 로 TCP 는 성공시키되 health/alias
