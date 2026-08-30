@@ -92,9 +92,57 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 
 ## Current Position
 
-Phase: 8 of 8 (한글 사용 매뉴얼) — 진행 중, plan 수 TBD (8-01 완료, 병렬로 08-02 진행 중).
-Plan: 01 of TBD in current phase — **완료(3/3 tasks — Task 1 auto, Task 2 auto, Task 3 auto —
-개별 커밋, 별도 메타데이터 커밋 없음, Task 3 커밋이 docs/evidence closeout 겸함).**
+Phase: 8 of 8 (한글 사용 매뉴얼) — 진행 중, plan 수 TBD (08-01/08-02 완료, wave 1 병렬 종료).
+Plan: 02 of TBD in current phase — **완료(2/2 tasks — Task 1 auto, Task 2 auto — 개별 커밋,
+별도 메타데이터 커밋 없음).**
+
+**08-02(매뉴얼 클레임 게이트 + DOC-04, 이번 플랜) — 완료**: 08-01 과 wave 1 병렬로 진행, 서로
+다른 파일 집합(`phase-08/manual/`, `docs/manual/04-32k-operations.md` vs 08-01 의
+`phase-05/services/run_kanban_service.sh`, `phase-08/blocker/`, `docs/services.md`)만 건드려
+충돌 없음. Task 1(커밋 `4ce7bbc`): `phase-08/manual/check_manual_claims.sh`(351줄) 작성 —
+forbidden-string grep 이 아니라 **필수-마커 + 링크-무결성** 기반 게이트(forbidden-literal 은
+그 문구를 정당하게 인용하는 문장과 충돌한다는, 이 프로젝트가 이미 여러 번 겪은 결함 계열을
+피하기 위함). C1-exists(존재+최소 60줄)/C2-evidence-pointer(상단 15줄 안 `근거 문서:`+`docs/`
+경로)/C3-markers(다섯 매뉴얼 파일에 걸친 17개 `[GAP-*]` 마커 레지스트리, 파일당 필수 마커 전부
+존재)/C4-links(`docs/`/`phase-0`/`workspace/`/`bench/`/`.planning/` 로 시작하는 모든 경로
+토큰이 실제로 존재)/C5-index(`00-getting-started.md` 가 나머지 넷을 이름으로 참조) 다섯 체크,
+`--file`/`--negative-control`/`--out` 인터페이스, 0/1/2 종료 계약. macOS `/bin/bash` 3.2 —
+빈 배열 `"${arr[@]}"` 확장이 `set -u` 아래서 unbound 로 죽는 함정을 모든 곳에서
+`${#arr[@]} -gt 0` 가드로 회피(실측 확인: 가드 없이 빈 배열 순회 시 실제로 죽음). 음성 대조군
+fixture 4개(`phase-08/manual/fixtures/negative/`, C1~C4 각각 정확히 하나씩 실증) 작성 중 자체
+버그 1건 발견·수정(Rule 1): `01-cli.md`/`02-kanban.md` 의 설명용 top comment 가 "이 마커/문구가
+빠졌다"고 서술하면서 그 리터럴 텍스트(`근거 문서:`, `[GAP-READONLY]`) 를 그대로 적어버려 정작
+그 문서 자신의 검사를 우연히 통과시키는, 이 게이트가 막으려는 바로 그 충돌 결함을 자기 자신의
+fixture 작성 과정에서 재현 — 리터럴을 안 적는 방식으로 재서술해 수정. 두 번 실증:
+`--negative-control` exit 0(fixture 4개 각각 C1~C4 하나씩 실패, `CASES 11/18`), 실제 매뉴얼
+5개 전무 상태의 bare 실행 exit 1(`C1-exists` 가 다섯 파일 전부 missing 으로 명명), `--file
+no-such-file.md` exit 2 — 세 전사록 `phase-08/results/20260830T192004Z-manual-gate/`
+(경로는 `phase-08/results/CURRENT_MANUAL_GATE_RUN` 에 기록, 08-02 Task 2 가 같은 디렉터리
+재사용). Task 2(커밋 `42433af`): `docs/manual/04-32k-operations.md`(126줄, 한글) 작성 — 헤더
+`근거 문서:` 가 `docs/32k-compaction-policy.md` §5·§7/`docs/cline-max-tokens-findings.md`/
+`docs/headless-wrapper.md` §3/`docs/cline-bench.md` §4·§9 를 가리킴. 8개 필수 내용 전부: ~64초
+프리필 대기와 이를 멈춤과 구분하는 법(Kanban 카드가 In Progress 유지, Telegram 타이핑 표시기가
+메시지당 1회만 발화하고 ~5초 뒤 소멸, 스트리밍은 프리필 종료 후에만 시작) + 에스컬레이션
+(`verify_services.sh`/`verify_network.sh --baseline`); 압축이 자동으로 돌고 그 자체가 추가
+지연(~458 토큰 요약 호출)을 만든다는 것; `[GAP-COMPACTION-CONFIG]`(`contextWindow` 는
+`settings` 최상위, `models[]` 아님, `29000`→트리거 `26100`, `verify_config.sh` 상시 가드);
+폐기된 "작업 예산/태스크 쪼개기" 조언을 §4 제목에서 **정확히 한 번만** 이름 붙여 폐기하고
+그 뒤로는 다시 지침으로 안 냄(같은 패턴을 `docs/32k-compaction-policy.md` 자신도 이미 씀);
+서버 400 은 회복 불가(`context_overflow_terminal`/exit `5`, `docs/headless-wrapper.md` §3);
+⌘+클릭 터치 불가; `[GAP-BENCH]`(`docs/cline-bench.md` §9 가 허용하는 세 문장만 — flashnext 도달,
+4개 과제 반복 동작, 통과 0개); 증상→문서/명령 표. **결정 1**: §6 이 가리키는
+`docs/manual/03-mobile.md` 는 08-03(뒤 plan) 소유라 아직 없음 — `docs/` 접두사가 붙은 경로로
+쓰면 C4-links 가 존재하지 않는 전방 참조로 FAIL 시켰을 것이므로, 접두사 없는 맨 파일명
+(`03-mobile.md`) 으로만 참조(C4 추출 정규식이 `docs/`/`phase-0`/`workspace/`/`bench/`/
+`.planning/` 접두사만 잡으므로 안전). `check_manual_claims.sh --file 04-32k-operations.md`
+exit 0(C1~C4 전부 PASS, `gate-04.txt`). 호스트 `cline` 호출 0회, 라이브 서비스/샌드박스/
+화이트리스트 무변경. SUMMARY 작성 완료(`08-02-SUMMARY.md`). **다음:** 08-03(DOC-01 CLI 사용법
++ DOC-03 iPad·iPhone 사용법 — 여기서 `03-mobile.md` 가 실제로 생기면 04 의 맨 파일명 참조가
+자연스러운 형제 링크가 된다), 08-04(샌드박스 widening 결정 체크포인트 + worktree 조건부 적용),
+08-05(DOC-02 웹/Kanban 사용법, 08-01·08-04 판정에 의존), 08-06(00-시작하기 + README 인덱스 +
+ROADMAP/REQUIREMENTS/STATE 정합 + 종료 스윕, phase 마지막). `check_manual_claims.sh` 는 이제
+`--file` 스코프로 각 후속 플랜이 자기 문서만 게이트하거나, 인자 없이 phase-close 스윕으로 다섯
+문서 전부를 한 번에 검사하는 두 방식 모두로 재사용 가능.
 
 **08-01(Kanban 등록 블로커 라이브 수정, 이번 플랜) — 완료**: 08-RESEARCH.md §A5 가 격리 환경에서만
 증명했던 no-widening 수정 두 가지를 실제 라이브 `com.ohama.kanban` 서비스에 적용하고 증명함.
@@ -2237,22 +2285,33 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-31
-Stopped at: **08-01-PLAN.md 완료 — Kanban 등록 블로커를 라이브에서 no-widening 으로 수정,
-증명(VERDICT: REGISTERED).** 신규 kanban pid **36175**(이전 53894), 나머지 5개 서비스 pid
-무변경(46573/75548/48525/99162/19669). 커밋: `3c61132`(Task 1: 사전 게이트+양쪽 수정 적용,
-재시작 전), `5b1dba7`(Task 2: 재시작+등록 증명), `4964d54`(Task 3: 사후 게이트+DELTA.txt+
-`docs/services.md` §5a). SUMMARY: `08-01-SUMMARY.md`. 08-02(매뉴얼 클레임 게이트)는 이 플랜과
-병렬로 이미 완료됨(`08-02-SUMMARY.md`). 알려진, 무해한 잔여물: `phase-06/results/
-20260830T051403Z-baseline` 와 `phase-07/bench/config.env` 의 `LIVE_PIDS_STR` 이 여전히 구
-kanban pid 53894 를 기대하므로, 향후 그 두 게이트(`verify_network --baseline .../
-20260830T051403Z-baseline`, `verify_bench.sh`)를 돌리면 각각 `live-pids-stable`/`B10` 딱 1개
-체크만 하락한다 — `phase-08/results/20260830T191320Z-kanban-fix/gates-post/DELTA.txt` 에 이미
-설명 기록됨, 새 결함 아님. Resume file: None.
+Stopped at: **08-02-PLAN.md 완료 (2/2 tasks) — wave 1 두 플랜(08-01/08-02) 모두 종료,
+`.planning/STATE.md` 최신 커밋 기준 이 저장소의 가장 최근 완료 작업.** 08-02: 커밋
+`4ce7bbc`(Task 1: `phase-08/manual/check_manual_claims.sh` — 필수-마커+링크-무결성 게이트,
+`--negative-control` 로 fail-open 아님을 실증, fixture 자체 저작 결함 1건 발견·수정), `42433af`
+(Task 2: `docs/manual/04-32k-operations.md` — DOC-04, 8개 필수 내용 전부, 게이트 exit 0).
+SUMMARY: `08-02-SUMMARY.md`. 08-01(같은 wave, 병렬): Kanban 등록 블로커를 라이브에서
+no-widening 으로 수정·증명(VERDICT: REGISTERED). 신규 kanban pid **36175**(이전 53894), 나머지
+5개 서비스 pid 무변경(46573/75548/48525/99162/19669). 커밋: `3c61132`(Task 1: 사전 게이트+양쪽
+수정 적용, 재시작 전), `5b1dba7`(Task 2: 재시작+등록 증명), `4964d54`(Task 3: 사후 게이트+
+DELTA.txt+`docs/services.md` §5a). SUMMARY: `08-01-SUMMARY.md`. 두 플랜은 서로 다른 파일
+집합만 건드려 충돌 없음(08-02 는 `phase-08/manual/`+`docs/manual/04-32k-operations.md` 만,
+08-01 은 `phase-05/services/run_kanban_service.sh`+`phase-08/blocker/`+`docs/services.md` 만).
+알려진, 무해한 잔여물(08-01 소관): `phase-06/results/20260830T051403Z-baseline` 와
+`phase-07/bench/config.env` 의 `LIVE_PIDS_STR` 이 여전히 구 kanban pid 53894 를 기대하므로,
+향후 그 두 게이트(`verify_network --baseline .../20260830T051403Z-baseline`,
+`verify_bench.sh`)를 돌리면 각각 `live-pids-stable`/`B10` 딱 1개 체크만 하락한다 —
+`phase-08/results/20260830T191320Z-kanban-fix/gates-post/DELTA.txt` 에 이미 설명 기록됨, 새
+결함 아님. Resume file: None.
 
 **다음 세션은 Phase 8 의 08-03(또는 다음 미완료 plan)부터.** 넘겨줄 것: Kanban 프로젝트 등록이
 이제 라이브에서 실제로 동작하므로, DOC-02(웹/Kanban 사용법) 매뉴얼 콘텐츠는 가상의 플로우가
 아니라 이 실제 등록 플로우(`workspace/scratch-repo` 안에서 `kanban task create` 실행)를 근거로
-작성할 수 있다.
+작성할 수 있다. `phase-08/manual/check_manual_claims.sh` 는 이제 상시로 존재하며
+`--file <name>` 스코프로 각 후속 플랜이 자기 문서만 게이트할 수 있다 — 08-03 이
+`docs/manual/03-mobile.md` 를 쓰고 나면, `04-32k-operations.md` §6 이 이미 걸어둔 접두사 없는
+맨 파일명 참조(`03-mobile.md`, `docs/` 로 시작하지 않아 C4-links 가 검사하지 않음)가 자연스러운
+형제 링크가 된다 — 파일명이 정확히 일치하는지만 08-03 쪽에서 확인할 것.
 
 이전: **07-10-PLAN.md 완료 — Phase 7 전체 종료(gap-closure 포함 10/10 plans).** Task 1
 (커밋 `5458259`): `docs/cline-bench.md` 를 gap-closure 결과에 맞춰 양방향 정정(173→260줄) —
