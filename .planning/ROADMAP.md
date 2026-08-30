@@ -158,10 +158,14 @@ Plans:
   1. `harbor run --env docker` 로 cline-bench 공식 과제 5~8개가 로컬 Docker 에서 실행된 결과 디렉터리가 존재한다
   2. 각 실행 디렉터리에 프롬프트 원문과 결과가 모두 파일로 저장돼 있다
   3. 통과/실패와 소요 시간을 정리한 표가 파일로 존재한다
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 07-01: TBD
+- [ ] 07-01-PLAN.md — harbor/cline-bench 설치 + 상시 게이트 프리플라이트 + 과제 인벤토리
+- [ ] 07-02-PLAN.md — 컨테이너 contextWindow 주입 가능성 판정 + 실행/요약/검증 스크립트 작성
+- [ ] 07-03-PLAN.md — 스모크 1개 과제 실행 + 분석 + 비용 결정 체크포인트
+- [ ] 07-04-PLAN.md — 선택된 과제 순차 실행 + BCH-03 표 + 배치 후 게이트
+- [ ] 07-05-PLAN.md — docs/cline-bench.md + phase-close(criteria.md, ROADMAP)
 
 ### Phase 8: 한글 사용 매뉴얼
 **Goal**: 실제로 출하된 것을 기준으로 CLI·웹(Kanban)·iPad/iPhone 사용법과 32K 운용 주의사항을
