@@ -92,10 +92,40 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 
 ## Current Position
 
-Phase: 7 of 8 (cline-bench 동작 검증) — **GAP CLOSURE 포함 완료 (07-05 완료 후 재개된 5개
-gap-closure 플랜 07-06~07-10 전부 완료, 10/10 플랜).**
-Plan: 10 of 10 in current phase — **완료(3/3 tasks — Task 1 auto, Task 2 auto, Task 3 auto —
-개별 커밋 + 메타데이터 커밋).**
+Phase: 8 of 8 (한글 사용 매뉴얼) — 진행 중, plan 수 TBD (8-01 완료, 병렬로 08-02 진행 중).
+Plan: 01 of TBD in current phase — **완료(3/3 tasks — Task 1 auto, Task 2 auto, Task 3 auto —
+개별 커밋, 별도 메타데이터 커밋 없음, Task 3 커밋이 docs/evidence closeout 겸함).**
+
+**08-01(Kanban 등록 블로커 라이브 수정, 이번 플랜) — 완료**: 08-RESEARCH.md §A5 가 격리 환경에서만
+증명했던 no-widening 수정 두 가지를 실제 라이브 `com.ohama.kanban` 서비스에 적용하고 증명함.
+Task 1(커밋 `3c61132`): 6개 상시 게이트 사전 스윕(전부 green, `verify_network` 24/24) 후
+`phase-08/blocker/fix_kanban_registration.sh`(멱등, 재실행 시 `already-initialized`) 작성 —
+`workspace/scratch-repo` 를 `git init -b main` + 최초 커밋으로 그 자체 git 최상위로 만듦(끝
+상태를 `rev-parse --show-toplevel`/`symbolic-ref` 로 이중 단언). `run_kanban_service.sh` 에
+`export GIT_CONFIG_GLOBAL=/dev/null` 삽입(`KANBAN_NO_AUTO_UPDATE` 직후, `mkdir -p` 직전, exec
+줄 불변) — 실제 생성된 샌드박스 프로파일 아래서 5개 git 명령(show-toplevel/is-inside-work-tree/
+symbolic-ref/status/log) 전부 exit 0 실측 확인 후에야 라이브 서비스를 건드림. 백업
+byte-identical 확인. Task 2(커밋 `5b1dba7`): `restart_service.sh com.ohama.kanban 3484` 로만
+재시작(신규 pid **36175**, 이전 53894 — 나머지 5개 pid 46573/75548/48525/99162/19669 불변),
+`ps -Eww` 로 살아있는 프로세스에 `GIT_CONFIG_GLOBAL=/dev/null` 이 실제 도달했음을 독립 확인.
+`kanban --help` 에 `project` 서브커맨드가 없어(계획이 상정한 후보 하나 기각) `task --help` 로
+실제 등록 커맨드를 재발견 — `kanban task create`(workdir 안에서 실행, §A4 가 확인한 git-toplevel
+치환 때문에 워크디렉터리 밖에서 실행하면 안 됨). 등록 성공(task id `9bf8f`,
+workspacePath=`workspace/scratch-repo`), 클라이언트측(`task list`, "not added" 에러 없음)·
+서버측(curl 200, 재시작 후 로그에 gitconfig 거부 재발 없음) 이중 오라클로 확인.
+**VERDICT: REGISTERED.** Task 3(커밋 `4964d54`): 사후 게이트 스윕 — `verify_sandbox` 는 재시작
+전후 그대로 4/4 CRITERION PASS(SBX-04 유지, `EXTRA_ALLOW_PATHS` 불변, `ALLOWED_REPOS.json`
+diff 없음), 반면 `verify_network`(23/24)와 `verify_bench`(10/11) 는 각각 정확히 1개 체크
+(`live-pids-stable`/`B10`)만 하락 — 원인은 두 게이트가 이 플랜이 소유하지 않는 다른 phase 의
+고정 스냅샷(phase-06 06-01 베이스라인의 `inventory.txt`, phase-07 `config.env` 의
+`LIVE_PIDS_STR`)에 하드코딩된 구 kanban pid(53894)와 비교하기 때문 — 이 플랜의 하우스 룰 1이
+명시적으로 요구한 의도된 pid 변경의 부작용이며 새로운 결함이 아님. 두 파일 모두 이 플랜
+소유가 아니므로 손대지 않고 `gates-post/DELTA.txt` 에 그대로 기록(계획 자신의 지시: "설명해서
+없애지 말고 그대로 적어라"). `docs/services.md` §5a 신설(무엇을/왜 no-widening 인지/롤백/
+내리기/VERDICT), §2 exec-block 주석 갱신. 호스트 `cline` 호출 0회, 샌드박스 미확장, 다른 5개
+서비스 무변경. SUMMARY 작성 완료(`08-01-SUMMARY.md`). **다음: 08-02(이미 병렬 진행 중, 매뉴얼
+클레임 게이트) 계속, 이후 DOC-02(웹/Kanban 사용법)가 이제 실제로 동작하는 등록 플로우를 근거로
+작성될 수 있음.**
 
 **Phase 7 gap-closure 배경**: 07-05 종료 후 검증(07-VERIFICATION.md, `passed`)이 나온 뒤,
 07-02 의 `CLINE_PROVIDER_SETTINGS_PATH` 주입 `VERDICT: INJECTABLE` 이 **잘못된 바이너리**(호스트
@@ -1105,6 +1135,12 @@ ROADMAP 다섯 기준 중 NET-02/03/04 `met`, NET-01/05 정직하게 `human_need
 기준). Phase 8(한글 사용 매뉴얼)은 아직 plan 수가 확정되지 않음(TBD) — 다음은 Phase 8 착수,
 `docs/cline-bench.md` §9 의 "쓰면 안 되는 문장" 목록을 먼저 확인할 것)
 
+**갱신 (08-01 완료 시점):** Phase 8 은 6개 plan(08-01~08-06)으로 확정됨. `find
+.planning/phases -name '*-SUMMARY.md' | wc -l` 실측 = **45**(Phase 1-7 전부(6+4+4+4+7+8+10=43,
+Phase 7 은 gap-closure 07-06~10 포함 10개) + Phase 8 의 08-01/08-02 2개). 08-01(Kanban 등록
+블로커 라이브 수정) 완료, 08-02(매뉴얼 클레임 게이트)도 병렬로 이미 완료 — 남은 Phase 8:
+08-03~08-06.
+
 ## Performance Metrics
 
 **Velocity:**
@@ -2111,6 +2147,15 @@ Recent decisions affecting current work:
   샌드박스 allowlist 를 완화하거나 kanban 을 다른 `GIT_CONFIG_GLOBAL` 로 재기동해야 함(둘 다
   사람이 결정할 별도 항목). NET-05/네트워크 posture 와 무관. root-cause:
   `phase-06/results/20260830T071532Z-net05/kanban-registration-blocker.txt`.
+  **SUPERSEDED by 08-01 (2026-08-31) — RESOLVED, no-widening, live-proven.** 08-RESEARCH.md
+  §A3/§A4 가 두 번째, 독립적인 실패 지점을 추가로 발견(`workspace/scratch-repo` 가 자기 자신의
+  git 최상위가 아니어서, gitconfig 문제만 고쳐도 `resolveWorkspacePath` 가 결국 금지된 저장소
+  루트까지 걸어 올라감). 08-01 이 샌드박스를 전혀 완화하지 않고 둘 다 고쳤다:
+  `run_kanban_service.sh` 에 `export GIT_CONFIG_GLOBAL=/dev/null` + `workspace/scratch-repo` 를
+  `git init -b main`. 라이브 `com.ohama.kanban` 을 `restart_service.sh` 로만 재시작(신규
+  pid=36175), `kanban task create`(workdir 안에서) 로 실제 등록 성공을 client-side(`task list`)
+  +server-side(curl 200, 로그에 거부 재발 없음) 이중 오라클로 증명. VERDICT: REGISTERED.
+  증거: `phase-08/results/20260830T191320Z-kanban-fix/`, 기록: `docs/services.md` §5a.
 - **(Phase 7/8 인계, 06-05 결정) NET-05 의 Telegram 쪽 절반은 사용자가 실토큰 트라이얼을
   `decline` 해 열린 질문으로 남았다** — "probable-but-unobserved"(64초 대기를 버티지 못할
   가능성이 높지만 관측된 적 없음)로만 기록됨, "확인됨"으로 격상 금지. 나중에 사용자가 직접
@@ -2192,7 +2237,24 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-31
-Stopped at: **07-10-PLAN.md 완료 — Phase 7 전체 종료(gap-closure 포함 10/10 plans).** Task 1
+Stopped at: **08-01-PLAN.md 완료 — Kanban 등록 블로커를 라이브에서 no-widening 으로 수정,
+증명(VERDICT: REGISTERED).** 신규 kanban pid **36175**(이전 53894), 나머지 5개 서비스 pid
+무변경(46573/75548/48525/99162/19669). 커밋: `3c61132`(Task 1: 사전 게이트+양쪽 수정 적용,
+재시작 전), `5b1dba7`(Task 2: 재시작+등록 증명), `4964d54`(Task 3: 사후 게이트+DELTA.txt+
+`docs/services.md` §5a). SUMMARY: `08-01-SUMMARY.md`. 08-02(매뉴얼 클레임 게이트)는 이 플랜과
+병렬로 이미 완료됨(`08-02-SUMMARY.md`). 알려진, 무해한 잔여물: `phase-06/results/
+20260830T051403Z-baseline` 와 `phase-07/bench/config.env` 의 `LIVE_PIDS_STR` 이 여전히 구
+kanban pid 53894 를 기대하므로, 향후 그 두 게이트(`verify_network --baseline .../
+20260830T051403Z-baseline`, `verify_bench.sh`)를 돌리면 각각 `live-pids-stable`/`B10` 딱 1개
+체크만 하락한다 — `phase-08/results/20260830T191320Z-kanban-fix/gates-post/DELTA.txt` 에 이미
+설명 기록됨, 새 결함 아님. Resume file: None.
+
+**다음 세션은 Phase 8 의 08-03(또는 다음 미완료 plan)부터.** 넘겨줄 것: Kanban 프로젝트 등록이
+이제 라이브에서 실제로 동작하므로, DOC-02(웹/Kanban 사용법) 매뉴얼 콘텐츠는 가상의 플로우가
+아니라 이 실제 등록 플로우(`workspace/scratch-repo` 안에서 `kanban task create` 실행)를 근거로
+작성할 수 있다.
+
+이전: **07-10-PLAN.md 완료 — Phase 7 전체 종료(gap-closure 포함 10/10 plans).** Task 1
 (커밋 `5458259`): `docs/cline-bench.md` 를 gap-closure 결과에 맞춰 양방향 정정(173→260줄) —
 거짓이 된 부분(§4 "모델 서버에 끝내 도달 못함"→수정 전 시대로 명시 스코프, §9 절대금지 문장
 → 뒤집어서 "통과했다/검증됐다/완료할 수 있다" 금지로 재작성)과 참으로 남은 부분(P=0, 4/12
