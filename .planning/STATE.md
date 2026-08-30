@@ -17,8 +17,28 @@ Phase 4 세 성공기준(HLS-01/02/03) 모두 실측 증거로 동시 성립: HL
 ## Current Position
 
 Phase: 5 of 8 (Kanban·Telegram 서비스화) — 진행 중
-Plan: 01 of 7 in current phase — 완료 (SUMMARY 작성 완료). **Wave 1(05-01/05-02, 병렬) 둘 다 완료.**
-Status: 05-01 완료 — Phase 5 의 SVC-03/SVC-04 핵심 메커니즘인 두 launchd 래퍼와 그 공유 인프라를
+Plan: 03 of 7 in current phase — 완료 (SUMMARY 작성 완료). **Wave 1(05-01/05-02, 병렬) 완료 +
+wave 2(05-03) 완료.**
+Status: 05-03 완료 — SVC-03/SVC-04 두 crash-loop 발생원(dead-port, listening-but-not-ready)을
+launchd 등록 전에 포그라운드에서 직접 증명. 프리플라이트(`verify_no_regression.sh` INF03:PASS,
+`verify_sandbox.sh` 16/16 CASES)를 먼저 통과시킨 뒤, (a) `FLASHNEXT_PORT=1`(거부)로 exit 1
+~36-41s(30s 설정 대비), 매 `%cpu` 샘플 0.0, 3484 리슨 없음, kanban 미기동; (b) 결정적 케이스 —
+`python3 -m http.server`로 TCP 는 진짜 성공시키되 health/alias 단계가 각각 거부하도록 강제(서브케이스
+2개, exit 1 ~20-25s, 정확한 단계명 기록, 9샘플 전부 0.0); (c) 오버라이드 없이 실제 운영 타깃
+대상 recovery — launchd 와 동일한 stdio 리다이렉트(`$HOME/.cline/logs/`)로 kanban 이 실제로
+3484 를 바인딩, `Abort trap`/`Unexpected` 0건(이 프로젝트가 5번째로 만난 미펀치 stdio SIGABRT
+계열을 재현하지 않음을 증명). 텔레그램 빈 토큰 idle 을 ~96초 관찰(6샘플)해 동일 pid·0.0%cpu·로그
+줄수 불변·`connect telegram` 프로세스 0 을 전부 확정. kanban 포트 인벤토리로 연구 Open Question 2
+를 해소(토큰 빈 상태에서 텔레그램은 소켓을 아예 열지 않으므로 충돌이 구조적으로 불가능, kanban
+자신은 3484 하나만 보유, 3000 은 어디에도 없음 — Phase 6 잔여 항목은 README 에 이름 명시).
+자체 발견/수정 버그 1건(Rule 1, `wait_for_upstream.sh` 의 WAITED 가 stage-1 자체 바운디드 재시도
+시간을 누락해 실제 바운드가 설정값의 약 2.4배로 새던 것을 `$SECONDS` 기반으로 수정) + 실행 중
+자기 교정 1건(Rule 3, Task 3 첫 시도가 화이트리스트 밖 경로로의 stdio 리다이렉트로 크래시 —
+이미 검증된 punched 경로로 재시도). 이 플랜도 아무것도 등록하지 않음 —
+flashnext(46573)/role-shim(75548)/litellm(48525) pid 전 과정 불변, `EXTRA_ALLOW_PATHS` 빈 값
+그대로, `launchctl bootstrap` 0건, `cline` 호출 0회(예산 0). 아래 결정 로그 참조.
+
+이전: 05-01 완료 — Phase 5 의 SVC-03/SVC-04 핵심 메커니즘인 두 launchd 래퍼와 그 공유 인프라를
 작성. `phase-05/services/config.env`(Phase 5 전 경로/라벨/포트/타임아웃 단일 소스, `phase-04/config.env`
 를 pre-set-then-source 관용구로 재사용해 `SANDBOX_WORKDIR` 재파생 안 함), `wait_for_port.sh`(범용
 바운디드 TCP 폴), `wait_for_upstream.sh`(TCP:8000 → flashnext `/health`(`loaded_model` 비어있지 않음)
@@ -142,7 +162,26 @@ read/write/subprocess/escape-symlink 5건 전부 `DENIED EPERM`으로, `ENOENT` 
 deny-less 프로파일 거부, precheck 우회 시 Group F 4건 전부 `FAIL not-denied`, `--no-canonicalize`
 아래서 F6 실패)이 모두 사양대로 동작. `launchctl print .../com.ohama.flashnext` pid 46573 로
 플랜 전체에서 불변, `cline` 호출 0회.
-Last activity: 2026-08-30 — 05-01-PLAN.md 완료 (`phase-05/services/{config.env,wait_for_port.sh,
+Last activity: 2026-08-30 — 05-03-PLAN.md 완료 (`phase-05/results/20260830T014424Z-svc04/`:
+SVC-03/SVC-04 를 launchd 등록 전 포그라운드에서 직접 증명, README.md 포함. Task 1: 프리플라이트
+2종 PASS 후 dead-port(exit 1 ~36-41s/30s 설정, %cpu 전 샘플 0.0, kanban 미기동) + listening-but-
+not-ready 결정적 케이스(`python3 -m http.server` 로 TCP 는 진짜 성공, health/alias 두 서브케이스
+각각 정확한 단계명으로 거부, exit 1 ~20-25s, 9샘플 전부 0.0) + 오버라이드 없는 실제 운영 타깃
+recovery(launchd 와 동일한 `$HOME/.cline/logs/` stdio 리다이렉트로 kanban 이 실제 3484 바인딩,
+`Abort trap`/`Unexpected` 0건). Task 2: 텔레그램 빈 토큰 idle ~96초 관찰(6샘플, 동일 pid·0.0%cpu·
+로그 줄수 불변·`connect telegram` 프로세스 0). Task 3: kanban 포트 인벤토리(3484 단 하나)로 연구
+Open Question 2 3단 판정 해소(빈 토큰 상태에서 구조적으로 충돌 불가능/실측 kanban 풋프린트/Phase 6
+잔여 항목을 `--rpc-address`/`CLINE_RPC_ADDRESS` 로 이름 명시). 자체 발견/수정 버그 1건(Rule 1,
+`wait_for_upstream.sh` 의 `WAITED` 가 stage-1 자체 바운디드 재시도 시간을 누락해 실제 바운드가
+설정값의 약 2.4배로 새던 것 — dead-port 케이스가 이 스크립트 최초로 stage-1 을 실패 단계로
+노출시켜 발견됨 — `$SECONDS` 기반 실측 wall-clock 으로 수정) + Rule 3 자기 교정 1건(Task 3 첫
+시도가 화이트리스트 밖 `phase-05/results/` 로 stdio 를 직접 리다이렉트해 크래시 — 03-03 F8/03-04/
+04-02/04-04 와 동일 SIGABRT 계열이 다섯 번째로 재현됨을 확인, 이미 검증된 `$HOME/.cline/logs/`
+경로로 재시도해 해결, 스크립트 변경 없음). 이 플랜도 아무것도 등록하지 않음 — pid 3종 불변,
+`EXTRA_ALLOW_PATHS` 무변경, `launchctl bootstrap` 0건, `cline` 호출 0회(예산 0). 네 태스크
+커밋(`4ef64d2` fix + `733d1ca`/`f31f660`/`23192ae` feat) 모두 개별.)
+
+이전 활동: 2026-08-30 — 05-01-PLAN.md 완료 (`phase-05/services/{config.env,wait_for_port.sh,
 wait_for_upstream.sh,run_kanban_service.sh,run_telegram_service.sh}`: SVC-03/SVC-04 launchd
 래퍼와 공유 readiness 게이트. 3단 readiness 게이트를 라이브 스택 대상 3종(전체 통과/stage-2
 강제실패/stage-3 강제실패) 실측 확인. 텔레그램 래퍼는 빈 토큰일 때 숫자 sleep 루프로 idle(exit
@@ -191,15 +230,15 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [████████▒▒] 77% (Phase 4/8 완료, Phase 5/8 진행 중 — wave 1(05-01/05-02) 둘 다 완료,
-Plan 20/31 누적 추정 — Phase 5 는 총 7개 플랜)
+Progress: [████████▒▒] 79% (Phase 4/8 완료, Phase 5/8 진행 중 — wave 1(05-01/05-02) +
+wave 2(05-03) 완료, Plan 21/31 누적 추정 — Phase 5 는 총 7개 플랜)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 20
-- Average duration: ~14.4 min
-- Total execution time: ~4.8 hours
+- Total plans completed: 21
+- Average duration: ~14.6 min
+- Total execution time: ~5.1 hours
 
 **By Phase:**
 
@@ -209,9 +248,29 @@ Plan 20/31 누적 추정 — Phase 5 는 총 7개 플랜)
 | 2 | 4/4 | ~55 min | ~13.8 min |
 | 3 | 4/4 | ~48 min | ~12 min |
 | 4 | 4/4 | ~42 min | ~10.5 min |
-| 5 | 2/7 | ~35 min | ~17.5 min |
+| 5 | 3/7 | ~55 min | ~18.3 min |
 
 **Recent Trend:**
+- 05-03 (~20 min, wave 2 — prove-before-register, foreground-only, zero launchd registration.
+  Proved both SVC-04 crash-loop generators before anything was supervised: a hard dead-port (exit
+  1 at ~36-41s against a 30s configured timeout, %cpu 0.0 throughout, kanban never spawned) and the
+  decisive listening-but-not-ready case (a throwaway `python3 -m http.server` made the TCP stage
+  genuinely succeed while two forced sub-cases showed the health stage and then the alias stage
+  correctly rejecting it, each naming the right stage). A no-override recovery run against the real
+  production stack, with launchd-shaped stdio redirection, showed kanban actually binding
+  127.0.0.1:3484 with zero `Abort trap`/`Unexpected` — the plists' log paths are pre-cleared of the
+  SIGABRT class this project has now hit five times. The telegram wrapper's empty-token idle path
+  was observed for ~96s: same pid, 0.0% cpu, unchanged log line count, zero `connect telegram`
+  processes. A kanban port inventory resolved research Open Question 2 (exactly one TCP endpoint,
+  3484; port 3000 nowhere on the host). Found and fixed a real bug in `wait_for_upstream.sh`
+  (Rule 1): its outer-loop `WAITED` accounting silently ignored time spent inside stage 1's own
+  bounded retry, so the actual bound ran to ~2.4x the configured timeout whenever TCP was the
+  failing stage — never caught in 05-01 because those live checks only forced stage 2/3. Fixed with
+  `$SECONDS`-based real wall-clock accounting; re-verified against the live stack post-fix. One
+  self-corrected execution mistake (Rule 3): Task 3's first kanban-wrapper attempt redirected stdio
+  to a path outside the sandbox's allowed workspace and crashed with the same SIGABRT class;
+  re-run against the already-proven-safe `$HOME/.cline/logs/` path succeeded cleanly. Live pids
+  (46573/75548/48525) unchanged throughout; `EXTRA_ALLOW_PATHS` empty; `cline` invocations: 0/0.)
 - 05-01 (~25 min, wave 1 — ran in parallel with 05-02, no shared files. Authored the two SVC-03/
   SVC-04 launchd wrappers (`run_kanban_service.sh`, `run_telegram_service.sh`) plus their shared
   `phase-05/services/config.env`/`wait_for_port.sh`/`wait_for_upstream.sh`. Live-verified the
@@ -683,6 +742,28 @@ Recent decisions affecting current work:
   하는 것을 막기 위함). 설명용 주석이 플랜 자체의 grep 기반 검증(literal `cline kanban`,
   `--auto-approve`, 고립된 `-P`, `sleep infinity`)과 4건 충돌 — 의미는 보존한 채 표현만 재작성해
   통과(02-01 의 kill/pkill 주석 충돌과 동일 기법, 동작 변경 없음).
+- 05-03: **wave 2, launchd 등록 전 포그라운드 증명(prove-before-register).** `wait_for_upstream.sh`
+  의 `WAITED` 는 원래 루프 꼬리의 sleep 양만 누적했는데, stage 1(`wait_for_port.sh`)이 그 자체로
+  바운디드 재시도(`TIMEOUT_S=$INTERVAL_S`)라서 TCP 가 실패 단계일 때는 매 iteration 이 stage-1
+  내부에서 이미 `INTERVAL_S` 초를 쓴 뒤 루프 꼬리에서 또 `INTERVAL_S` 초를 자므로, 실제 바운드가
+  설정값의 약 2.4배(30초 설정 → 72초 실측)로 새고 있었다 — 05-01 의 라이브 검증은 stage 2/3 강제
+  실패만 다뤄 TCP 가 항상 즉시 통과했으므로 이 버그가 한 번도 노출되지 않았다. 이 플랜의 dead-port
+  케이스가 stage-1 을 실패 단계로 노출시킨 최초 실행이라 여기서 발견됨. `$SECONDS` 기반 실측
+  wall-clock 으로 수정(`4ef64d2`) 후 재검증: 기본 통과는 여전히 ~0.08초, 강제 stage-1 실패가
+  설정된 10초에 정확히 바운드(실측 10.18초), stage-2 강제 실패는 기존과 동일(실측 9.66초).
+  Task 3 실행 중 자기 교정 1건(Rule 3): kanban 래퍼의 stdio 를 화이트리스트 밖
+  `phase-05/results/` 로 직접 리다이렉트한 첫 시도가 이 프로젝트에서 다섯 번째로 동일한 미펀치
+  경로 stdio SIGABRT 계열(네이티브 스택트레이스만, 애플리케이션 코드 미실행)을 재현 — 이 위험이
+  `$HOME` 아래뿐 아니라 화이트리스트 밖 임의 경로 전체로 일반화됨을 확인. 이미 검증된
+  `$HOME/.cline/logs/` 경로로 재시도해 해결, 스크립트 변경 없음, `EXTRA_ALLOW_PATHS` 무변경.
+  결정적 SVC-04 증거: `python3 -m http.server` 로 TCP 단계는 진짜 통과시키되 health/alias 단계를
+  각각 강제로 거부시켜, 리스닝 중인 프록시(예: 모델 미로드 상태의 litellm)가 준비 완료로 오판되지
+  않음을 실측으로 확정(정확한 실패 단계명이 매번 기록됨). 연구 Open Question 2 는 kanban 포트
+  인벤토리(정확히 3484 하나)와 텔레그램 빈 토큰 상태(소켓 자체를 열지 않음)로 "현재 구성에서는
+  구조적으로 충돌 불가능"으로 해소, Phase 6 잔여 항목(`--rpc-address`/`CLINE_RPC_ADDRESS`)을
+  README 에 이름으로 명시. 이 플랜도 아무것도 등록하지 않음 — pid 3종(46573/75548/48525) 전
+  과정 불변, `EXTRA_ALLOW_PATHS` 빈 값, `launchctl bootstrap` 0건, `cline` 호출 0회(예산 0). 네
+  커밋(`4ef64d2` fix, `733d1ca`/`f31f660`/`23192ae` feat) 모두 개별.
 
 ### Pending Todos
 
@@ -760,7 +841,29 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **05-01-PLAN.md 완료 — wave 1(05-01/05-02, 병렬) 둘 다 완료.**
+Stopped at: **05-03-PLAN.md 완료 — wave 2, prove-before-register.**
+`phase-05/results/20260830T014424Z-svc04/`(README.md 포함)에 SVC-03/SVC-04 를 launchd 등록 전에
+포그라운드에서 직접 증명한 증거 전부 기록: dead-port(exit 1 ~36-41s/30s, %cpu 전 샘플 0.0),
+listening-but-not-ready 결정적 케이스(`python3 -m http.server` 로 TCP 는 성공시키되 health/alias
+각각 강제 거부, 정확한 단계명 기록), 오버라이드 없는 실제 운영 타깃 recovery(launchd 와 동일한
+stdio 리다이렉트로 kanban 이 3484 를 실제 바인딩, SIGABRT 없음), 텔레그램 빈 토큰 idle ~96초
+관찰(동일 pid·0%cpu·로그 불변·`connect telegram` 0), kanban 포트 인벤토리(3484 하나)로 연구
+Open Question 2 해소. 자체 발견/수정 버그 1건(Rule 1, `wait_for_upstream.sh` 의 `WAITED` 가
+stage-1 자체 바운디드 재시도 시간을 누락해 실제 바운드가 설정값의 약 2.4배로 새던 것을
+`$SECONDS` 기반으로 수정) + Rule 3 자기 교정 1건(Task 3 첫 시도가 화이트리스트 밖 경로로 stdio
+리다이렉트해 이 프로젝트의 다섯 번째 미펀치 stdio SIGABRT 를 재현 — 이미 검증된 경로로 재시도).
+이 플랜도 아무것도 등록하지 않음 — pid 3종(46573/75548/48525) 불변, `EXTRA_ALLOW_PATHS` 무변경,
+`launchctl bootstrap` 0건, `cline` 호출 0회(예산 0). 네 커밋(`4ef64d2` fix +
+`733d1ca`/`f31f660`/`23192ae` feat) 모두 개별, SUMMARY 작성 완료, STATE.md 갱신 완료.
+**다음:** wave 3(05-04/05-05, plist 작성/등록)으로 진행. `docs/headless-wrapper.md` 4절/8절이
+남긴 `--auto-approve false` "안전하지만 무력" 한계에 대한 에스컬레이션 결정(사람이 명시적으로:
+`--auto-approve true` 수용 vs 업스트림 기능 대기)은 여전히 검토 필요. `phase-05/services/` 의 두
+래퍼는 이제 foreground 로 완전히 증명됐지만 아직 어떤 plist 에도 연결되지 않았음 — 실제 plist
+작성/등록(`WorkingDirectory` 명시 필수)은 05-04/05-05 의 소관. 이 플랜이 남긴 미해결 항목 없음
+(블로커 0건).
+
+이전 세션: 2026-08-30
+정지 지점: **05-01-PLAN.md 완료 — wave 1(05-01/05-02, 병렬) 둘 다 완료.**
 `phase-05/services/{config.env,wait_for_port.sh,wait_for_upstream.sh,run_kanban_service.sh,
 run_telegram_service.sh}` 작성. 3단 readiness 게이트를 라이브 스택 대상 3종(전체 통과/stage-2
 강제실패/stage-3 강제실패) 실측 확인. 텔레그램 래퍼 빈 토큰 idle 분기(숫자 sleep 루프, exit 없음,
@@ -769,12 +872,6 @@ run_telegram_service.sh}` 작성. 3단 readiness 게이트를 라이브 스택 �
 `EXTRA_ALLOW_PATHS` 무변경, `phase-05/` 안 `launchctl bootstrap` 0건, `cline` 호출 0회. 편차 0건
 (주석 리터럴 4건 표현만 재작성, 아래 결정 로그 참조). 세 태스크 모두 개별 커밋
 (`1b6fd84`/`dc6e8ba`/`aa3b532`), SUMMARY 작성 완료, STATE.md 갱신 완료.
-**다음:** wave 2(05-03 이후)로 진행. `docs/headless-wrapper.md` 4절/8절이 남긴
-`--auto-approve false` "안전하지만 무력" 한계에 대한 에스컬레이션 결정(사람이 명시적으로:
-`--auto-approve true` 수용 vs 업스트림 기능 대기)과, Phase 5 의 launchd plist 가
-`WorkingDirectory` 를 반드시 명시해야 한다는 요구사항은 여전히 이후 플랜(05-03+)이 검토해야 할
-항목. `phase-05/services/` 의 두 래퍼는 아직 어떤 plist 에도 연결되지 않았음 — 실제 plist
-작성/등록은 05-04/05-05 의 소관(이 플랜의 명시적 스코프 제외 사항).
 
 이전 세션: 2026-08-30
 정지 지점: **05-02-PLAN.md 완료 (wave 1, 05-01 과 병렬).** `check_versions.sh` Check C 에
