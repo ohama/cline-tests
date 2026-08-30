@@ -11,3 +11,5 @@
 2026-08-30T09:57:14Z	prompts/discord-trivia-approval-keyerror/agent-command.txt (fallback: extracted from trial.log's 'Running command:' block -- no agent/command-*/ dirs this trial) [BACKFILLED after run_task.sh fallback added -- see ANALYSIS.md]
 2026-08-30T09:57:14Z	prompts/discord-trivia-approval-keyerror/CAPTURE-GAPS.txt reset (two stale pre-fix entries removed; job dir was in fact found after the JOB_DIR resolution fix)
 2026-08-30T09:57:52Z	prompts/discord-trivia-approval-keyerror/agent-command.txt corrected (sed -E fix -- previous backfill over-ran into the next Running-command block due to BSD sed BRE  not being alternation)
+2026-08-30T10:19:00Z	prompts/INDEX.md (07-04 Task 2: one row per attempted task, prompt+result artifact paths and byte sizes)
+2026-08-30T10:20:00Z	Run directory total size (07-04 Task 2, `du -sh`): 140K. No single file exceeds 5 MB (`find bench/runs/20260830T093657Z-phase07/ -type f -size +5M` returned zero results) -- no per-file size note needed under this plan's "keep it but note it" clause.

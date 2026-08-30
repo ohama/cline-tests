@@ -1,6 +1,6 @@
 # Phase 7 cline-bench run summary
 
-Generated: 2026-08-30T10:04:59Z
+Generated: 2026-08-30T10:18:41Z
 Run directory: `/Users/ohama/projs/cline-tests/bench/runs/20260830T093657Z-phase07`
 
 - Live task pool size (measured now, `bench/cline-bench/tasks/`): **12**
