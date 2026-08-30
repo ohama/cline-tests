@@ -1,0 +1,11 @@
+=== diff review surface: no dedicated CLI subcommand found ===
+kanban task --help commands: list, create, update, trash|done, delete, link, unlink, start, help
+no "diff" or "review" subcommand exists in the CLI surface (see subcommands.txt, full --help scan).
+
+=== git -C $SANDBOX_WORKDIR log --oneline ===
+3d8ef27 init scratch repo (phase-08/01)
+exit=0
+
+=== git -C $SANDBOX_WORKDIR worktree list ===
+/Users/ohama/projs/cline-tests/workspace/scratch-repo 3d8ef27 [main]
+exit=0

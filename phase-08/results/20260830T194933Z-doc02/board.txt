@@ -1,0 +1,50 @@
+=== pwd ===
+/Users/ohama/projs/cline-tests/workspace/scratch-repo
+
+=== kanban task list ===
+{
+  "ok": true,
+  "workspacePath": "/Users/ohama/projs/cline-tests/workspace/scratch-repo",
+  "column": null,
+  "tasks": [
+    {
+      "id": "9bf8f",
+      "prompt": "phase-08 plan 01 registration probe",
+      "column": "backlog",
+      "baseRef": "main",
+      "startInPlanMode": false,
+      "autoReviewEnabled": false,
+      "autoReviewMode": "commit",
+      "createdAt": 1788117490589,
+      "updatedAt": 1788117490589,
+      "session": null
+    }
+  ],
+  "dependencies": [],
+  "count": 1
+}
+exit=0
+
+=== kanban task list (existing task from 08-01, id=9bf8f) ===
+{
+  "ok": true,
+  "workspacePath": "/Users/ohama/projs/cline-tests/workspace/scratch-repo",
+  "column": "backlog",
+  "tasks": [
+    {
+      "id": "9bf8f",
+      "prompt": "phase-08 plan 01 registration probe",
+      "column": "backlog",
+      "baseRef": "main",
+      "startInPlanMode": false,
+      "autoReviewEnabled": false,
+      "autoReviewMode": "commit",
+      "createdAt": 1788117490589,
+      "updatedAt": 1788117490589,
+      "session": null
+    }
+  ],
+  "dependencies": [],
+  "count": 1
+}
+exit=0

@@ -1,0 +1,205 @@
+=== kanban --help ===
+Usage: kanban [options] [command]
+
+Local orchestration board for coding agents.
+
+Options:
+  -v, --version            Output the version number
+  --host <ip>              Host IP to bind the server to (default: 127.0.0.1).
+  --port <number|auto>     Runtime port (1-65535) or auto.
+  --no-open                Do not open browser automatically.
+  --skip-shutdown-cleanup  Do not move sessions to done or delete task worktrees
+                           on shutdown.
+  --https                  Enable HTTPS. Requires both --cert and --key.
+  --cert <path>            Path to a TLS certificate PEM file (implies HTTPS).
+  --key <path>             Path to a TLS private key PEM file (implies HTTPS).
+  --update                 Update Kanban to the latest published version and
+                           exit.
+  --no-passcode            Disable auto-generated passcode for remote access
+                           (for advanced users behind a reverse proxy).
+  -h, --help               display help for command
+
+Commands:
+  task|tasks               Manage Kanban board tasks from the CLI.
+  hooks                    Runtime hook helpers for agent integrations.
+  mcp                      Deprecated compatibility command.
+  update                   Update Kanban to the latest published version.
+
+Runtime URL: http://127.0.0.1:3484
+
+=== kanban task --help ===
+Usage: kanban task|tasks [options] [command]
+
+Manage Kanban board tasks from the CLI.
+
+Options:
+  -h, --help            display help for command
+
+Commands:
+  list [options]        List Kanban tasks for a workspace.
+  create [options]      Create a task in backlog.
+  update [options]      Update an existing task.
+  trash|done [options]  Move a task or an entire column to done and clean up
+                        task workspaces.
+  delete [options]      Permanently delete a task or every task in a column.
+  link [options]        Link two tasks so one task waits on another.
+  unlink [options]      Remove an existing dependency link.
+  start [options]       Start a task session and move task to in_progress.
+  help [command]        display help for command
+
+=== kanban task list --help ===
+Usage: kanban task list [options]
+
+List Kanban tasks for a workspace.
+
+Options:
+  --project-path <path>  Workspace path. Defaults to current directory
+                         workspace.
+  --column <column>      Filter column: backlog | in_progress | review | done.
+                         trash is also accepted.
+  -h, --help             display help for command
+
+=== kanban task create --help ===
+Usage: kanban task create [options]
+
+Create a task in backlog.
+
+Options:
+  --title <text>                    Task title.
+  --prompt <text>                   Task prompt text.
+  --project-path <path>             Workspace path. Defaults to current
+                                    directory workspace.
+  --base-ref <branch>               Task base branch/ref.
+  --start-in-plan-mode [value]      Set plan mode (true|false). Flag-only
+                                    implies true.
+  --auto-review-enabled [value]     Enable auto-review behavior (true|false).
+                                    Flag-only implies true.
+  --auto-review-mode <mode>         Auto-review mode: commit | pr.
+  --agent-id <id>                   Agent override: cline | claude | codex |
+                                    droid | gemini | opencode | default.
+  --cline-provider <id>             Cline provider override (e.g. anthropic,
+                                    openai, cline). Use "default" for workspace
+                                    default.
+  --cline-model <id>                Cline model override (e.g.
+                                    claude-sonnet-4-20250514). Use "default" for
+                                    workspace default.
+  --cline-reasoning-effort <level>  Cline reasoning effort override: default |
+                                    low | medium | high | xhigh.
+  -h, --help                        display help for command
+
+=== kanban task update --help ===
+Usage: kanban task update [options]
+
+Update an existing task.
+
+Options:
+  --task-id <id>                    Task ID.
+  --title <text>                    Replacement task title.
+  --prompt <text>                   Replacement task prompt.
+  --project-path <path>             Workspace path. Defaults to current
+                                    directory workspace.
+  --base-ref <branch>               Replacement base branch/ref.
+  --start-in-plan-mode [value]      Set plan mode (true|false). Flag-only
+                                    implies true.
+  --auto-review-enabled [value]     Enable auto-review behavior (true|false).
+                                    Flag-only implies true.
+  --auto-review-mode <mode>         Auto-review mode: commit | pr.
+  --agent-id <id>                   Agent override: cline | claude | codex |
+                                    droid | gemini | opencode. Use "default" to
+                                    clear.
+  --cline-provider <id>             Cline provider override (e.g. anthropic,
+                                    openai, cline). Use "default" to clear.
+  --cline-model <id>                Cline model override (e.g.
+                                    claude-sonnet-4-20250514). Use "default" to
+                                    clear.
+  --cline-reasoning-effort <level>  Cline reasoning effort override: default |
+                                    low | medium | high | xhigh. Use "inherit"
+                                    to clear.
+  -h, --help                        display help for command
+
+=== kanban task trash --help ===
+Usage: kanban task trash|done [options]
+
+Move a task or an entire column to done and clean up task workspaces.
+
+Options:
+  --task-id <id>         Task ID.
+  --column <column>      Column to move to done: backlog | in_progress | review
+                         | done. trash is also accepted.
+  --project-path <path>  Workspace path. Defaults to current directory
+                         workspace.
+  -h, --help             display help for command
+
+=== kanban task delete --help ===
+Usage: kanban task delete [options]
+
+Permanently delete a task or every task in a column.
+
+Options:
+  --task-id <id>         Task ID to permanently delete.
+  --column <column>      Column to bulk-delete: backlog | in_progress | review |
+                         done. trash is also accepted.
+  --project-path <path>  Workspace path. Defaults to current directory
+                         workspace.
+  -h, --help             display help for command
+
+=== kanban task link --help ===
+Usage: kanban task link [options]
+
+Link two tasks so one task waits on another.
+
+Options:
+  --task-id <id>         One of the two task IDs to link.
+  --linked-task-id <id>  The other task ID to link.
+  --project-path <path>  Workspace path. Defaults to current directory
+                         workspace.
+  -h, --help             display help for command
+
+Dependency direction:
+  If both linked tasks are in backlog, Kanban preserves the order you pass:
+  --task-id waits on --linked-task-id, and on the board the arrow points into
+  --linked-task-id.
+  Once only one linked task remains in backlog, Kanban reorients the saved link
+  so the backlog task is the waiting dependent task and the other task is the
+  prerequisite.
+  When the prerequisite finishes review and moves to done, the waiting backlog
+  task becomes ready to start.
+
+
+=== kanban task unlink --help ===
+Usage: kanban task unlink [options]
+
+Remove an existing dependency link.
+
+Options:
+  --dependency-id <id>   Dependency ID.
+  --project-path <path>  Workspace path. Defaults to current directory
+                         workspace.
+  -h, --help             display help for command
+
+=== kanban task start --help ===
+Usage: kanban task start [options]
+
+Start a task session and move task to in_progress.
+
+Options:
+  --task-id <id>         Task ID.
+  --project-path <path>  Workspace path. Defaults to current directory
+                         workspace.
+  -h, --help             display help for command
+
+=== kanban hooks --help ===
+Usage: kanban hooks [options] [command]
+
+Runtime hook helpers for agent integrations.
+
+Options:
+  -h, --help                              display help for command
+
+Commands:
+  ingest [options] [payload]              Ingest hook event into Kanban runtime.
+  notify [options] [payload]              Best-effort hook ingest that never throws.
+  gemini-hook                             Gemini hook entrypoint.
+  codex-hook [options] [payload]          Codex hook entrypoint.
+  codex-wrapper [options] [agentArgs...]  Codex wrapper that emits Kanban hook notifications.
+  help [command]                          display help for command

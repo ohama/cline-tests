@@ -1,0 +1,204 @@
+=== create two throwaway tasks for a link probe ===
+cmd: kanban task create --title "dep-A (waits on dep-B)" --prompt "probe A"
+{
+  "ok": true,
+  "task": {
+    "id": "b2b86",
+    "column": "backlog",
+    "workspacePath": "/Users/ohama/projs/cline-tests/workspace/scratch-repo",
+    "title": "dep-A (waits on dep-B)",
+    "prompt": "probe A",
+    "baseRef": "main",
+    "startInPlanMode": false,
+    "autoReviewEnabled": false,
+    "autoReviewMode": "commit"
+  }
+}
+cmd: kanban task create --title "dep-B (prerequisite)" --prompt "probe B"
+{
+  "ok": true,
+  "task": {
+    "id": "fbc51",
+    "column": "backlog",
+    "workspacePath": "/Users/ohama/projs/cline-tests/workspace/scratch-repo",
+    "title": "dep-B (prerequisite)",
+    "prompt": "probe B",
+    "baseRef": "main",
+    "startInPlanMode": false,
+    "autoReviewEnabled": false,
+    "autoReviewMode": "commit"
+  }
+}
+
+=== link: A (--task-id b2b86) waits on B (--linked-task-id fbc51) ===
+cmd: kanban task link --task-id b2b86 --linked-task-id fbc51
+{
+  "ok": true,
+  "workspacePath": "/Users/ohama/projs/cline-tests/workspace/scratch-repo",
+  "dependency": {
+    "id": "df501708",
+    "backlogTaskId": "b2b86",
+    "backlogTaskColumn": "backlog",
+    "linkedTaskId": "fbc51",
+    "linkedTaskColumn": "backlog",
+    "createdAt": 1788119545412
+  }
+}
+exit=0
+
+=== observe on board (list, shows dependencies[]) ===
+cmd: kanban task list
+{
+  "ok": true,
+  "workspacePath": "/Users/ohama/projs/cline-tests/workspace/scratch-repo",
+  "column": null,
+  "tasks": [
+    {
+      "id": "fbc51",
+      "prompt": "probe B",
+      "column": "backlog",
+      "baseRef": "main",
+      "startInPlanMode": false,
+      "autoReviewEnabled": false,
+      "autoReviewMode": "commit",
+      "createdAt": 1788119539460,
+      "updatedAt": 1788119539460,
+      "session": null
+    },
+    {
+      "id": "b2b86",
+      "prompt": "probe A",
+      "column": "backlog",
+      "baseRef": "main",
+      "startInPlanMode": false,
+      "autoReviewEnabled": false,
+      "autoReviewMode": "commit",
+      "createdAt": 1788119538903,
+      "updatedAt": 1788119538903,
+      "session": null
+    },
+    {
+      "id": "9bf8f",
+      "prompt": "phase-08 plan 01 registration probe",
+      "column": "backlog",
+      "baseRef": "main",
+      "startInPlanMode": false,
+      "autoReviewEnabled": false,
+      "autoReviewMode": "commit",
+      "createdAt": 1788117490589,
+      "updatedAt": 1788117490589,
+      "session": null
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "df501708",
+      "backlogTaskId": "b2b86",
+      "backlogTaskColumn": "backlog",
+      "linkedTaskId": "fbc51",
+      "linkedTaskColumn": "backlog",
+      "createdAt": 1788119545412
+    }
+  ],
+  "count": 3
+}
+exit=0
+
+=== unlink: --dependency-id df501708 ===
+cmd: kanban task unlink --dependency-id df501708
+{
+  "ok": true,
+  "workspacePath": "/Users/ohama/projs/cline-tests/workspace/scratch-repo",
+  "removedDependency": {
+    "id": "df501708",
+    "backlogTaskId": "b2b86",
+    "backlogTaskColumn": "backlog",
+    "linkedTaskId": "fbc51",
+    "linkedTaskColumn": "backlog",
+    "createdAt": 1788119545412
+  }
+}
+exit=0
+
+=== cleanup: delete both throwaway probe tasks ===
+cmd: kanban task delete --task-id b2b86
+{
+  "ok": true,
+  "workspacePath": "/Users/ohama/projs/cline-tests/workspace/scratch-repo",
+  "column": null,
+  "deletedTasks": [
+    {
+      "id": "b2b86",
+      "prompt": "probe A",
+      "column": "backlog",
+      "baseRef": "main",
+      "startInPlanMode": false,
+      "autoReviewEnabled": false,
+      "autoReviewMode": "commit",
+      "createdAt": 1788119538903,
+      "updatedAt": 1788119538903,
+      "session": null
+    }
+  ],
+  "count": 1,
+  "worktreeCleanup": [
+    {
+      "taskId": "b2b86",
+      "removed": false
+    }
+  ]
+}
+exit=0
+cmd: kanban task delete --task-id fbc51
+{
+  "ok": true,
+  "workspacePath": "/Users/ohama/projs/cline-tests/workspace/scratch-repo",
+  "column": null,
+  "deletedTasks": [
+    {
+      "id": "fbc51",
+      "prompt": "probe B",
+      "column": "backlog",
+      "baseRef": "main",
+      "startInPlanMode": false,
+      "autoReviewEnabled": false,
+      "autoReviewMode": "commit",
+      "createdAt": 1788119539460,
+      "updatedAt": 1788119539460,
+      "session": null
+    }
+  ],
+  "count": 1,
+  "worktreeCleanup": [
+    {
+      "taskId": "fbc51",
+      "removed": false
+    }
+  ]
+}
+exit=0
+
+=== confirm board back to the single pre-existing task ===
+cmd: kanban task list
+{
+  "ok": true,
+  "workspacePath": "/Users/ohama/projs/cline-tests/workspace/scratch-repo",
+  "column": null,
+  "tasks": [
+    {
+      "id": "9bf8f",
+      "prompt": "phase-08 plan 01 registration probe",
+      "column": "backlog",
+      "baseRef": "main",
+      "startInPlanMode": false,
+      "autoReviewEnabled": false,
+      "autoReviewMode": "commit",
+      "createdAt": 1788117490589,
+      "updatedAt": 1788117490589,
+      "session": null
+    }
+  ],
+  "dependencies": [],
+  "count": 1
+}
+exit=0

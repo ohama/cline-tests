@@ -1,0 +1,109 @@
+=== create throwaway card ===
+cmd: kanban task create --title "DOC-02 throwaway probe" --prompt "08-05 live evidence probe, safe to delete"
+{
+  "ok": true,
+  "task": {
+    "id": "c44a4",
+    "column": "backlog",
+    "workspacePath": "/Users/ohama/projs/cline-tests/workspace/scratch-repo",
+    "title": "DOC-02 throwaway probe",
+    "prompt": "08-05 live evidence probe, safe to delete",
+    "baseRef": "main",
+    "startInPlanMode": false,
+    "autoReviewEnabled": false,
+    "autoReviewMode": "commit"
+  }
+}
+exit=0
+
+=== observe on board (list) ===
+cmd: kanban task list
+{
+  "ok": true,
+  "workspacePath": "/Users/ohama/projs/cline-tests/workspace/scratch-repo",
+  "column": null,
+  "tasks": [
+    {
+      "id": "c44a4",
+      "prompt": "08-05 live evidence probe, safe to delete",
+      "column": "backlog",
+      "baseRef": "main",
+      "startInPlanMode": false,
+      "autoReviewEnabled": false,
+      "autoReviewMode": "commit",
+      "createdAt": 1788119485091,
+      "updatedAt": 1788119485091,
+      "session": null
+    },
+    {
+      "id": "9bf8f",
+      "prompt": "phase-08 plan 01 registration probe",
+      "column": "backlog",
+      "baseRef": "main",
+      "startInPlanMode": false,
+      "autoReviewEnabled": false,
+      "autoReviewMode": "commit",
+      "createdAt": 1788117490589,
+      "updatedAt": 1788117490589,
+      "session": null
+    }
+  ],
+  "dependencies": [],
+  "count": 2
+}
+exit=0
+
+=== remove the throwaway card ===
+cmd: kanban task delete --task-id c44a4
+{
+  "ok": true,
+  "workspacePath": "/Users/ohama/projs/cline-tests/workspace/scratch-repo",
+  "column": null,
+  "deletedTasks": [
+    {
+      "id": "c44a4",
+      "prompt": "08-05 live evidence probe, safe to delete",
+      "column": "backlog",
+      "baseRef": "main",
+      "startInPlanMode": false,
+      "autoReviewEnabled": false,
+      "autoReviewMode": "commit",
+      "createdAt": 1788119485091,
+      "updatedAt": 1788119485091,
+      "session": null
+    }
+  ],
+  "count": 1,
+  "worktreeCleanup": [
+    {
+      "taskId": "c44a4",
+      "removed": false
+    }
+  ]
+}
+exit=0
+
+=== confirm removed (list again) ===
+cmd: kanban task list
+{
+  "ok": true,
+  "workspacePath": "/Users/ohama/projs/cline-tests/workspace/scratch-repo",
+  "column": null,
+  "tasks": [
+    {
+      "id": "9bf8f",
+      "prompt": "phase-08 plan 01 registration probe",
+      "column": "backlog",
+      "baseRef": "main",
+      "startInPlanMode": false,
+      "autoReviewEnabled": false,
+      "autoReviewMode": "commit",
+      "createdAt": 1788117490589,
+      "updatedAt": 1788117490589,
+      "session": null
+    }
+  ],
+  "dependencies": [],
+  "count": 1
+}
+exit=0

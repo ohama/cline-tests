@@ -1,0 +1,30 @@
+WORKTREE=UNAVAILABLE
+
+Reason (reproduced, from 08-04's DECISION.md, phase-08/results/20260830T193634Z-widening/DECISION.md):
+git worktree add always realpath-resolves an ancestor stat through /Users/ohama itself, and
+this project's entire work tree lives under $HOME. There is no env var, git flag, or
+call-shape that avoids this ancestor stat. Three call-shape variants were tested against the
+current (unmodified) sandbox profile and all three failed identically:
+  1. pure relative target path (even under an already-allowed sibling directory)
+  2. target path nested several levels deep under an already-allowed subpath
+  3. a pre-created, empty target directory passed as the worktree path
+All three: fatal: Invalid path '/Users/ohama': Operation not permitted, exit 128.
+
+Live confirmation, this run (diff-and-checkpoint.txt): git -C $SANDBOX_WORKDIR worktree list
+shows only the main worktree itself -- no per-task worktree has ever been created, consistent
+with kanban task delete's own worktreeCleanup: removed=false response (card-lifecycle.txt,
+dependency-chain.txt) -- there was never a worktree there to remove.
+
+The exact change that would enable it (NOT applied -- recorded only):
+phase-03/sandbox/gen_sandbox_profile.py render_profile() would need to split the $HOME
+(protected_root) deny from a blanket 'deny file-read* (subpath $HOME)' into
+'deny file-read-data (subpath $HOME)' + 'allow file-read-metadata (subpath $HOME)', and
+every already-allowed punch-through path would need an explicit new
+'allow file-read-data (subpath <path>)' line (without it, every already-allowed repo would
+silently break). verify_sandbox.sh:167's deny_read precheck and four
+test_gen_sandbox_profile.py assertions would need to move with it. Measured cost: stat-level
+metadata under $HOME (existence/size/perms/owner/timestamps) for already-known paths becomes
+readable; file content and directory listing stay denied; writes are untouched.
+See docs/sandbox-whitelist.md §9 and phase-08/results/20260830T193634Z-widening/DECISION.md
+for the full diff, the four control experiments proving the SBPL operation-keyword-
+specificity finding, and the user's DECLINED decision (2026-08-31).
