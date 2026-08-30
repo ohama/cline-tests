@@ -173,6 +173,8 @@ data = {
     "agent": "$HARBOR_AGENT",
     "cline_version": "$HARBOR_CLINE_VERSION",
     "cw_injection": "${CW_INJECTION:-unset}",
+    "injection_mechanism": "${INJECTION_MECHANISM:-unset}",
+    "injection_evidence": "${INJECTION_EVIDENCE:-unset}",
     "created_utc": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
 }
 with open(sys.argv[1], "w") as f:
@@ -244,6 +246,35 @@ if [ ! -r "$FLASHNEXT_ERR_LOG" ]; then
   guard_fail "pre-guard: FLASHNEXT_ERR_LOG not readable: $FLASHNEXT_ERR_LOG"
 fi
 echo "pre-guard: FLASHNEXT_ERR_LOG readable OK"
+
+# 2f. Pre-run injection assertion (07-07 gap closure). A run whose injection provably cannot
+#     land must not cost harbor's ~4 minutes.
+#
+#     Branch B (CW_INJECTION=not-achievable): refuse unconditionally, before touching anything
+#     else, and point at TERMINAL.md rather than attempting a mechanism 07-07 already recorded
+#     as not working.
+#
+#     Branch A: replay the REAL compose merge (base + our overlay + harbor's own auto-generated
+#     env/mounts override files) by calling injection_probe.sh's own R1 rung -- reused, never
+#     copied -- and require it confirm the resolved config for the service harbor execs into
+#     contains the mechanism's mount target and env var with a fully-resolved absolute source
+#     path (R1's own has_env/has_mount checks, see injection_probe.sh). If R1 does not PASS,
+#     `harbor run` cannot possibly reach the model this invocation -- exit non-zero WITHOUT
+#     invoking it.
+if [ "${CW_INJECTION:-unset}" = "not-achievable" ]; then
+  guard_fail "pre-run assertion: CW_INJECTION=not-achievable -- see phase-07/results/*-injection-fix/TERMINAL.md for every mechanism tried and why; refusing to invoke harbor run"
+fi
+
+PREASSERT_DIR="$RUN/preassert/$TASK"
+mkdir -p "$PREASSERT_DIR" 2>/dev/null
+PREASSERT_OUT="$(bash "$SCRIPT_DIR/injection_probe.sh" --rung R1 --results-dir "$PREASSERT_DIR" 2>&1)"
+PREASSERT_RC=$?
+printf '%s\n' "$PREASSERT_OUT" > "$PREASSERT_DIR/R1-output.txt"
+if [ "$PREASSERT_RC" -ne 0 ] || ! printf '%s\n' "$PREASSERT_OUT" | grep -q 'CHECK: PASS R1-compose-merge-replay'; then
+  guard_fail "pre-run assertion: injection_probe.sh --rung R1 (compose-merge-replay) did not confirm the mechanism's mount+env resolve with a fully-resolved absolute source path -- see $PREASSERT_DIR/R1-output.txt; refusing to invoke harbor run (would cost ~4 minutes it cannot possibly reach the model with)"
+fi
+manifest_add "preassert/$TASK/ (pre-run compose-merge-replay assertion, reused injection_probe.sh --rung R1, rc=$PREASSERT_RC)"
+echo "pre-guard: pre-run injection assertion (R1 compose-merge-replay) OK"
 
 # ---------------------------------------------------------------------------
 # 3. Server-log offset, BEFORE the run.

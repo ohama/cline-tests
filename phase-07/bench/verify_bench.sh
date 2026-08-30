@@ -428,6 +428,73 @@ else
 fi
 vlog ""
 
+# ---------------------------------------------------------------------------
+# B11: reached-the-model assertion (07-07 gap closure). At least one attempted task in this run
+# directory has BOTH a non-zero-size server-log/<task>.flashnext.err.txt AND a meta/<task>.json
+# with model_turns parsed as an integer > 0 -- the decisive signal, never a green exit code or a
+# `pass` verdict alone.
+#
+# Opt-in per run directory: only evaluated when this run's own config.json names a POST-fix
+# cw_injection value. The pre-fix bundle (bench/runs/20260830T093657Z-phase07/, cw_injection=
+# "applied") legitimately and honestly has zero such tasks and must keep passing its own gate --
+# so for a pre-fix (or missing/unknown) run directory this check is SKIPPED: visible in the
+# output as its own CHECK line, but deliberately NOT routed through record() and therefore not
+# counted toward PASSED/TOTAL, so it neither manufactures a false PASS nor breaks a pre-fix run
+# directory's own honest CASES n/10 signature. Do not silently omit the line either way.
+# ---------------------------------------------------------------------------
+vlog "--- B11: reached-the-model (non-empty flashnext log slice + model_turns > 0; opt-in per run) ---"
+B11_CW_INJECTION="unset"
+if [ -f "$RUN/config.json" ]; then
+  B11_CW_INJECTION="$(python3 -c "
+import json
+try:
+    v = json.load(open('$RUN/config.json')).get('cw_injection', 'unset')
+    print(v if v else 'unset')
+except Exception:
+    print('unset')
+" 2>/dev/null)"
+  [ -z "$B11_CW_INJECTION" ] && B11_CW_INJECTION="unset"
+fi
+
+case "$B11_CW_INJECTION" in
+  applied|unset|"")
+    vlog "CHECK: SKIP B11 -- cw_injection='$B11_CW_INJECTION' is a pre-fix (or absent) value; B11 only evaluates post-fix run directories and this line is not counted toward PASSED/TOTAL"
+    ;;
+  *)
+    B11_OK=1
+    B11_DETAIL=""
+    if [ "$META_COUNT" -gt 0 ]; then
+      for f in "${META_FILES[@]}"; do
+        TASK_N="$(python3 -c "import json; print(json.load(open('$f')).get('task','?'))" 2>/dev/null)"
+        SLICE="$RUN/server-log/$TASK_N.flashnext.err.txt"
+        SLICE_BYTES=0
+        [ -f "$SLICE" ] && SLICE_BYTES="$(wc -c < "$SLICE" | tr -d ' ')"
+        TURNS="$(python3 -c "
+import json
+try:
+    v = json.load(open('$f')).get('model_turns', 0)
+    print(int(v))
+except Exception:
+    print(0)
+" 2>/dev/null)"
+        TURNS="${TURNS:-0}"
+        B11_DETAIL="${B11_DETAIL}${TASK_N}:slice_bytes=${SLICE_BYTES},model_turns=${TURNS};"
+        if [ "$SLICE_BYTES" -gt 0 ] 2>/dev/null && [ "$TURNS" -gt 0 ] 2>/dev/null; then
+          B11_OK=0
+        fi
+      done
+    fi
+    if [ "$META_COUNT" -lt 1 ]; then
+      record "B11" 1 "no meta records to check (META_COUNT=$META_COUNT); cw_injection='$B11_CW_INJECTION'"
+    elif [ "$B11_OK" -eq 0 ]; then
+      record "B11" 0
+    else
+      record "B11" 1 "no attempted task reached the model (slice_bytes>0 AND model_turns>0): $B11_DETAIL"
+    fi
+    ;;
+esac
+vlog ""
+
 vlog "CASES $PASSED/$TOTAL"
 if [ "$PASSED" -eq "$TOTAL" ]; then
   vlog "VERIFY_BENCH: PASS"

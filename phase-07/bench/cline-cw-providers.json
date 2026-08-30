@@ -1,5 +1,6 @@
 {
-  "_comment": "Container-only providers.json for cline-bench runs (Phase 7, Task 07-02 Task 1). NOT the host's own ~/.cline/data/settings/providers.json -- this file is bind-mounted into the ephemeral harbor container at a path that does NOT match the container's default providers.json location (see cline-cw-overlay.yaml, CLINE_PROVIDER_SETTINGS_PATH). House rule 6 compliance: this mechanism never reads or writes the HOST's real providers.json; it is a from-scratch file authored for this phase, containing no host secrets (apiKey below is the same non-secret placeholder value config.env already uses for HARBOR_API_KEY, matching this stack's documented posture that any non-empty API key is accepted and never treated as a credential). Schema shape (settings.contextWindow at the TOP LEVEL of the provider's settings object, not inside settings.models[]) is the exact shape phase-01/config/apply_provider_config.sh already proved live works for compaction -- see docs/32k-compaction-policy.md section 2.",
+  "_comment": "Container-only providers.json for cline-bench runs (Phase 7, Task 07-02 Task 1; schema fix applied 07-07 Task 1 per 07-06's DIAGNOSIS.md ranked-fix #1). NOT the host's own ~/.cline/data/settings/providers.json -- this file is bind-mounted into the ephemeral harbor container at a path that does NOT match the container's default providers.json location (see cline-cw-overlay.yaml, CLINE_PROVIDER_SETTINGS_PATH). House rule 6 compliance: this mechanism never reads or writes the HOST's real providers.json; it is a from-scratch file authored for this phase, containing no host secrets (apiKey below is the same non-secret placeholder value config.env already uses for HARBOR_API_KEY, matching this stack's documented posture that any non-empty API key is accepted and never treated as a credential). Schema shape (settings.contextWindow at the TOP LEVEL of the provider's settings object, not inside settings.models[]) is the exact shape phase-01/config/apply_provider_config.sh already proved live works for compaction -- see docs/32k-compaction-policy.md section 2. version (top-level) and updatedAt (per-provider) are REQUIRED by cline 3.0.53's persisted-settings zod schema -- their prior absence is why ProviderSettingsManager.read() silently fell back to an empty providers registry (07-06 DIAGNOSIS.md ROOT_CAUSE: schema-rejected, demonstrated live at phase-07/results/20260830T113923Z-injection-diag/probe/R3/schema-fix-supplement-result-file.json). Do not remove them.",
+  "version": 1,
   "lastUsedProvider": "openai-compatible",
   "providers": {
     "openai-compatible": {
@@ -9,7 +10,8 @@
         "model": "flashnext",
         "baseUrl": "http://host.docker.internal:4000/v1",
         "contextWindow": 29000
-      }
+      },
+      "updatedAt": "2026-08-30T12:22:36.000Z"
     }
   }
 }
