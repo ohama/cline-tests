@@ -1,0 +1,10 @@
+=== CASE P6 ===
+--- command ---
+/bin/cat
+/Users/ohama/projs/cline-tests/.planning/STATE.md
+--- rc ---
+1
+--- stdout ---
+--- stderr ---
+cat: /Users/ohama/projs/cline-tests/.planning/STATE.md: Operation not permitted
+

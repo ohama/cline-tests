@@ -1,0 +1,12 @@
+=== CASE P4 ===
+--- command ---
+/bin/sh
+-c
+find "/Users/ohama/projs/cline-tests/bench/runs" -type f -exec cat {} +
+--- rc ---
+1
+--- stdout ---
+--- stderr ---
+shell-init: error retrieving current directory: getcwd: cannot access parent directories: Operation not permitted
+find: /Users/ohama/projs/cline-tests/bench/runs: Operation not permitted
+

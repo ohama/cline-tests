@@ -1,0 +1,19 @@
+package: @cline/cli-linux-arm64@3.0.53
+sha256: 2d4d42be70fbb5482d4fbce80f8f790884a844b891eca720dc68db306446bd23
+tarball_bytes: 51466735
+extracted_bin_file_type: phase-07/results/20260830T113923Z-injection-diag/scratch-cline-3.0.53/package/bin/cline: ELF 64-bit LSB executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, for GNU/Linux 3.7.0, BuildID[sha1]=8c5e2642b94bf1eed8184712a2b0f441196585fa, not stripped
+extracted_bin_bytes: 148965696
+
+--- metadata-only: cline@3.0.53 (wrapper package.json, NOT the binary) ---
+package: cline@3.0.53
+sha256: 04204f7ea8678a4b108c8203da0fcd90ae952c8b4e0391522a72fc8681d0d0ad
+tarball_bytes: 16394
+bin/cline is the 4KB RESOLVER SCRIPT, not the binary: phase-07/results/20260830T113923Z-injection-diag/scratch-cline-3.0.53/metadata-only/package/bin/cline: a /usr/bin/env node script text executable, ASCII text
+bin/cline bytes: 4446
+
+--- same-platform control: @cline/cli-linux-arm64@3.0.60 ---
+package: @cline/cli-linux-arm64@3.0.60
+sha256: 91b25b9a7bd5564ba214b7a380987f34401efe8d649e0ae9cdd7efb5151bd773
+tarball_bytes: 51970612
+extracted_bin_file_type: /Users/ohama/projs/cline-tests/phase-07/results/20260830T113923Z-injection-diag/scratch-cline-3.0.60/package/bin/cline: ELF 64-bit LSB executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, for GNU/Linux 3.7.0, BuildID[sha1]=8c5e2642b94bf1eed8184712a2b0f441196585fa, not stripped
+extracted_bin_bytes: 150604096

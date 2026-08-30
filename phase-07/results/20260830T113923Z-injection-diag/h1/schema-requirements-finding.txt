@@ -1,0 +1,49 @@
+Schema-requirements finding (surfaced while settling H1, feeds H4/R3 in Task 2)
+==================================================================================
+Source: direct strings-decode reads of scratch-cline-3.0.53/package/bin/cline and
+scratch-cline-3.0.60/package/bin/cline. Never executed either binary.
+
+The persisted-providers.json schema (3.0.53's Ox / 3.0.60's i4, identical shape, see
+H1-VERDICT.txt item 5) REQUIRES two fields that phase-07/bench/cline-cw-providers.json
+does NOT supply:
+
+  1. top-level "version": 1                    (T.literal(1), no .optional() -- REQUIRED)
+  2. per-provider-entry "updatedAt": <ISO8601>  (T.string().datetime(), no default -- REQUIRED)
+
+cline-cw-providers.json's actual top-level shape:
+  { "_comment": ..., "lastUsedProvider": "openai-compatible",
+    "providers": { "openai-compatible": { "settings": {...} } } }
+-- no "version" key at all, and the "openai-compatible" entry has no "updatedAt" key.
+
+The read() path that loads this file (ProviderSettingsManager.read(), quoted in full in
+H1-VERDICT.txt) is `Ox.safeParse(i)` -- SAFE parse, not throwing parse. On validation
+failure, execution simply falls past the `if(t.success)` block with no error surfaced
+anywhere, and the function returns cc() / Vm() = `{version:1, providers:{}}` -- an EMPTY
+providers registry. No warning, no exception, no log line (the `providers.read providers=...`
+log line is INSIDE the `if(t.success)` branch, so it is never reached on failure either).
+
+If this is what actually happens for our file (not yet observed live -- this is still static
+analysis, Task 2's R3 rung is what turns this into an observation), the mechanism would be:
+cline-cw-providers.json fails Ox.safeParse() -> read() silently returns {providers:{}} -> no
+"openai-compatible" provider config exists -> cline's own downstream fallback for
+openai-compatible with no configured entry produces an ephemeral/default provider config with
+apiKey present (from the adapter's -k flag / API_KEY env, a SEPARATE fixed-5-key exec-env path,
+Avenue C) but no baseUrl -> SDK default endpoint (api.openai.com) is used. This exactly matches
+the observed 07-03 failure ("Incorrect API key provided... platform.openai.com/account/api-keys").
+
+This is squarely H4 ("the settings file is read but rejected... silent fallback to defaults"),
+now with a specific, named cause (two missing required schema fields) rather than a general
+guess about the `_comment`/`lastUsedProvider` keys the plan's own H4 framing named as the
+suspect. Note `_comment` and `lastUsedProvider` are themselves NOT the problem by this reading:
+`lastUsedProvider` is `.optional()` and valid; whether a stray `_comment` key is rejected
+depends on whether Ox/i4 is `.strict()`'d, which was not confirmed here (no `.strict()` call
+was found chained directly onto the Ox/i4 definition itself in either version's text) --
+zod's default (non-strict) `.object()` behavior strips unrecognized keys rather than rejecting
+them, so `_comment` is very likely harmless on its own. The missing `version`/`updatedAt`
+fields are the far more likely rejection cause and are testable directly.
+
+Task 2's R3 variant (a) ("stripped of _comment and lastUsedProvider") does NOT add the missing
+version/updatedAt fields, so per this reading it is expected to still fail -- which would be
+informative (rules out `_comment` as the sole cause) rather than a fix. A supplementary,
+non-mandated probe testing the actual candidate fix (add "version":1 and a valid "updatedAt" to
+the file) is run alongside the plan's three mandated variants; see probe/R3/schema-fix-supplement.txt.

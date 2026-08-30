@@ -1,0 +1,7 @@
+docker info --format '{{.Architecture}} {{.OSType}}':
+aarch64 linux
+
+raw docker info arch lines:
+ Operating System: Ubuntu 24.04.4 LTS
+ OSType: linux
+ Architecture: aarch64

@@ -1,0 +1,67 @@
+H1_VERDICT: ruled-out
+DERIVED_FROM: binary-scan-3.0.53.txt, binary-scan-3.0.60-linux.txt
+
+Rationale
+=========
+Step 3 (confounded darwin-3.0.60 vs linux-3.0.53 pair) showed count differences on two of the
+five scanned items (getProviderConfig: 11 vs 14; unique CLINE_-prefixed env-var literals: 107
+vs 112; additionalProperties/.strict() schema-keyword counts also differed). Per the plan, a
+difference in a confounded pair cannot be attributed to version alone, so the mandatory
+same-platform control was run: @cline/cli-linux-arm64@3.0.60 (same linux/aarch64 platform as
+the 3.0.53 package the container actually runs) was packed, unpacked to
+scratch-cline-3.0.60/package/bin/cline, and scanned with the identical script.
+
+binary-scan-3.0.53.txt vs binary-scan-3.0.60-linux.txt (both linux-arm64, version is now the
+only variable) shows the SAME deltas as the confounded pair (getProviderConfig 11 vs 14, env-var
+count 107 vs 112, schema-keyword counts up similarly) -- so these particular deltas ARE real
+version differences, not platform artifacts. But direct inspection of what changed (below) shows
+they are all attributable to one unrelated feature added between 3.0.53 and 3.0.60 (a "modes"
+field on the persisted-provider-settings schema, and its own extra getProviderConfig/schema call
+sites), not to the specific injection primitive 07-02's mechanism relies on.
+
+The five primitives that matter for the injection mechanism itself are present and structurally
+identical (same logic, only minifier-assigned variable names differ) in BOTH versions:
+
+1. CLINE_PROVIDER_SETTINGS_PATH literal: count 3 in both binaries, identical hit contexts.
+2. Settings-path resolver (process.env.CLINE_PROVIDER_SETTINGS_PATH?.trim(), fallback to
+   settings/providers.json): count 2 in both, byte-identical logic shape
+   (3.0.53: `function mC(){let C=process.env.CLINE_PROVIDER_SETTINGS_PATH?.trim();if(C)return C;
+   return _(L(),"settings","providers.json")}`).
+3. getProviderConfig: present in both (11 in 3.0.53, 14 in 3.0.60 -- the +3 are new call sites
+   for the new "modes" feature, confirmed by direct read of the schema definition, not the
+   openai-compatible resolution path this mechanism uses).
+4. Full CLINE_-prefixed env-var literal list: 107 (3.0.53) vs 112 (3.0.60) -- diff confirmed by
+   direct inspection to be unrelated new vars, none of them replacing or renaming
+   CLINE_PROVIDER_SETTINGS_PATH.
+5. lastUsedProvider + schema-rejects-unknown-keys: count 19 (lastUsedProvider) identical in
+   both. The persisted-settings schema (3.0.53's `Ox`, 3.0.60's `i4`) is structurally the SAME
+   object shape in both versions -- REQUIRED top-level `version: T.literal(1)` (no .optional()),
+   OPTIONAL `lastUsedProvider`, and a per-provider record requiring `settings` + REQUIRED
+   `updatedAt: T.string().datetime()` -- confirmed by directly quoting both:
+     3.0.53 (offset 106690475): `Ox=T.object({version:T.literal(1),
+       lastUsedProvider:T.string().min(1).optional(),providers:T.record(T.string(),hie)})`
+       where hie=T.object({settings:Hr,updatedAt:T.string().datetime(),
+       tokenSource:...default("manual")})
+     3.0.60 (offset 107207093): `i4=f.object({version:f.literal(1),
+       lastUsedProvider:f.string().min(1).optional(),modes:joe.default({}),
+       providers:f.record(f.string(),Eoe)})` where Eoe=f.object({settings:yu,
+       updatedAt:f.string().datetime(),tokenSource:...default("manual")})
+   The only structural addition in 3.0.60 is `modes:joe.default({})` -- itself defaulted, so it
+   does not change pass/fail behavior for a file (like ours) that omits it. `version` and
+   `updatedAt` are required in BOTH versions, with no default and no .optional().
+
+The read()-with-fallback function itself (the code that actually parses providers.json on disk)
+is structurally byte-identical between versions modulo minifier variable renaming, confirmed by
+side-by-side quoting:
+  3.0.53 (offset 106715882): `read(){if(!hO(this.filePath))return cc();try{let e=DAe(this.filePath,
+    "utf8"),i=JSON.parse(e),t=Ox.safeParse(i);if(t.success){...return t.data}}catch{}return cc()}`
+  3.0.60 (offset 107233390): `read(){if(!V9(this.filePath))return Vm();try{let e=PVe(this.filePath,
+    "utf8"),i=JSON.parse(e),t=i4.safeParse(i);if(t.success){...return t.data}}catch{}return Vm()}`
+  (cc()/Vm() both return `{version:1,providers:{}}`-shaped empty defaults.)
+
+Conclusion: 07-02 statically analysed the wrong build (host 3.0.60 instead of the container's
+3.0.53) as a matter of literal accuracy, but that error did NOT change the analysis's
+correctness -- the specific mechanism (CLINE_PROVIDER_SETTINGS_PATH env-var relocation +
+providers.json schema-validated read) is present, reachable, and behaves identically in 3.0.53.
+H1 (version skew) does NOT explain the smoke-run failure. The real cause is elsewhere -- see
+h1/schema-requirements-finding.txt and DIAGNOSIS.md (H4).

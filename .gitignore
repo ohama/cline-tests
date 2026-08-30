@@ -11,3 +11,8 @@ phase-03/fixtures/
 
 # Phase 7: third-party checkout + its venv. Task data and harbor are installed, not vendored.
 bench/cline-bench/
+
+# Phase 7 (07-06): unpacked third-party cline compiled-binary tarballs used for H1's static
+# scan (~90-150MB ELF binaries each, ~400MB unpacked total per RESULTS dir). Evidence lives in
+# the sibling *.txt scan/verdict files, which ARE tracked; the raw binaries are not vendored.
+phase-07/results/*/scratch-cline-*/

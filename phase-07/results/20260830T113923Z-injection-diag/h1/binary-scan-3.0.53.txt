@@ -1,0 +1,166 @@
+SCANNED: /Users/ohama/projs/cline-tests/phase-07/results/20260830T113923Z-injection-diag/scratch-cline-3.0.53/package/bin/cline (148965696 bytes)
+
+=== CLINE_PROVIDER_SETTINGS_PATH literal ===
+pattern: CLINE_PROVIDER_SETTINGS_PATH
+count: 3
+  hit @ 103581167: ..."),process.env.CLINE_TEAM_DATA_DIR=L(M,"teams"),process.env.CLINE_PROVIDER_SETTINGS_PATH=L(M,"settings","providers.json"),process.env.CLINE_HOOKS_LO...
+  hit @ 107352644: ...(C){return _(k(C),"events")}function mC(){let C=process.env.CLINE_PROVIDER_SETTINGS_PATH?.trim();if(C)return C;return _(L(),"settings","providers.js...
+  hit @ 113500816: ...B_DATA_DIR","CLINE_SESSION_DATA_DIR","CLINE_TEAM_DATA_DIR","CLINE_PROVIDER_SETTINGS_PATH","CLINE_HOOKS_LOG_PATH"];async function B(q,z){let F=q.cwd?...
+
+=== settings-path resolver shape ===
+pattern: process\.env\.CLINE_PROVIDER_SETTINGS_PATH[^;]{0,80}
+count: 2
+  hit @ 103581155: ...(M,"sessions"),process.env.CLINE_TEAM_DATA_DIR=L(M,"teams"),process.env.CLINE_PROVIDER_SETTINGS_PATH=L(M,"settings","providers.json"),process.env.CLINE_HOOKS_LOG_PATH=L(M,"logs","hooks.jsonl"),M}\nexport{b as Ul,c as Vl,v as Wl,j as Xl,m as ...
+  hit @ 107352632: ...}function kC(C){return _(k(C),"events")}function mC(){let C=process.env.CLINE_PROVIDER_SETTINGS_PATH?.trim();if(C)return C;return _(L(),"settings","providers.json")}fun...
+
+=== settings/providers.json join literal ===
+pattern: "settings"\s*,\s*"providers\.json"
+count: 2
+  hit @ 103581200: ...R=L(M,"teams"),process.env.CLINE_PROVIDER_SETTINGS_PATH=L(M,"settings","providers.json"),process.env.CLINE_HOOKS_LOG_PATH=L(M,"logs","hooks.jsonl")...
+  hit @ 107352708: ...E_PROVIDER_SETTINGS_PATH?.trim();if(C)return C;return _(L(),"settings","providers.json")}function fC(){let C=process.env.CLINE_GLOBAL_SETTINGS_PATH...
+
+=== getProviderConfig literal ===
+pattern: getProviderConfig
+count: 11
+  hit @ 101694886: ...{b0(!0),u0([]),W2(i,f).catch(()=>{}).then(async()=>{let v=i.getProviderConfig(f,{includeKnownModels:!1}),S=await K2(f,{loadLatestOnInit:!...
+  hit @ 106717667: ...(i,e);if(!t)return;return this.resolveProviderSettings(i,t)}getProviderConfig(e,i){let t=this.getProviderSettings(e);if(!t)return;return ...
+  hit @ 113368244: ...electedProviderSettings??w,P=g?.apiKey??P}let Z;try{let g=q.getProviderConfig(p,{includeKnownModels:!1}),O=Ht?{loadLatestOnInit:!0,loadPr...
+  hit @ 113472852: ..."){let Q=String(J?.provider??"").trim();return await A$(Q,U.getProviderConfig(Q))}if(H==="save_provider_settings")return f$(U,{...KH(J),p...
+  hit @ 113487763: ...n GH($,H,J){let Q=J.trim();if(!Q)return;let Z=(await A$(Q,U.getProviderConfig(Q))).models.map((G)=>({id:G.id,name:G.name,supportsReasonin...
+
+=== all CLINE_-prefixed env-var literals ===
+count (unique): 107
+  CLINE_API_BASE_URL
+  CLINE_API_KEY
+  CLINE_BUILD_ENV
+  CLINE_BUILD_ENV_ENV
+  CLINE_CAPTURE_CLEANUP
+  CLINE_CAPTURE_DIR
+  CLINE_CAPTURE_MAX_PREVIEW_BYTES
+  CLINE_CAPTURE_PROVIDER_REQUEST
+  CLINE_CAPTURE_WIRE
+  CLINE_CHAT_WORKSPACE_DIRECTORY_NAME
+  CLINE_CLIPBOARD_FALLBACK_REMOTE
+  CLINE_CONNECTORS_DB_PATH
+  CLINE_CONNECTOR_CLI_LAUNCH
+  CLINE_CONNECTOR_CLI_LAUNCH_ENV
+  CLINE_CONNECTOR_DATA_DIR
+  CLINE_CONNECTOR_DETACHED_CHILD
+  CLINE_CONNECTOR_SETTINGS_FILE_NAME
+  CLINE_CONNECTOR_SETTINGS_PATH
+  CLINE_CONNECTOR_STARTING_INSTANCE
+  CLINE_CONNECTOR_STARTING_INSTANCE_ENV
+  CLINE_CONNECTOR_SUPERVISED
+  CLINE_CONNECTOR_SUPERVISED_ENV
+  CLINE_CONNECT_HOOK_COMMAND
+  CLINE_CORE_RUNTIME_BUILD_ID__
+  CLINE_CRON_DB_PATH
+  CLINE_DATA_DIR
+  CLINE_DB_DATA_DIR
+  CLINE_DEBUG_CLIPBOARD
+  CLINE_DEBUG_HOST
+  CLINE_DEBUG_HOST_ENV
+  CLINE_DEBUG_LANGFUSE
+  CLINE_DEBUG_PORT_BASE
+  CLINE_DEBUG_PORT_BASE_ENV
+  CLINE_DEFAULT_MODEL_ID
+  CLINE_DEFAULT_RPC_ADDRESS
+  CLINE_DEFAULT_RPC_PORT
+  CLINE_DIR
+  CLINE_DISABLE_CLINE_PASS_NOTICE
+  CLINE_DISCORD_CONNECT_CHILD
+  CLINE_ENVIRONMENT
+  CLINE_ENVIRONMENTS
+  CLINE_ENVIRONMENT_ENV
+  CLINE_ENVIRONMENT_OVERRIDE
+  CLINE_ENVIRONMENT_OVERRIDE_ENV
+  CLINE_FORCE_CLINE_PASS_NOTICE
+  CLINE_FORCE_ONBOARDING
+  CLINE_GCHAT_CONNECT_CHILD
+  CLINE_GLOBAL_SETTINGS_PATH
+  CLINE_HOOKS_DIR
+  CLINE_HOOKS_LOG_PATH
+  CLINE_HOOK_AGENT_RESUME
+  CLINE_HUB_ADDRESS
+  CLINE_HUB_BUILD_ID
+  CLINE_HUB_DASHBOARD_PORT
+  CLINE_HUB_DEV_PORT
+  CLINE_HUB_DISCOVERY_PATH
+  CLINE_HUB_HOST
+  CLINE_HUB_LOG_LEVEL
+  CLINE_HUB_PATHNAME
+  CLINE_HUB_PORT
+  CLINE_HUB_WEBVIEW_DIST_DIR
+  CLINE_JS_RUNTIME_PATH
+  CLINE_LINEAR_CONNECT_CHILD
+  CLINE_LOG_ENABLED
+  CLINE_LOG_LEVEL
+  CLINE_LOG_NAME
+  CLINE_LOG_PATH
+  CLINE_MARKETPLACE_CATALOG_URL
+  CLINE_MCP_SETTINGS_FILE_NAME
+  CLINE_MCP_SETTINGS_PATH
+  CLINE_MESSAGE_BUILDER_MAX_TOOL_RESULT_CHARS
+  CLINE_MESSAGE_BUILDER_MAX_TOTAL_TEXT_BYTES
+  CLINE_MESSAGE_BUILDER_MIN_OUTDATED_REWRITE_BYTES
+  CLINE_METADATA
+  CLINE_MODEL
+  CLINE_NO_AUTO_UPDATE
+  CLINE_NO_INTERACTIVE
+  CLINE_NPM_COMMAND
+  CLINE_PASS
+  CLINE_PLUGIN_IMPORT_TIMEOUT_MS
+  CLINE_PROVIDER
+  CLINE_PROVIDER_SETTINGS_PATH
+  CLINE_RECOMMENDED_MODELS
+  CLINE_RPC_ADDRESS
+  CLINE_RULES
+  CLINE_RUN_AS_HUB_DAEMON
+  CLINE_RUN_AS_HUB_DAEMON_ENV
+  CLINE_SANDBOX
+  CLINE_SANDBOX_DATA_DIR
+  CLINE_SESSION_BACKEND_MODE
+  CLINE_SESSION_DATA_DIR
+  CLINE_SLACK_CONNECT_CHILD
+  CLINE_TEAM_DATA_DIR
+  CLINE_TELEGRAM_CONNECT_CHILD
+  CLINE_THEME
+  CLINE_TOOL_APPROVAL_DIR
+  CLINE_TOOL_APPROVAL_MODE
+  CLINE_USER_ID
+  CLINE_VCR
+  CLINE_VCR_CASSETTE
+  CLINE_VCR_FILTER
+  CLINE_VCR_INCLUDE_REQUEST_BODY
+  CLINE_VCR_SSE_DELAY
+  CLINE_VERSION
+  CLINE_WHATSAPP_CONNECT_CHILD
+  CLINE_WORKSPACES_DIRECTORY_NAME
+  CLINE_WRAPPER_PATH
+
+=== lastUsedProvider literal ===
+pattern: lastUsedProvider
+count: 19
+  hit @ 106690475: ...on"]).default("manual")}),Ox=T.object({version:T.literal(1),lastUsedProvider:T.string().min(1).optional(),providers:T.record(T.string(),...
+  hit @ 106713966: ...n{migrated:!1,providerCount:Object.keys(i.providers).length,lastUsedProvider:i.lastUsedProvider};let{globalState:a,secrets:n}=t,o=a.mode...
+  hit @ 106713985: ...derCount:Object.keys(i.providers).length,lastUsedProvider:i.lastUsedProvider};let{globalState:a,secrets:n}=t,o=a.mode==="plan"?"plan":"a...
+  hit @ 106714292: ...(c):void 0,s=yAe(a,n),l=cc();l.providers={...i.providers},l.lastUsedProvider=i.lastUsedProvider;let g=new Date().toISOString(),h=0,f=lO(...
+  hit @ 106714311: ...n),l=cc();l.providers={...i.providers},l.lastUsedProvider=i.lastUsedProvider;let g=new Date().toISOString(),h=0,f=lO(sAe(e.providerSetti...
+
+=== strict/additionalProperties-false schema literal ===
+pattern: additionalProperties
+count: 115
+  hit @ 103666976: ..."",e)};vo.keywords={additionalItems:!0,items:!0,contains:!0,additionalProperties:!0,propertyNames:!0,not:!0,if:!0,then:!0,else:!0};vo.arrayK...
+  hit @ 103686056: ...{format:"relative-json-pointer"},{format:"json-pointer"}]}},additionalProperties:!1}});var i8=K((QHe,PS)=>{var xbe=RegExp.prototype.test.bin...
+  hit @ 103730203: ...dditionalProperty: ${e.additionalProperty}}`},w7e={keyword:"additionalProperties",type:["object"],schemaType:["boolean","object"],allowUndef...
+  hit @ 103731537: ...a.not)(x),()=>i.break())}}function f(k,x,w){let b={keyword:"additionalProperties",dataProp:k,dataPropType:O5.Type.Str};if(w===!1)Object.assi...
+  hit @ 103731966: ...hema:a,data:n,it:o}=e;if(o.opts.removeAdditional==="all"&&a.additionalProperties===void 0)fN.default.code(new W7e.KeywordCxt(o,fN.default,"a...
+
+=== zod strict() literal (unknown-key rejection) ===
+pattern: \.strict\(\)
+count: 51
+  hit @ 105574206: ...l}break}let u=A.object(n);if(e.additionalProperties===!1)a=u.strict();else if(typeof e.additionalProperties==="object")a=u.catcha...
+  hit @ 105927089: ...criminatedUnion("type",[d.object({type:d.literal("toggle")}).strict(),d.object({type:d.literal("effort"),values:d.array(Xq)}).str...
+  hit @ 105927154: ...ct(),d.object({type:d.literal("effort"),values:d.array(Xq)}).strict(),d.object({type:d.literal("budget_tokens"),min:d.number().mi...
+  hit @ 105927274: ...mber().min(-1).optional(),max:d.number().min(0).optional()}).strict().refine((e)=>e.min===void 0||e.max===void 0||e.min<=e.max,{m...
+  hit @ 105945073: ....min(1).describe("System prompt describing teammate role")}).strict(),WP=d.object({agentId:d.string().min(1).describe("Teammate i...
