@@ -22,6 +22,12 @@
 - [ ] **CFG-07**: Cline 설정이 `flashnext` 만 쓰고 `flashnext-codex` 별칭을 선택할 수 없다
   <br>※ 조사 중 codex 별칭 호출이 mlx_vlm.server 를 죽여 29초 다운이 실제 발생
 - [ ] **CFG-05**: `cline` 버전이 `3.0.53` 에 고정되고, 재실행해도 드리프트하지 않는다 (`CLINE_NO_AUTO_UPDATE=1`)
+  <br>※ **2026-08-31 마일스톤 감사 정정 — 오늘 기준 충족되지 않는다.** 호스트 전역 설치는
+  `3.0.60` 이다(`/opt/homebrew/lib/node_modules/cline/package.json` 실측). `CLINE_NO_AUTO_UPDATE=1`
+  은 이 자기-업데이트를 **막지 못한다** — 프로젝트 내내 반복 재현됐다. 추적 표가 `Complete` 로
+  돼 있던 것은 Phase 1 이 검증자를 거치지 않은 유일한 페이즈였기 때문이며, 이번 감사에서 정정했다.
+  복구 방법: 실행 중인 cline/kanban 프로세스가 없음을 `ps` 로 확인한 뒤 `npm install -g cline@3.0.53`.
+  주의: 컨테이너 측 벤치 핀(3.0.53)은 별도 설치라 영향받지 않는다.
 - [ ] **CFG-06**: `kanban` npm 패키지 버전도 고정되고, 재기동 후 확인 가능하다
 
 ### VER — 압축 검증 (Core Value)
@@ -140,7 +146,7 @@
 | CFG-02 | Phase 1 | Complete |
 | CFG-03 | Phase 1 | Complete |
 | CFG-04 | Phase 1 | Complete |
-| CFG-05 | Phase 1 | Complete |
+| CFG-05 | Phase 1 | **Not satisfied today** (호스트 `cline` 3.0.60 — 아래 참조) |
 | CFG-06 | Phase 1 | Complete |
 | CFG-07 | Phase 1 | Complete |
 | VER-01 | Phase 1 | Complete |
