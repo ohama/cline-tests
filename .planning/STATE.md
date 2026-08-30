@@ -5,10 +5,13 @@
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
-**Current focus:** **Phase 6 (네트워크 노출) 진행 중 — 06-04.2 완료, 네트워크 OPEN.** kanban 은
+**Current focus:** **Phase 6 (네트워크 노출) 완료 — 06-06(docs/network-exposure.md + iPad
+체크리스트 + phase-close) 로 8/8 plans 종료.** kanban 은
 이제 `https://ohama-2.tail318f12.ts.net:8444/` 로 tailnet 멤버(`ohama100@`)에게만 실측
-도달 가능(LAN/공용 인터넷 아님). `verify_network.sh` 신규 상시 시그니처는 `CASES 24/24`(연속
-2회 재현). 다음은 06-05/06-06. Phase 5 는 7개
+도달 가능(LAN/공용 인터넷 아님). `verify_network.sh` 상시 시그니처는 `CASES 24/24`(연속
+2회 재현). Phase 6 은 06-06 에서 `docs/network-exposure.md`+`phase-06/IPAD-CHECKLIST.md`+
+phase-close 게이트 스윕으로 종료 — ROADMAP 다섯 기준 중 NET-02/03/04 는 `met`, NET-01/05 는
+정직하게 `human_needed` 로 남음(다음 세션 최상단 항목 참고). 다음은 Phase 7. Phase 5 는 7개
 플랜 전부 완료 — wave 1(05-01/05-02, 병렬: launchd 래퍼+readiness 게이트,
 check_versions.sh/restart_service.sh 확장), wave 2(05-03: 등록 전 포그라운드 증명), wave
 3(05-04: kanban 최초 등록), wave 4(05-05: telegram-connect 등록, 빈 토큰), wave 5(05-06: SVC-05
@@ -56,10 +59,39 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 
 ## Current Position
 
-Phase: 6 of 8 (네트워크 노출) — **진행 중**
-Plan: 05 of ~8 in current phase (누적 계획: 01/02/03/04/04.1/04.2/05/06) — **완료(3/3
-tasks — Task 1 auto, Task 2 checkpoint:decision, Task 3 auto — 2개 개별 커밋).** NET-05
-(Kanban·Telegram 상태 표시)를 다룬 플랜. Task 1(커밋 `ef8db88`): Kanban 보드가
+Phase: 6 of 8 (네트워크 노출) — **완료 (8/8 plans)**
+Plan: 06 of 8 in current phase (누적 계획: 01/02/03/04/04.1/04.2/05/06) — **완료(3/3
+tasks, 모두 auto — 3개 개별 커밋).** Phase 6 의 마지막 플랜: `docs/network-exposure.md`
++ `phase-06/IPAD-CHECKLIST.md` + phase-close 게이트 스윕. Task 1(커밋 `7612f0a`):
+`docs/network-exposure.md`(219줄, house style) 작성 — 결론/무엇을 열었나/왜 이렇게
+골랐나(8444 선택 이유, 포트 3000 이 절대 바인딩되면 안 되는 이유를 명문화)/**한계(NET-01
+iPad 절반은 06-04.2 의 `CASES 24/24` 실행을 서버측 증거로 인용, **06-04 자체는 인용하지
+않음**(13/15 로 FAIL 후 롤백); NET-05 Telegram 절반은 "확률적으로 아닐 것"이되 관측된 적
+없음을 명시)/운영/롤백(`serve --https=8444 off`, `reset` 금지 명시)/토큰 주입/증거
+인덱스/Phase 7·8 인계(`~/.gitconfig` 샌드박스 차단 재확인 플래그, `--no-tools`/
+`--auto-approve false` 태세 뒤집기는 반드시 사람 에스컬레이션이라는 원칙 재확인). `docs/
+services.md` §10 에 `--allowed-user-id` 항목 해소 사실을 append(원문 보존). Task
+2(커밋 `e03b5c1`): `phase-06/IPAD-CHECKLIST.md`(94줄) — 항목별 성공/실패 쌍, 두 iPad
+오프라인(29일/4일 전) 재로그인 경고, NET-02 를 "거부됨"이 아니라 "길이 없음"으로 프레이밍,
+4b 는 06-05 의 `decline` 결과를 그대로 반영("아직 아무도 확인하지 않았다", 예측 문장 없음).
+Task 3(커밋 `db4a555`): `phase-06/results/20260830T073411Z-phase-close/` 에 8개 게이트
+전부 재실행 — `verify_network.sh` **CASES 24/24**, `verify_services.sh` 15/15,
+`verify_no_regression.sh` INF03:PASS, `verify_sandbox.sh` 16/16 CRASHED 0,
+`verify_config.sh` exit 0(첫 시도 통과, `check_versions.sh` 는 힐링할 게 없어 스킵),
+`pytest phase-03/phase-04` 24/24 — 전부 exit 0. `criteria.md` 에 ROADMAP 다섯 기준 매핑:
+criterion 2/3/4 `met`, **criterion 1/5 만 정확히 `human_needed`**(criterion 1 증거는
+06-04.2 의 `gate-network/` 인용, 06-04 는 롤백된 시도로만 언급). 저작 중 자체 발견 편차
+2건(Rule 1 — `invariants.txt`/`README.md` 자신의 wildcard-bind 리터럴 자기충돌, `criteria.md`
+초안의 `human_needed` 리터럴이 6줄에 나타나 plan 의 `grep -c == 2` 계약을 위반 — 둘 다 커밋
+전에 재작성으로 해소) + Rule 3 1건(내 탐색용 `verify_network.sh` 실행이 남긴 미추적
+결과 디렉터리 2개를 커밋 전 삭제). `.planning/ROADMAP.md` Phase 6 체크박스 8개 전부
+`[x]`, Progress 표 `8/8` / Complete 로 갱신(criterion 1/5 는 `met` 로 격상하지 않음).
+6종 pid(flashnext 46573/litellm 48525/role-shim 75548/kanban 53894/telegram-connect
+99162/kanban-proxy 19669) 전 과정 불변, 포트 3000 미바인딩, `AllowFunnel` 단일 키
+불변, `cline` 호출 0회(Phase 6 전체 누적도 0회). 세 커밋 모두 개별, SUMMARY 작성 완료
+(`06-06-SUMMARY.md`). **Phase 6 종료 — 다음은 Phase 7(cline-bench 동작 검증).**
+
+이전(06-05 완료): NET-05 (Kanban·Telegram 상태 표시)를 다룬 플랜. Task 1(커밋 `ef8db88`): Kanban 보드가
 loopback(`http://127.0.0.1:3484/`)과 tailnet 주소(`https://ohama-2.tail318f12.ts.net:8444/`)
 양쪽에서 byte-identical 하게 200 을 반환함을 실측 증명(NET-05 의 Kanban 쪽 서버측 절반 =
 proven). `kanban task list --column in_progress` 가 계획이 가정한 exit 0 이 아니라 exit 1 로
@@ -680,11 +712,11 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [█████████░] 91% (Phase 5/8 완료, Phase 6/8 진행 중 — 06-01/06-02/06-03/06-04.1/
-06-04.2(5/8 plans, 06-04.1/06-04.2 이 04 와 05 사이에 새로 삽입됨) 완료 — **네트워크
-OPEN, NET-01~04 실측 증명 완료.** 06-04 는 여전히 BLOCKED 상태로 plan-count 에서는
-미완료 취급(그 안의 아키텍처 결정은 06-04.1/06-04.2 가 구현·완료했으나 06-04 자신의 시도는
-403 으로 중단된 채임), 06-05/06-06 미착수, Plan 30/33 누적 추정 — 다음은 06-05)
+Progress: [██████████] Phase 1-6/8 완료 (알려진 33/33 plans 완료 — Phase 1(6) + Phase 2(4) +
+Phase 3(4) + Phase 4(4) + Phase 5(7) + Phase 6(8, 06-04.1/06-04.2 삽입 포함). Phase 6 는
+8/8 plans 로 종료 — **네트워크 OPEN, ROADMAP 다섯 기준 중 NET-02/03/04 `met`, NET-01/05
+정직하게 `human_needed`.** Phase 7·8 은 아직 plan 수가 확정되지 않음(TBD) — 다음은
+Phase 7(cline-bench 동작 검증))
 
 ## Performance Metrics
 
@@ -1653,7 +1685,35 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **06-05-PLAN.md 완료 (3/3 tasks — Task 1 auto, Task 2 checkpoint:decision, Task
+Stopped at: **06-06-PLAN.md 완료 (3/3 tasks, 모두 auto — 3개 개별 커밋), STATE.md 갱신 완료.
+Phase 6 (네트워크 노출) 8/8 plans 로 종료.** Task 1(`7612f0a`): `docs/network-exposure.md`
+작성 — 개방 내역, 포트 선택 이유(3000 절대 미바인딩 이유 포함), 한계 절(NET-01 은
+06-04.2 의 `CASES 24/24` 인용, 06-04 자체는 인용 안 함; NET-05 는 확률적 추정과 미관측을
+명확히 구분), NET-02/NET-04 해석 선택 명시, Phase 7·8 인계(`~/.gitconfig` 샌드박스 차단,
+`--no-tools` 태세 에스컬레이션 원칙). `docs/services.md` §10 append. Task 2(`e03b5c1`):
+`phase-06/IPAD-CHECKLIST.md` — 단계별 성공/실패 쌍, iPad 재로그인 경고, 4b 는 06-05 의
+`decline` 결과를 정확히 반영. Task 3(`db4a555`): phase-close 8개 게이트 전부 재실행(모두
+exit 0, `verify_network.sh` 24/24), `criteria.md` 에 다섯 ROADMAP 기준 매핑 — criterion
+2/3/4 `met`, **criterion 1/5 만 정확히 `human_needed`**(criterion 1 증거는 06-04.2 인용,
+06-04 는 롤백된 시도로만 언급). `.planning/ROADMAP.md` Phase 6 를 8/8·Complete 로 갱신
+(criterion 1/5 는 `met` 로 격상하지 않음). 편차 3건 모두 이 플랜 자신의 저작 산출물에서
+발견·해소(Rule 1 두 건 — 자기 grep 충돌, `criteria.md` 의 `human_needed` 리터럴 과다 노출;
+Rule 3 한 건 — 탐색용 미추적 결과 디렉터리 정리). 6종 pid·네트워크 posture(tailnet OPEN,
+포트 3000 미바인딩, `AllowFunnel` 단일 키) 전부 불변, `cline` 호출 0회(Phase 6 전체 누적도
+0회). **Phase 6 종료.**
+**다음 세션은 Phase 7(cline-bench 동작 검증)부터 시작.** Phase 7/8 인계 항목(재확인,
+잊지 말 것): (1) 라이브 kanban 서버의 샌드박스가 `~/.gitconfig` 를 거부해 어떤 git 저장소도
+kanban 에 등록 불가 — Phase 3 소유의 미해결 보안 경계 결정, Phase 7 이 kanban 에 프로젝트를
+등록하려 하면 즉시 재발(`phase-06/results/20260830T071532Z-net05/kanban-registration-blocker.txt`).
+(2) `--no-tools`/`--auto-approve false` 태세를 뒤집는 것은 HLS-02 보안 태세 자체의 변경이므로
+반드시 사람에게 에스컬레이션해야 하며 절대 조용히 결정하지 않는다(`docs/headless-wrapper.md`
+§4, `docs/network-exposure.md` §9). (3) 2026-08-30 정정 사항(`settings.contextWindow`
+29000, 압축 트리거 26100)을 그대로 유지 — `32768`/`26542`/`models[]` 재사용 금지. (4)
+Phase 8 매뉴얼은 NET-01/NET-05 두 gap 을 gap 그대로 옮겨 쓸 것 — iPad 진입점은 반드시
+`https://ohama-2.tail318f12.ts.net:8444/`.
+
+이전 세션: 2026-08-30
+정지 지점: **06-05-PLAN.md 완료 (3/3 tasks — Task 1 auto, Task 2 checkpoint:decision, Task
 3 auto — 2개 개별 커밋), STATE.md 갱신 완료.** Task 1(`ef8db88`): Kanban 보드가 loopback 과
 tailnet 양쪽에서 byte-identical 200 을 반환함을 실측(NET-05 Kanban 절반 = proven
 server-side). `kanban task list --column in_progress` 가 exit 1 인 근본원인을 3단계까지
