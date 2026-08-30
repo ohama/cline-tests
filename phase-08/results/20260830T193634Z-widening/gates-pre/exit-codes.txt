@@ -1,0 +1,7 @@
+verify_config.sh=0
+verify_no_regression.sh=0
+verify_sandbox.sh=0
+verify_services.sh=0
+verify_network.sh=1 (pre-existing: baseline inventory pid for kanban is stale from before 08-01's restart; kanban pid 53894->36175 drift, unrelated to this plan)
+verify_bench.sh=1 (pre-existing: same stale kanban pid 53894 hardcoded in phase-07/bench/config.env LIVE_PIDS_STR; unrelated to this plan)
+negative-control=SEE negctl.txt

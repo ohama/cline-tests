@@ -1,0 +1,2 @@
+resolved allow list: ['/Users/ohama/projs/cline-tests/workspace/scratch-repo', '/Users/ohama/.cline']
+/usr/bin/sandbox-exec -f phase-08/results/20260830T193634Z-widening/gates-pre/sandbox.sb -- true 
