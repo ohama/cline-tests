@@ -5,28 +5,52 @@
 See: .planning/PROJECT.md (updated 2026-08-29)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
-**Current focus:** **Phase 5 (Kanban·Telegram 서비스화) 완료.** 7개 플랜 전부 완료 — wave 1
-(05-01/05-02, 병렬: launchd 래퍼+readiness 게이트, check_versions.sh/restart_service.sh 확장),
-wave 2(05-03: 등록 전 포그라운드 증명), wave 3(05-04: kanban 최초 등록), wave 4(05-05:
-telegram-connect 등록, 빈 토큰), wave 5(05-06: SVC-05 미러 등록 + 상시 게이트), wave 6(05-07:
-phase-close 게이트 스윕 + `docs/services.md` + Task 3 재부팅 결정 체크포인트). ROADMAP Phase 5
-네 성공기준(SVC-01~05) 모두 실측 증거로 성립: criterion 1(라벨 running)은 pid-stable 실측 +
-재부팅 절은 사람이 `accept-proxy` 를 선택해 proxy 증거(RunAtLoad+LaunchAgents 배치+
-bootout/bootstrap 콜드스타트 사이클)로 확정 종결(실제 재부팅은 하지 않음, `iogpu.wired_limit_mb`
-재적용 비용 때문), criterion 2(kill→KeepAlive 부활)·criterion 3(flashnext 다운 중 크래시루프
-없음)·criterion 4(SVC-05 미러 반영) 는 모두 직접 실측. `EXTRA_ALLOW_PATHS` 는 phase 시작부터
-종료까지 빈 값 그대로, `cline` 호출은 phase 전체 2회(상한 3회). Phase 6 인계: criterion 1 의
-재부팅 절이 proxy-evidenced 일 뿐 관측된 적 없다는 점을 실측 재부팅 증거로 착각하지 말 것,
-`--allowed-user-id` wrapper-level 강제 필요, RPC 공존 잔여 항목(`--rpc-address`), `verify_services.sh`
-를 네트워크 노출 전/후 호출할 것. 다음은 **Phase 6**.
+**Current focus:** **Phase 6 (네트워크 노출) 진행 중 — 06-01 완료(1/6 plans).** Phase 5 는 7개
+플랜 전부 완료 — wave 1(05-01/05-02, 병렬: launchd 래퍼+readiness 게이트,
+check_versions.sh/restart_service.sh 확장), wave 2(05-03: 등록 전 포그라운드 증명), wave
+3(05-04: kanban 최초 등록), wave 4(05-05: telegram-connect 등록, 빈 토큰), wave 5(05-06: SVC-05
+미러 등록 + 상시 게이트), wave 6(05-07: phase-close 게이트 스윕 + `docs/services.md` + Task 3
+재부팅 결정 체크포인트). ROADMAP Phase 5 네 성공기준(SVC-01~05) 모두 실측 증거로 성립: criterion
+1(라벨 running)은 pid-stable 실측 + 재부팅 절은 사람이 `accept-proxy` 를 선택해 proxy 증거
+(RunAtLoad+LaunchAgents 배치+bootout/bootstrap 콜드스타트 사이클)로 확정 종결(실제 재부팅은
+하지 않음, `iogpu.wired_limit_mb` 재적용 비용 때문), criterion 2(kill→KeepAlive 부활)·criterion
+3(flashnext 다운 중 크래시루프 없음)·criterion 4(SVC-05 미러 반영) 는 모두 직접 실측.
+`EXTRA_ALLOW_PATHS` 는 phase 시작부터 종료까지 빈 값 그대로, `cline` 호출은 phase 전체 2회(상한
+3회). **06-01(Phase 6 첫 플랜)**: 변경 전 4개 상시 게이트(`verify_services.sh` 15/15,
+`verify_no_regression.sh` INF03:PASS, `verify_sandbox.sh` 4/4 CRITERION·16/16 CASES·0 CRASHED,
+`verify_config.sh` 1차 통과) 전부 PASS 를 `phase-06/results/20260830T051403Z-baseline/` 에
+캡처, 라이브 네트워크 인벤토리(포트 3000/8444 미바인딩, kanban `127.0.0.1:3484` 단독, 기존
+Tailscale 핸들러 3개 + `AllowFunnel` 키 1개) 기록, `phase-06/net/config.env`(`TS_SERVE_PORT=8444`,
+`TS_SERVE_ROLLBACK_CMD`, `TS_SERVE_SCRATCH_PORT=59999` 등 Phase 6 상수 고정, phase-05 config 를
+재사용) + `phase-06/net/expected_serve_baseline.json`(기존 핸들러 3개 동결, python3 로 실측
+캡처에서 생성) 작성. 매핑 명령 0건, pid 5종 불변, 포트 3000 그대로 미바인딩. 다음은 **06-02
+(NET-04: run_telegram_service.sh 프리플라이트 가드)**.
 
 ## Current Position
 
-Phase: 5 of 8 (Kanban·Telegram 서비스화) — **완료**
-Plan: 07 of 7 in current phase — 완료 (SUMMARY 작성 완료). **Wave 1(05-01/05-02, 병렬) 완료 +
-wave 2(05-03) 완료 + wave 3 전반(05-04) 완료 + wave 4(05-05) 완료 + wave 5(05-06) 완료 +
-wave 6(05-07) 완료 — Phase 5 전체 7개 플랜 종료.**
-Status: 05-07 완료 — **Phase 5 종결: docs/services.md + 전체 게이트 스윕 + Task 3 재부팅 결정
+Phase: 6 of 8 (네트워크 노출) — **진행 중**
+Plan: 01 of 6 in current phase — 완료 (SUMMARY 작성 완료). **Phase 5(7/7 플랜) 완전 종료 후
+Phase 6 시작, 06-01(변경 전 베이스라인 + 상수 고정) 완료.**
+Status: 06-01 완료 — **변경 전 4개 상시 게이트 + 네트워크 인벤토리 캡처, Phase 6 상수 고정
+(TS_SERVE_PORT=8444), 기존 Tailscale 핸들러 3개 동결.** Task 1: `phase-06/results/
+20260830T051403Z-baseline/` 에 `verify_services.sh`(15/15 CHECK: PASS), `verify_no_regression.sh`
+(INF03: PASS), `verify_sandbox.sh`(4/4 CRITERION·16/16 CASES·0 CRASHED), `verify_config.sh`(1차
+통과, heal 불필요) 네 게이트 전부 PASS 로 캡처, 라이브 네트워크 인벤토리(`tailscale serve
+status`/`--json`, `tailscale status`, 포트 3000/8444 미바인딩 확인, kanban `127.0.0.1:3484`
+단독 LISTEN 확인, LAN_IP=192.168.75.108, 태그넷 IPv4=100.118.140.2, pid 5종, 로그 줄수) 기록,
+README.md 로 요약. Task 2: `phase-06/net/config.env`(`PROJECT_ROOT`/`RESULTS_ROOT` pre-set-then-
+source 관용구로 `phase-05/services/config.env` 재사용, `TS_SERVE_PORT=8444`(3000/443/8443/10000
+제외 사유 명문화), `TS_SERVE_ROLLBACK_CMD="tailscale serve --https=8444 off"`(`--help` 에 포트별
+제거 문법이 없고 `reset` 은 기존 핸들러 3개까지 지운다는 이유 명문화, `reset` 리터럴 0건),
+`TS_SERVE_SCRATCH_PORT=59999`, `FORBIDDEN_SERVE_PORTS`, `EXPECTED_FUNNEL_KEY` 등 Phase 6 전체
+상수 고정) 작성, `phase-06/net/expected_serve_baseline.json`(Task 1 실측 캡처에서 python3 로
+생성, 기존 Web 핸들러 3개 + `AllowFunnel` 키 1개, 이 프로젝트 소유 아님을 밝히는 `_comment`
+포함) 동결. 커밋 전 8444/59999 재확인 미바인딩, `tailscale serve status --json` 라이브 실측이
+베이스라인과 byte-identical, pid 5종 불변, `EXTRA_ALLOW_PATHS`/`0.0.0.0` 리터럴 phase-06/net/
+어디에도 없음, `tailscale funnel`류 공용노출 서브커맨드 호출 0회. 두 커밋(`eeff204`/`3cc9f8f`)
+모두 개별, SUMMARY 작성 완료(`06-01-SUMMARY.md`).
+
+이전: 05-07 완료 — **Phase 5 종결: docs/services.md + 전체 게이트 스윕 + Task 3 재부팅 결정
 체크포인트(사람이 `accept-proxy` 선택).** Task 1(phase-close gate sweep): 두 서비스 라이브 상태에서
 표준 게이트 전부 동시 PASS — `verify_services.sh` 15/15, `verify_no_regression.sh`(INF03: PASS),
 `verify_sandbox.sh`(4/4 CRITERION·16/16 CASES·0 CRASHED), `verify_config.sh`(사전+사후 모두 exit 0,
@@ -245,7 +269,24 @@ read/write/subprocess/escape-symlink 5건 전부 `DENIED EPERM`으로, `ENOENT` 
 deny-less 프로파일 거부, precheck 우회 시 Group F 4건 전부 `FAIL not-denied`, `--no-canonicalize`
 아래서 F6 실패)이 모두 사양대로 동작. `launchctl print .../com.ohama.flashnext` pid 46573 로
 플랜 전체에서 불변, `cline` 호출 0회.
-Last activity: 2026-08-30 — 05-06-PLAN.md 완료 (`phase-05/services/verify_services.sh` +
+Last activity: 2026-08-30 — 06-01-PLAN.md 완료 (`phase-06/net/config.env` +
+`phase-06/net/expected_serve_baseline.json` + `phase-06/results/20260830T051403Z-baseline/`:
+Phase 6 의 첫 플랜, 변경 전 베이스라인 + 상수 고정. Task 1: 네 상시 게이트
+(`verify_services.sh` 15/15, `verify_no_regression.sh` INF03:PASS, `verify_sandbox.sh` 4/4
+CRITERION·16/16 CASES·0 CRASHED, `verify_config.sh` 1차 통과) 전부 PASS 를
+`phase-06/results/20260830T051403Z-baseline/` 에 캡처, 라이브 네트워크 인벤토리(`tailscale
+serve status`/`--json` 실측, 포트 3000/8444 미바인딩, kanban `127.0.0.1:3484` 단독 확인,
+LAN_IP/태그넷 호스트네임/IPv4, pid 5종, 로그 줄수) 기록. Task 2: `phase-06/net/config.env`
+(phase-05 config 를 pre-set-then-source 로 재사용, `TS_SERVE_PORT=8444`(3000/443/8443/10000
+제외 사유 명문화), `TS_SERVE_ROLLBACK_CMD`(`--help` 에 포트별 제거 문법 없음 + `reset` 이 기존
+핸들러까지 지운다는 이유 명문화), `TS_SERVE_SCRATCH_PORT=59999` 등 고정) +
+`phase-06/net/expected_serve_baseline.json`(실측 캡처에서 python3 로 생성, 기존 Web 핸들러
+3개 + `AllowFunnel` 키 1개 동결) 작성. 매핑 검증: 8444/59999 재확인 미바인딩,
+`tailscale serve status --json` 라이브가 베이스라인과 byte-identical, pid 5종 불변,
+`EXTRA_ALLOW_PATHS`/`0.0.0.0`/공용노출 서브커맨드 리터럴 phase-06/net/ 어디에도 없음. 변경성
+tailscale 명령 0회. 두 커밋(`eeff204`/`3cc9f8f`) 개별.)
+
+이전 활동: 2026-08-30 — 05-06-PLAN.md 완료 (`phase-05/services/verify_services.sh` +
 `phase-05/results/20260830T023144Z-svc05/` + `phase-05/results/20260830T023720Z-gate/`: SVC-05
 미러 등록 + Phase 6 용 상시 게이트. `~/local-llm-settings/sync.sh`(이 repo 밖 파일)의 `LABELS`
 배열/포트 행 목록에 두 새 라벨과 `3484` 를 최소·additive 로 추가(before/after/diff 캡처), 편집
@@ -349,16 +390,15 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [████████▒▒] 81% (Phase 5/8 완료 — wave 1(05-01/05-02) + wave 2(05-03) +
-wave 3 전반(05-04) + wave 4(05-05) + wave 5(05-06) + wave 6(05-07) 전부 완료, Plan 25/31 누적
-추정 — 다음은 Phase 6)
+Progress: [████████▒▒] 84% (Phase 5/8 완료, Phase 6/8 진행 중 — 06-01(1/6 plans) 완료, Plan
+26/31 누적 추정 — 다음은 06-02)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 25
+- Total plans completed: 26
 - Average duration: ~14.7 min
-- Total execution time: ~6.1 hours
+- Total execution time: ~6.3 hours
 
 **By Phase:**
 
@@ -369,8 +409,28 @@ wave 3 전반(05-04) + wave 4(05-05) + wave 5(05-06) + wave 6(05-07) 전부 완�
 | 3 | 4/4 | ~48 min | ~12 min |
 | 4 | 4/4 | ~42 min | ~10.5 min |
 | 5 | 7/7 | ~116 min | ~16.6 min |
+| 6 | 1/6 | ~15 min | ~15 min |
 
 **Recent Trend:**
+- 06-01 (~15 min, Phase 6's first plan — pre-change baseline plus phase constants. Task 1 ran all
+  four standing gates live before any Phase 6 change existed: `verify_services.sh` (15/15
+  `CHECK: PASS`), `verify_no_regression.sh` (INF03: PASS), `verify_sandbox.sh` (4/4 CRITERION,
+  16/16 CASES, 0 CRASHED), `verify_config.sh` (exit 0 on first attempt, no heal needed) — all
+  captured into `phase-06/results/20260830T051403Z-baseline/` alongside a live network inventory
+  (`tailscale serve status`/`--json`, port 3000 and the candidate port 8444 both confirmed
+  unbound, kanban confirmed bound to exactly `127.0.0.1:3484`, five live pids, log line counts).
+  Task 2 pinned `phase-06/net/config.env` (pre-sets RESULTS_ROOT then sources
+  `phase-05/services/config.env`, reusing KANBAN_HOST/KANBAN_PORT/labels rather than re-deriving)
+  with `TS_SERVE_PORT=8444` (exclusion reasons for 3000/443/8443/10000 written down as load-bearing
+  comments) and a hardcoded `TS_SERVE_ROLLBACK_CMD` (`serve --https=8444 off`) with the full
+  reasoning for why it can't be derived from `--help` output and why `reset` must never appear as a
+  rollback command anywhere under `phase-06/`. Generated `phase-06/net/expected_serve_baseline.json`
+  via python3 from the live capture — the three pre-existing Tailscale Serve handlers plus the
+  single AllowFunnel key, frozen for byte-identity comparison by later plans. Re-confirmed 8444 and
+  59999 (the scratch rollback-exercise port) still unclaimed immediately before committing; live
+  `tailscale serve status --json` byte-identical to the frozen baseline at plan end; five live pids
+  and port 3000 unchanged throughout. Zero mutating tailscale commands issued. Two commits
+  (`eeff204`/`3cc9f8f`) both individual.)
 - 05-07 (~20 min active work, wave 6 — Phase 5's final plan, closing the phase. Task 1 ran every
   standing gate at once with both new services live: `verify_services.sh` (15/15), INF03 PASS,
   `verify_sandbox.sh` (4/4 CRITERION, 16/16 CASES, 0 CRASHED), `verify_config.sh` (clean pre and
@@ -1184,7 +1244,34 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **05-07-PLAN.md 완료 — Phase 5 종결(phase-close 게이트 스윕 + `docs/services.md` +
+Stopped at: **06-01-PLAN.md 완료 — Phase 6 첫 플랜(변경 전 베이스라인 + 상수 고정).** Task 1: 네
+상시 게이트(`verify_services.sh` 15/15, `verify_no_regression.sh` INF03:PASS, `verify_sandbox.sh`
+4/4 CRITERION·16/16 CASES·0 CRASHED, `verify_config.sh` 1차 통과) 전부 PASS 를
+`phase-06/results/20260830T051403Z-baseline/` 에 캡처, 라이브 네트워크 인벤토리(`tailscale serve
+status`/`--json` 실측 — 기존 핸들러 3개 + `AllowFunnel` 키 1개 확인, 포트 3000/8444 미바인딩,
+kanban `127.0.0.1:3484` 단독 LISTEN, LAN_IP=192.168.75.108, 태그넷 호스트네임/IPv4, pid 5종, 로그
+줄수) 기록, README.md 로 요약(`eeff204`). Task 2: `phase-06/net/config.env`(pre-set-then-source
+관용구로 `phase-05/services/config.env` 재사용, `TS_SERVE_PORT=8444`(3000/443/8443/10000 제외
+사유 명문화), `TS_SERVE_ROLLBACK_CMD="tailscale serve --https=8444 off"`(`--help` 에 포트별 제거
+문법이 없고 `reset` 이 기존 핸들러 3개까지 지운다는 이유 명문화, `reset` 리터럴 0건),
+`TS_SERVE_SCRATCH_PORT=59999` 등 Phase 6 전체 상수 고정) 작성,
+`phase-06/net/expected_serve_baseline.json`(Task 1 실측 캡처에서 python3 로 생성, 기존 Web 핸들러
+3개 + `AllowFunnel` 키 1개, 이 프로젝트 소유 아님을 밝히는 `_comment` 포함) 동결(`3cc9f8f`). 커밋
+전 8444/59999 재확인 미바인딩, `tailscale serve status --json` 라이브 실측이 베이스라인과
+byte-identical, pid 5종(46573/48525/53894/56669/75548) 불변, `EXTRA_ALLOW_PATHS`/`0.0.0.0`/
+공용노출 서브커맨드 리터럴 `phase-06/net/` 어디에도 없음, 변경성 tailscale 명령 0회. 편차 0건
+(plan 실행 스크립트 내부 `inventory.txt` 생성용 인라인 `grep -c ... || echo 0` 관용구가 빈 파일에서
+중복 `0` 줄을 남긴 것을 커밋 전 발견해 `wc -l` 로 재작성 — plan 이 소유한 파일/스크립트 변경은
+아니라 Rule 1-4 편차로 집계하지 않음, SUMMARY 에 투명성 목적으로만 기록). 두 커밋
+(`eeff204`/`3cc9f8f`) 모두 개별, SUMMARY 작성 완료(`06-01-SUMMARY.md`), STATE.md 갱신 완료.
+**다음: 06-02(NET-04: run_telegram_service.sh 래퍼 프리플라이트 가드 + 실제 기동 실패 실증 후
+원복).** Phase 6 인계 항목(변경 없음): `--allowed-user-id` wrapper-level 강제가 06-02 의 소관,
+`phase-06/net/config.env`/`expected_serve_baseline.json` 은 이제 06-02 이후 모든 플랜이 재사용할
+단일 소스, port 3000 은 계속 미바인딩 상태를 유지해야 함(기존 :8443 Funnel 이 여전히 그쪽으로
+포워딩).
+
+이전 세션: 2026-08-30
+정지 지점: **05-07-PLAN.md 완료 — Phase 5 종결(phase-close 게이트 스윕 + `docs/services.md` +
 Task 3 재부팅 결정 체크포인트).** Task 1/2 는 원 실행 에이전트가 완료(`c21cc33`/`b54cee8`) 후
 `gate="blocking"` 체크포인트에서 정지. 사람이 세 옵션(proxy 수용/지금 재부팅/다음 자연 재부팅에
 위임) 중 **`accept-proxy`** 를 선택 — 실제 재부팅 요청/수행 없음. continuation agent 가 Task 3
