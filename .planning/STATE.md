@@ -73,7 +73,8 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 
 Phase: 7 of 8 (cline-bench 동작 검증) — **GAP CLOSURE 진행 중 (07-05 완료 후 재개, 5개
 gap-closure 플랜 07-06~07-10 추가, 총 10/10 플랜).**
-Plan: 07 of 10 in current phase — **완료(3/3 tasks, 전부 auto — 3개 개별 커밋).**
+Plan: 08 of 10 in current phase — **완료(2/2 tasks — Task 1 auto, Task 2 checkpoint:decision — 2개
+개별 커밋 + 메타데이터 커밋).**
 
 **Phase 7 gap-closure 배경**: 07-05 종료 후 검증(07-VERIFICATION.md, `passed`)이 나온 뒤,
 07-02 의 `CLINE_PROVIDER_SETTINGS_PATH` 주입 `VERDICT: INJECTABLE` 이 **잘못된 바이너리**(호스트
@@ -163,6 +164,31 @@ PASS+B11 SKIP, post-fix 런 `CASES 10/11` — B5 는 이 단일-과제 런에 `m
 드리프트) 전부 무변경, `harbor run` 은 정확히 1회(이 플랜의 전체 예산). SUMMARY 작성 완료
 (`07-07-SUMMARY.md`). **다음: 07-08(07-07 이 뒤집은 `stop-at-one` 전제를 07-08 체크포인트가
 `agent_execution=1589.8초`/`wall_clock=1665초` 를 입력으로 다시 묻는다).**
+
+**07-08(비용 체크포인트 라운드 2, 이번 플랜) — 완료**: Task 1(이전 세션, 커밋 `41b1ffa`):
+`phase-07/results/20260830T141218Z-cost-checkpoint/cost.md` 작성 — 07-07 의 `PROOF.md` 실측만
+인용한 post-fix vs pre-fix 페이즈 분해 표, `model_turns=38`/`max_prompt_tokens=30463`/
+`verdict=fail-context`(reward=0, 통과 아님)/`1800초` 타임아웃 미도달, 남은 풀 실측(12개 중 1개
+제외·1개 기시도·10개 미시도), `+3`/`+4`/`+7` 낙관/비관 범위(가정 명시, 권고 미포함).
+`meta-count-before.txt`=2 로 "이 플랜은 태스크를 안 돌렸다" 오라클 기록. Task 2(이번 세션,
+체크포인트 응답 처리, 커밋 `3b100a5`): 사용자의 체크포인트 응답이 다섯 옵션 ID 중 아무것도
+명명하지 않은 **"Continue"** 였음 — 오케스트레이터가 이를 `plus-three` 로 **해석**했고,
+그 근거(Phase 7 전체 목적이 BCH-01 gap closure 이므로 주입 메커니즘을 고쳐놓고 아예 안 쓰는
+것은 그 목적과 맞지 않음)를 사용자에게 명시적으로 밝히고 정정 기회를 준 뒤 정정 없이 진행함을
+`decision2.md` 에 **07-03 의 `stop-at-one` 원문 인용과는 다른, 더 낮은 증거 기준의 해석으로
+명시적으로 구분**하여 기록(사용자의 말을 그대로 인용한 것처럼 과장하지 않음). 측정 인벤토리
+(`tasks.tsv`)에서 미시도·비제외 10개 과제 중 `memory_mb` 오름차순 후 `instruction_lines`
+오름차순으로 최저비용 3개 선정(`telegram-plugin-refactor`/`filmarchiver`/`v-edit-workspace-tests`,
+`terraform-azurerm-deployment-stacks` 는 `memory_mb=8192` 로 제외 유지) — 선정은 연구-유래
+`CANDIDATE_SUFFIXES` 순서가 아니라 실측 `tasks.tsv` 사실에서 도출. `SELECTED_TASKS_GAP` 작성.
+계획 자신의 `plus-three` 옵션 문구("총 5개 도달")가 **런 인스턴스 카운트**(두 런 디렉터리에
+걸친 실행 횟수)이지 **고유 과제 카운트**가 아님을 자체 발견해 `decision2.md` 에 명시 정정 —
+`discord-trivia-approval-keyerror` 는 pre/post-fix 두 번 시도된 동일 과제 1개이므로, `+3` 이후
+고유 과제 수는 **5 가 아니라 4**(ROADMAP criterion 1 의 5~8 범위 하한에 1개 부족)임을 반올림
+없이 기록. 이 플랜 전체에서 `harbor run` 0회, 모델 지출 0(`meta-count-before.txt`=2 → 최종
+확인도 2, 불변). 6종 pid·포트 3000·`EXTRA_ALLOW_PATHS` 전부 무변경. SUMMARY 작성 완료
+(`07-08-SUMMARY.md`). **다음: 07-09(`SELECTED_TASKS_GAP` 의 3개 과제를 실제로 `harbor run` 하는
+플랜).**
 
 이전(07-05 완료, gap-closure 이전 마지막 정규 플랜): Phase 7 다섯째 플랜(07-05): Task
 1(커밋 `46e6423`): `docs/cline-bench.md`(173줄) 작성 —
@@ -2084,9 +2110,25 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-08-30
-Stopped at: **07-07-PLAN.md 완료 (3/3 tasks, 전부 auto — 3개 개별 커밋), STATE.md 갱신 완료.
-Phase 7 gap-closure 진행 중 (7/10 plans, 07-08~07-10 남음).** Resume file: None.
+Last session: 2026-08-31
+Stopped at: **07-08-PLAN.md 완료 (2/2 tasks — Task 1 auto, Task 2 checkpoint:decision — 2개
+개별 커밋 + 메타데이터 커밋), STATE.md 갱신 완료. Phase 7 gap-closure 진행 중 (8/10 plans,
+07-09~07-10 남음).** Resume file: None.
+
+**선택된 옵션: `plus-three`(오케스트레이터의 해석 — 사용자의 체크포인트 응답은 다섯 옵션 ID
+중 아무것도 명명하지 않은 "Continue" 였고, `decision2.md` 는 이를 원문 인용이 아니라 해석으로
+명시적으로 구분해 기록함).** 측정 인벤토리(`tasks.tsv`)에서 미시도·비제외 10개 중 `memory_mb`
+오름차순 후 `instruction_lines` 오름차순 최저비용 3개 선정: `telegram-plugin-refactor`,
+`filmarchiver`, `v-edit-workspace-tests`(`SELECTED_TASKS_GAP` 에 기록). 계획 자신의
+"총 5개 도달" 문구가 런 인스턴스 카운트이지 고유 과제 카운트가 아님을 자체 발견·정정 — `+3`
+이후 고유 과제 수는 4(ROADMAP criterion 1 의 5~8 하한에 1개 부족), 반올림 없이 기록. 이
+플랜에서 `harbor run` 0회, 모델 지출 0. 상세는 위 Current Position 블록 및
+`phase-07/results/20260830T141218Z-cost-checkpoint/{cost.md,decision2.md}` 참고.
+**다음: 07-09(`SELECTED_TASKS_GAP` 의 3개 과제를 실제로 `harbor run` 하는 플랜).**
+
+이전 세션(07-07 완료): 2026-08-30
+정지 지점: **07-07-PLAN.md 완료 (3/3 tasks, 전부 auto — 3개 개별 커밋), STATE.md 갱신 완료.
+Phase 7 gap-closure 진행 중 (7/10 plans, 07-08~07-10 남음).**
 
 `OUTCOME: reached-model` — 07-06 이 지목한 스키마 수정(`cline-cw-providers.json` 에
 `version`/`updatedAt` 추가)을 실제 적용 후 `harbor run` 1회로 실측 증명: `SLICE_BYTES=145133`,
@@ -2094,8 +2136,6 @@ Phase 7 gap-closure 진행 중 (7/10 plans, 07-08~07-10 남음).** Resume file: 
 `agent_execution=1589.8초`(07-08 체크포인트 입력값), 과제 판정은 `fail-context`(32K
 천장, reward=0 — "모델 도달"≠"과제 통과" 명시). 상세는 위 Current Position 블록 및
 `phase-07/results/20260830T122700Z-injection-fix/PROOF.md` 참고.
-**다음: 07-08(`stop-at-one` 전제가 더 이상 자동 유효하지 않다는 사실을 놓고 사용자에게
-다음 방향을 묻는 체크포인트, `agent_execution=1589.8초`/`wall_clock=1665초` 입력).**
 
 이전 세션(07-06 완료): 2026-08-30
 정지 지점: **07-06-PLAN.md 완료 (3/3 tasks, 전부 auto — 3개 개별 커밋), STATE.md 갱신 완료.
