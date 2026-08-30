@@ -4,6 +4,7 @@ __pycache__/
 phase-01/config/backups/
 phase-01/results/dryrun/
 phase-02/infra/backups/
+phase-05/services/backups/
 workspace/sandbox.sb
 workspace/scratch-repo/
 phase-03/fixtures/
