@@ -1,0 +1,30 @@
+=== decline-branch verification, 2026-08-30T07:24:01Z ===
+--- pgrep -f 'connect telegram' | wc -l (expect 0) ---
+       0
+--- git diff --stat phase-05/plists/ (expect empty) ---
+(end, expected empty above)
+--- token slot, staged plist ---
+  - TELEGRAM_BOT_TOKEN is a real, present, EMPTY <string></string> entry —
+    not an omitted key. The wrapper's ${TELEGRAM_BOT_TOKEN:-} idiom treats
+    both the same way at runtime, but an explicit empty entry is what makes
+--
+    entry, alongside TELEGRAM_BOT_TOKEN — the discoverable injection slot
+    for ROADMAP Phase 6 criterion 4. The wrapper
+--
+		<key>TELEGRAM_BOT_TOKEN</key>
+		<string></string>
+--- token slot, live plist ---
+  - TELEGRAM_BOT_TOKEN is a real, present, EMPTY <string></string> entry —
+    not an omitted key. The wrapper's ${TELEGRAM_BOT_TOKEN:-} idiom treats
+    both the same way at runtime, but an explicit empty entry is what makes
+--
+    entry, alongside TELEGRAM_BOT_TOKEN — the discoverable injection slot
+    for ROADMAP Phase 6 criterion 4. The wrapper
+--
+		<key>TELEGRAM_BOT_TOKEN</key>
+		<string></string>
+--- git grep for any token-looking committed secret under phase-05/plists (sanity) ---
+phase-05/plists/com.ohama.telegram-connect.plist:14:  - TELEGRAM_BOT_TOKEN is a real, present, EMPTY <string></string> entry —
+phase-05/plists/com.ohama.telegram-connect.plist:15:    not an omitted key. The wrapper's ${TELEGRAM_BOT_TOKEN:-} idiom treats
+phase-05/plists/com.ohama.telegram-connect.plist:48:    entry, alongside TELEGRAM_BOT_TOKEN — the discoverable injection slot
+phase-05/plists/com.ohama.telegram-connect.plist:73:		<key>TELEGRAM_BOT_TOKEN</key>
