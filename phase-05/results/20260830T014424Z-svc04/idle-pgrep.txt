@@ -1,0 +1,7 @@
+sample1: connect-telegram-count=0
+sample2: connect-telegram-count=0
+sample3: connect-telegram-count=0
+sample4: connect-telegram-count=0
+sample5: connect-telegram-count=0
+sample6: connect-telegram-count=0
+note: pgrep -f 'cline' self-matches this Bash tool's own shell wrapper (sources a snapshot script whose cwd/git commands reference the 'cline-tests' repo path substring) -- not an actual cline binary process. Verified no real cline binary invocation via 'connect telegram' count (0 throughout) and process argv inspection.

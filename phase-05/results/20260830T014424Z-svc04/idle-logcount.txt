@@ -1,0 +1,6 @@
+--- start counts (captured earlier: log=0, err=2) vs end counts ---
+start: log=0 err=2
+end:   log=0 err=2
+--- log contents (empty notice + injection recipe) ---
+run_telegram_service.sh: TELEGRAM_BOT_TOKEN is empty — this service is registered but intentionally INERT. cline is NOT being invoked.
+To activate: set TELEGRAM_BOT_TOKEN in phase-05/plists/com.ohama.telegram-connect.plist's EnvironmentVariables, re-run phase-05/services/install_services.sh com.ohama.telegram-connect, then phase-02/infra/restart_service.sh com.ohama.telegram-connect none. Never hand-edit ~/local-llm-settings/.
