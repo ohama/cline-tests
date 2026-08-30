@@ -1095,6 +1095,25 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
+- **(Phase 6·8 주의) 로드맵 Phase 5 기준 1 의 "재부팅 후에도" 절은 실제 재부팅으로 관측된 것이
+  아니라 프록시 증거다.** 사용자가 `accept-proxy` 를 선택했다(2026-08-30, 05-07 체크포인트).
+  증명된 것: 두 plist 모두 `RunAtLoad: true`, `~/Library/LaunchAgents/` 에 존재, 라벨 활성,
+  각 라벨에 대해 `bootout` → (계속 내려간 상태) → `bootstrap` → 정상 기동 사이클 실행 완료.
+  **증명되지 않은 것: 실제 macOS 재부팅 동작, 로그인 세션 순서, 부팅 시점 `:4000` 도달 가능 여부.**
+  실제 재부팅은 `iogpu.wired_limit_mb` 를 초기화해 `phase-02/infra/preflight.sh` 가 hard-fail
+  하므로 `sudo sysctl` 재적용이 선행돼야 한다. Phase 8 매뉴얼은 이걸 "재부팅 검증 완료"로
+  적으면 안 된다. 기록: `docs/services.md` §4.
+- **(Phase 6 인계) Telegram 서비스는 토큰 슬롯이 빈 채로 상시 기동 중이다** — 살아있는 봇이
+  아니라 idle 상태다. 토큰 주입 후 **첫 기동에서 `unknown option` 이 뜨는지 반드시 확인할 것**:
+  토큰이 있는 실제 호출 경로는 이 phase 에서 한 번도 실행된 적이 없다(idle 분기가 가렸다).
+  주입 레시피: `docs/services.md`, `phase-05/results/20260830T021706Z-svc02-telegram/README.md`.
+- **(Phase 6 결정 대기) `--no-tools`/`--auto-approve false` 자세 때문에 두 표면은 도구를 쓰는
+  작업에 대해 의도적으로 무력하다.** 사용자가 Phase 6 으로 연기하기로 결정했다(2026-08-30).
+  실제로 일을 시키려면 샌드박스만을 유일한 경계로 받아들일지 사람이 결정해야 하며, HLS-02 의
+  보안 태세 변경이므로 조용히 플래그만 바꾸면 안 된다. 기록: `docs/headless-wrapper.md` §4·§8.
+- (Phase 6 도구) `phase-05/services/verify_services.sh` 는 읽기 전용·재실행 가능한 상시 게이트다
+  (15개 체크, 0/1/2 exit 계약, 음성 대조군 검증됨). 네트워크를 열기 전후로 호출할 것.
+
 - 🔴 **2026-08-30 — Phase 1 의 결론이 정정됨.** 32k 압축은 **정상 작동한다.**
   `contextWindow` 를 `providers.json` 의 `settings` **최상위**에 넣어야 하며(`models[]` 아님),
   값은 오버슈트 흡수를 위해 **29000**(트리거 26,100)이다. 실측: `phase-01/results/exp-verify29k/`.

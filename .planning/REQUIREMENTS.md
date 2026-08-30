@@ -139,11 +139,11 @@
 | HLS-01 | Phase 4 | Complete |
 | HLS-02 | Phase 4 | Complete |
 | HLS-03 | Phase 4 | Complete |
-| SVC-01 | Phase 5 | Pending |
-| SVC-02 | Phase 5 | Pending |
-| SVC-03 | Phase 5 | Pending |
-| SVC-04 | Phase 5 | Pending |
-| SVC-05 | Phase 5 | Pending |
+| SVC-01 | Phase 5 | Complete |
+| SVC-02 | Phase 5 | Complete |
+| SVC-03 | Phase 5 | Complete |
+| SVC-04 | Phase 5 | Complete |
+| SVC-05 | Phase 5 | Complete |
 | NET-01 | Phase 6 | Pending |
 | NET-02 | Phase 6 | Pending |
 | NET-03 | Phase 6 | Pending |

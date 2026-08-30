@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: 인프라 보정** - 동시성 상한과 litellm 노출 차단으로 기존 스택을 두 표면 동시 기동에 대비시킨다
 - [x] **Phase 3: 샌드박스 + 저장소 화이트리스트** - 원격에서 트리거 가능한 어떤 것도 이 안전망 없이는 만들지 않는다
 - [x] **Phase 4: 헤드리스 CLI 래퍼** - 설정+샌드박스가 실제로 맞물리는지 가장 싼 값으로 확인하는 단발 스모크 테스트
-- [ ] **Phase 5: Kanban·Telegram 서비스화** - 두 표면이 launchd 상시 서비스로 뜨고 스스로 회복한다 (아직 loopback-only)
+- [x] **Phase 5: Kanban·Telegram 서비스화** - 두 표면이 launchd 상시 서비스로 뜨고 스스로 회복한다 (아직 loopback-only)
 - [ ] **Phase 6: 네트워크 노출** - Tailscale 무인증 + LAN 토큰 게이팅으로 처음 이 시스템을 localhost 밖에 연다 (build 단계 중 최후)
 - [ ] **Phase 7: cline-bench 동작 검증** - 공식 과제 일부를 로컬 Docker 로 돌려 파이프라인 전체가 실제로 동작함을 증명한다
 - [ ] **Phase 8: 한글 사용 매뉴얼** - 실제로 출하된 것을 기준으로 CLI·웹·iPad/iPhone 사용법을 쓴다 (최종 단계)
@@ -117,13 +117,13 @@ Plans:
 **Plans**: 7 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — 두 launchd 래퍼 스크립트와 공유 config (SVC-03/04 메커니즘)
-- [ ] 05-02-PLAN.md — check_versions.sh Check C 에 KANBAN_NO_AUTO_UPDATE 추가 + restart_service.sh 포트 없는 라벨 일반화
-- [ ] 05-03-PLAN.md — 등록 전 실증: dead-port SVC-04, 빈 토큰 idle 무-spin, 포트 인벤토리(Open Question 2)
-- [ ] 05-04-PLAN.md — com.ohama.kanban 등록/기동/KeepAlive 부활/bootout 회수 (SVC-01, SVC-03)
-- [ ] 05-05-PLAN.md — com.ohama.telegram-connect 등록(토큰 슬롯 빈 채) + 두 서비스 동시 기동 검증 (SVC-02, SVC-03)
-- [ ] 05-06-PLAN.md — sync.sh LABELS 편집 + 미러 반영 (SVC-05) + Phase 6 용 상시 게이트 verify_services.sh
-- [ ] 05-07-PLAN.md — docs/services.md + 전체 게이트 스윕 + 재부팅 검증 방식 결정 체크포인트
+- [x] 05-01-PLAN.md — 두 launchd 래퍼 스크립트와 공유 config (SVC-03/04 메커니즘)
+- [x] 05-02-PLAN.md — check_versions.sh Check C 에 KANBAN_NO_AUTO_UPDATE 추가 + restart_service.sh 포트 없는 라벨 일반화
+- [x] 05-03-PLAN.md — 등록 전 실증: dead-port SVC-04, 빈 토큰 idle 무-spin, 포트 인벤토리(Open Question 2)
+- [x] 05-04-PLAN.md — com.ohama.kanban 등록/기동/KeepAlive 부활/bootout 회수 (SVC-01, SVC-03)
+- [x] 05-05-PLAN.md — com.ohama.telegram-connect 등록(토큰 슬롯 빈 채) + 두 서비스 동시 기동 검증 (SVC-02, SVC-03)
+- [x] 05-06-PLAN.md — sync.sh LABELS 편집 + 미러 반영 (SVC-05) + Phase 6 용 상시 게이트 verify_services.sh
+- [x] 05-07-PLAN.md — docs/services.md + 전체 게이트 스윕 + 재부팅 검증 방식 결정 체크포인트
 
 ### Phase 6: 네트워크 노출
 **Goal**: Tailscale 무인증 + LAN 토큰 게이팅으로, 처음으로 이 시스템을 이 Mac 의 셸 밖에서
@@ -186,7 +186,7 @@ Phase 1·2·3 은 서로 병렬 가능(의존성 없음). Phase 4·5 는 1·2·3
 | 2. 인프라 보정 | 4/4 | ✓ Complete | 2026-08-30 |
 | 3. 샌드박스 + 저장소 화이트리스트 | 4/4 | ✓ Complete | 2026-08-30 |
 | 4. 헤드리스 CLI 래퍼 | 4/4 | ✓ Complete | 2026-08-30 |
-| 5. Kanban·Telegram 서비스화 | 0/TBD | Not started | - |
+| 5. Kanban·Telegram 서비스화 | 7/7 | ✓ Complete | 2026-08-30 |
 | 6. 네트워크 노출 | 0/TBD | Not started | - |
 | 7. cline-bench 동작 검증 | 0/TBD | Not started | - |
 | 8. 한글 사용 매뉴얼 | 0/TBD | Not started | - |
