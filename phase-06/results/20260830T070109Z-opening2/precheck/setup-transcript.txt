@@ -1,0 +1,13 @@
+=== setup_tailscale_serve.sh MODE=check 2026-08-30T07:01:12Z ===
+
+P1 OK: tailscale reachable
+P2 OK: TS_SERVE_PORT=8444 is not forbidden
+P3 OK: port 3000 unbound
+P4 OK: three pre-existing handlers + single public-exposure key match the frozen baseline
+P5 OK: kanban listening on 127.0.0.1:3484 only, http=200
+P5b OK: kanban-proxy listening on 127.0.0.1:18484 only, answers 200 for the tailnet Host, and TS_SERVE_TARGET points at it
+P6 OK: no existing entry for ohama-2.tail318f12.ts.net:8444 yet (ABSENT)
+
+Command that would run: /opt/homebrew/bin/tailscale serve --bg --https=8444 http://127.0.0.1:18484
+
+MODE=check — all pre-flight assertions passed. Nothing was mutated. Re-run with --apply to execute the command above.
