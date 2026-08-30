@@ -1,0 +1,28 @@
+=== setup_tailscale_serve.sh MODE=apply 2026-08-30T06:07:53Z ===
+
+P1 OK: tailscale reachable
+P2 OK: TS_SERVE_PORT=8444 is not forbidden
+P3 OK: port 3000 unbound
+P4 OK: three pre-existing handlers + single public-exposure key match the frozen baseline
+P5 OK: kanban listening on 127.0.0.1:3484 only, http=200
+P6 OK: no existing entry for ohama-2.tail318f12.ts.net:8444 yet (ABSENT)
+
+Command that would run: /opt/homebrew/bin/tailscale serve --bg --https=8444 http://127.0.0.1:3484
+
+=== APPLYING ===
+Running: /opt/homebrew/bin/tailscale serve --bg --https=8444 http://127.0.0.1:3484
+apply rc=0
+apply output: Available within your tailnet:
+
+https://ohama-2.tail318f12.ts.net:8444/
+|-- proxy http://127.0.0.1:3484
+
+Serve started and running in the background.
+To disable the proxy, run: tailscale serve --https=8444 off
+Q1 OK: OK
+Q2 OK: OK
+Q3 OK: OK
+Q4 OK: port 3000 still unbound
+Q5 OK: kanban's listener is still 127.0.0.1:3484 only
+
+SETUP_TAILSCALE_SERVE: SUCCESS — ohama-2.tail318f12.ts.net:8444 now proxies / to http://127.0.0.1:3484 (tailnet only, never the public-exposure mode)
