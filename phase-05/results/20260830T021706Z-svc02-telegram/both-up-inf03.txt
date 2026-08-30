@@ -1,0 +1,2 @@
+INF03: PASS
+RESULTS_DIR=phase-05/results/20260830T021706Z-svc02-telegram/both-up-inf03

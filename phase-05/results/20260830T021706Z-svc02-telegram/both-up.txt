@@ -1,0 +1,22 @@
+=== sample 1 at 02:22:56 ===
+--- com.ohama.kanban ---
+	state = running
+	pid = 53894
+		state = active
+		state = active
+--- com.ohama.telegram-connect ---
+	state = running
+	pid = 56669
+		state = active
+		state = active
+=== sample 2 (20s later) at 02:23:17 ===
+--- com.ohama.kanban ---
+	state = running
+	pid = 53894
+		state = active
+		state = active
+--- com.ohama.telegram-connect ---
+	state = running
+	pid = 56669
+		state = active
+		state = active

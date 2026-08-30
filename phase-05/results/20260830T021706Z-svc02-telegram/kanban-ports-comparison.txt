@@ -1,0 +1,19 @@
+Comparison against phase-05/results/20260830T014424Z-svc04/kanban-ports.txt
+(the 05-03 baseline full-machine `lsof -nP -iTCP -sTCP:LISTEN` snapshot,
+captured while kanban was running in the foreground, pre-registration).
+
+Kanban's OWN port footprint (identified by matching the kanban pid's own
+row, not by port number alone, since node/39887 and node/45145 are
+unrelated pre-existing Node processes on this machine, not kanban):
+
+  05-03 baseline: pid=49330 (foreground) -> 127.0.0.1:3484 (LISTEN), exactly
+                  one TCP socket held by that pid.
+  This plan:      pid=53894 (launchd-supervised) -> 127.0.0.1:3484 (LISTEN),
+                  exactly one TCP socket held by that pid (confirmed via
+                  `lsof -nP -a -p 53894 -iTCP`, see kanban-pid-tcp.txt).
+
+Result: IDENTICAL port set (exactly {3484}). Bringing com.ohama.telegram-connect
+up alongside com.ohama.kanban changed nothing about kanban's port footprint --
+the concrete, measured answer to 05-RESEARCH.md's Open Question 2 for the
+shipped configuration (empty-token telegram connector holds zero TCP sockets
+of its own, per telegram-pid-tcp.txt in this same directory).
