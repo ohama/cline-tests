@@ -84,7 +84,20 @@ check_litellm_alias() {
   printf '%s' "$body" | grep -q "\"$LITELLM_ALIAS\""
 }
 
-WAITED=0
+# WAITED is real wall-clock elapsed seconds since this loop started, read
+# from bash's own $SECONDS (auto-incrementing since shell start) rather than
+# hand-accumulated from the tail sleep alone. Found live in 05-03's dead-port
+# case: stage 1 is itself a bounded retry (wait_for_port.sh is called with
+# TIMEOUT_S=$INTERVAL_S), so when TCP is the failing stage every iteration
+# already spends up to INTERVAL_S seconds INSIDE the stage-1 call before the
+# outer loop's own tail sleep adds another INTERVAL_S — hand-accumulating
+# WAITED by only the tail-sleep amount silently ignored that first half and
+# let the real bound run to roughly 2x the configured UPSTREAM_WAIT_TIMEOUT.
+# This was never exercised in 05-01's live checks because those forced stage
+# 2/3 failures only, where stage 1 (TCP) passes near-instantly every
+# iteration. $SECONDS-based accounting is correct regardless of which stage
+# fails or how long its checks take.
+LOOP_START=$SECONDS
 LAST_PROGRESS=0
 FAILED_STAGE=""
 
@@ -110,6 +123,8 @@ while :; do
     exit 0
   fi
 
+  WAITED=$((SECONDS - LOOP_START))
+
   if [ "$WAITED" -ge "$TIMEOUT_S" ]; then
     echo "wait_for_upstream.sh: timed out after ${WAITED}s — stage $FAILED_STAGE still failing" >&2
     exit 1
@@ -131,5 +146,4 @@ while :; do
     SLEEP_S=1
   fi
   sleep "$SLEEP_S"
-  WAITED=$((WAITED + SLEEP_S))
 done
