@@ -1,0 +1,12 @@
+# SELECTED_TASKS_GAP -- written by 07-08 Task 2, from an orchestrator interpretation of an
+# ambiguous "Continue" reply as `plus-three` (see phase-07/results/20260830T141218Z-cost-checkpoint/decision2.md
+# for the full record and the caveat that this is NOT a verbatim user selection).
+#
+# Three task directory suffixes, resolved against the live, measured inventory
+# (phase-07/results/20260830T085301Z-inventory/tasks.tsv), chosen from the 10 not-yet-attempted,
+# not-excluded tasks by measured memory_mb ascending, then instruction_lines ascending.
+# terraform-azurerm-deployment-stacks excluded (memory_mb=8192 exceeds colima's VM, EXCLUDED_SUFFIXES).
+# 07-09 runs these three. Zero harbor invocations occurred in 07-08 itself.
+telegram-plugin-refactor
+filmarchiver
+v-edit-workspace-tests
