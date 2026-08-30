@@ -17,8 +17,31 @@ Phase 4 세 성공기준(HLS-01/02/03) 모두 실측 증거로 동시 성립: HL
 ## Current Position
 
 Phase: 5 of 8 (Kanban·Telegram 서비스화) — 진행 중
-Plan: 02 of 7 in current phase — 완료 (SUMMARY 작성 완료). Wave 1(05-01/05-02, 병렬)의 절반.
-Status: 05-02 완료 — `phase-01/config/check_versions.sh` Check C 를 `KANBAN_NO_AUTO_UPDATE=1` 까지
+Plan: 01 of 7 in current phase — 완료 (SUMMARY 작성 완료). **Wave 1(05-01/05-02, 병렬) 둘 다 완료.**
+Status: 05-01 완료 — Phase 5 의 SVC-03/SVC-04 핵심 메커니즘인 두 launchd 래퍼와 그 공유 인프라를
+작성. `phase-05/services/config.env`(Phase 5 전 경로/라벨/포트/타임아웃 단일 소스, `phase-04/config.env`
+를 pre-set-then-source 관용구로 재사용해 `SANDBOX_WORKDIR` 재파생 안 함), `wait_for_port.sh`(범용
+바운디드 TCP 폴), `wait_for_upstream.sh`(TCP:8000 → flashnext `/health`(`loaded_model` 비어있지 않음)
+→ litellm 이 `flashnext` alias 를 광고하는지, 3단 판정. litellm 포트 단독 TCP 체크는 flashnext
+로드 여부와 무관하게 항상 열려있어 SVC-04 가 요구하는 시나리오를 놓치므로 명시적으로 배제. 실패한
+단계와 무관하게 루프 꼬리에서 항상 페이싱 sleep). 라이브 스택 대상 3종 실측: 전 단계 통과(exit 0,
+~0.1초), stage-2 강제 실패(health URL 을 `/v1/models` 로 바꿔 exit 1, ~6초), stage-3 강제 실패
+(가짜 alias 로 exit 1, ~6초). `run_kanban_service.sh`(THE CWD RULE 단언 → 바운디드 readiness 대기
+→ `run_sandboxed.sh` 경유 exec, `--port 3484` 명시 고정, `--no-passcode`/`--skip-shutdown-cleanup`/
+`--https`/`--update` 모두 이유와 함께 의도적으로 생략). `run_telegram_service.sh`(빈
+`TELEGRAM_BOT_TOKEN` 은 숫자 `/bin/sleep` 루프로 조용히 idle — `sleep infinity` 사용 금지, exit 도
+금지 — cline 은 아예 호출되지 않음; 실제 호출 줄은 `-i --no-tools` 리터럴 인접 토큰 +
+`--provider "$CLINE_PROVIDER" --model "$CLINE_MODEL"` 풀네임만 사용, `-P` 짧은 플래그는 이 서브커맨드에
+아예 존재하지 않고 `-m` 은 `--bot-username` 에 바인딩되어 있어 절대 축약 안 함). 이 플랜은 아무것도
+등록하지 않음 — `phase-05/` 안 `launchctl bootstrap` 0건, flashnext(46573)/role-shim(75548)/
+litellm(48525) pid 전 과정 불변, `EXTRA_ALLOW_PATHS` 빈 값 그대로. `cline` 호출 0회(예산 0),
+`kanban --version` 만 1회(허용, 읽기 전용). 편차(deviation) 0건 — 단, 플랜 자신의 grep 기반 검증이
+설명용 주석 속 리터럴 문자열(`cline kanban`, `--auto-approve`, 고립된 `-P`, `sleep infinity`)과
+충돌하는 것을 4건 발견해 커밋 전에 표현만 재작성(동작 무변경, 02-01 의 kill/pkill 주석 충돌과 동일
+계열). 05-02(같은 wave, 병렬)가 소유한 `phase-01/config/check_versions.sh`/
+`phase-02/infra/restart_service.sh` 는 전혀 건드리지 않음. 아래 결정 로그 참조.
+
+이전: 05-02 완료 — `phase-01/config/check_versions.sh` Check C 를 `KANBAN_NO_AUTO_UPDATE=1` 까지
 스캔하도록 확장(기존 `CLINE_NO_AUTO_UPDATE` 체크와 A/B 체크는 무변경, 이전엔 보이지 않던 kanban
 드리프트 갭이 이제 fixture 쌍(good PASS/bad FAIL)으로 증명됨), `phase-02/infra/restart_service.sh`
 를 포크하지 않고 그 자리에서 확장해 포트 없는 라벨(`<port> none`)도 재시작 가능하게 함 —
@@ -28,7 +51,7 @@ Status: 05-02 완료 — `phase-01/config/check_versions.sh` Check C 를 `KANBAN
 role-shim(75548)/litellm(48525) pid 전 과정 불변. `cline` 호출 1회(Check B 내부, 예산 상한 2회
 대비 절반), `verify_config.sh` 1차 통과(heal 불필요 — `contextWindow` 최상위 필드 정정이
 `cline config --json` 정규화를 생존한다는 관찰과 일치). 05-01(같은 wave, 병렬)이 소유한
-`phase-05/services/`/`phase-05/plists/` 는 전혀 건드리지 않음. 아래 결정 로그 참조.
+`phase-05/services/`/`phase-05/plists/` 는 전혀 건드리지 않음.
 
 이전: 04-04 완료 — criterion-3(HLS-03)를 `verify_sandbox_via_cline.sh` 실제 1회 라이브 실행으로
 확정(`VERDICT: DENIED`, 커널 EPERM + in-whitelist canary 성공 공존), `docs/headless-wrapper.md`
@@ -119,7 +142,18 @@ read/write/subprocess/escape-symlink 5건 전부 `DENIED EPERM`으로, `ENOENT` 
 deny-less 프로파일 거부, precheck 우회 시 Group F 4건 전부 `FAIL not-denied`, `--no-canonicalize`
 아래서 F6 실패)이 모두 사양대로 동작. `launchctl print .../com.ohama.flashnext` pid 46573 로
 플랜 전체에서 불변, `cline` 호출 0회.
-Last activity: 2026-08-30 — 05-02-PLAN.md 완료 (`phase-01/config/check_versions.sh` Check C 확장:
+Last activity: 2026-08-30 — 05-01-PLAN.md 완료 (`phase-05/services/{config.env,wait_for_port.sh,
+wait_for_upstream.sh,run_kanban_service.sh,run_telegram_service.sh}`: SVC-03/SVC-04 launchd
+래퍼와 공유 readiness 게이트. 3단 readiness 게이트를 라이브 스택 대상 3종(전체 통과/stage-2
+강제실패/stage-3 강제실패) 실측 확인. 텔레그램 래퍼는 빈 토큰일 때 숫자 sleep 루프로 idle(exit
+없음, `sleep infinity` 없음), 실제 호출은 `-i --no-tools` 리터럴 인접 토큰 + `--provider`/`--model`
+풀네임만 사용(`-P` 짧은 플래그 없음, `-m` 은 `--bot-username` 전용). 이 플랜은 아무것도 등록/재시작
+하지 않음 — pid 3종 불변, `EXTRA_ALLOW_PATHS` 무변경, `phase-05/` 안 `launchctl bootstrap` 0건.
+`cline` 호출 0회. 편차 0건(단, 플랜 자체 grep 검증과 충돌하는 주석 리터럴 4건을 커밋 전 표현만
+재작성). 05-02 와 wave 1 병렬 실행, `phase-01/config/check_versions.sh`·
+`phase-02/infra/restart_service.sh` 무터치.)
+
+이전 활동: 2026-08-30 — 05-02-PLAN.md 완료 (`phase-01/config/check_versions.sh` Check C 확장:
 `KANBAN_NO_AUTO_UPDATE=1` 게이트 추가, fixture 쌍으로 증명. `phase-02/infra/restart_service.sh` 를
 그 자리에서 확장(포크 아님): `<port|none>`, 포트 없는 라벨은 10초+ 간격 동일 pid 두 샘플로만 건강
 판정, 비동기 bootout teardown-wait 은 그대로 보존. 서비스 등록/재시작 0건, pid 3종 불변, `cline`
@@ -157,15 +191,15 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
-Progress: [████████▒▒] 76% (Phase 4/8 완료, Phase 5/8 진행 중 — 05-02 완료(wave 1, 05-01 과 병렬),
-Plan 19/31 누적 추정 — Phase 5 는 총 7개 플랜)
+Progress: [████████▒▒] 77% (Phase 4/8 완료, Phase 5/8 진행 중 — wave 1(05-01/05-02) 둘 다 완료,
+Plan 20/31 누적 추정 — Phase 5 는 총 7개 플랜)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 19
-- Average duration: ~13.4 min
-- Total execution time: ~4.4 hours
+- Total plans completed: 20
+- Average duration: ~14.4 min
+- Total execution time: ~4.8 hours
 
 **By Phase:**
 
@@ -175,9 +209,25 @@ Plan 19/31 누적 추정 — Phase 5 는 총 7개 플랜)
 | 2 | 4/4 | ~55 min | ~13.8 min |
 | 3 | 4/4 | ~48 min | ~12 min |
 | 4 | 4/4 | ~42 min | ~10.5 min |
-| 5 | 1/7 | ~10 min | ~10 min |
+| 5 | 2/7 | ~35 min | ~17.5 min |
 
 **Recent Trend:**
+- 05-01 (~25 min, wave 1 — ran in parallel with 05-02, no shared files. Authored the two SVC-03/
+  SVC-04 launchd wrappers (`run_kanban_service.sh`, `run_telegram_service.sh`) plus their shared
+  `phase-05/services/config.env`/`wait_for_port.sh`/`wait_for_upstream.sh`. Live-verified the
+  3-stage readiness gate against the running flashnext/litellm stack three ways: all stages pass
+  (exit 0, ~0.1s), a forced stage-2 failure (health URL repointed at `/v1/models`, exit 1 after the
+  bounded 6s budget), and a forced stage-3 failure (bogus alias, exit 1 after 6s) — proving the
+  gate probes flashnext's own `/health` `loaded_model`, not just litellm's always-open port. The
+  telegram wrapper's empty-token branch blocks in a bounded numeric `/bin/sleep` loop (never `sleep
+  infinity`, never exits) before `cline` is ever touched; its real invocation carries `-i
+  --no-tools` as literal adjacent tokens and `--provider`/`--model` long forms only (this
+  subcommand has no `-P` short flag at all, and `-m` means `--bot-username`, not `--model`).
+  Registered nothing: zero `launchctl bootstrap` under `phase-05/`, zero `cline` invocations. Found
+  and fixed four wording-only collisions between explanatory comments and the plan's own grep-based
+  verification (literal `cline kanban`, `--auto-approve`, an isolated `-P`, and `sleep infinity` all
+  appeared in prose before being reworded) — same technique 02-01 used for its kill/pkill comment
+  collision, no behavioral change. pids 46573/75548/48525 unchanged throughout.)
 - 05-02 (~10 min, wave 1 — ran in parallel with 05-01, no shared files. Extended
   `phase-01/config/check_versions.sh` Check C in place to enforce kanban's own separate
   `KANBAN_NO_AUTO_UPDATE=1` gate (previously invisible drift gap), proven with a fixture pair in a
@@ -618,6 +668,21 @@ Recent decisions affecting current work:
   일치, guard 자체는 손대지 않음). 편차(deviation) 0건 — 두 태스크 모두 `<action>`/`<verify>`
   그대로 통과. 05-01(같은 wave, 병렬)이 소유한 `phase-05/services/`/`phase-05/plists/` 는 git
   status 로 무터치 확인.
+- 05-01: **wave 1 나머지 절반, Phase 5 의 SVC-03/SVC-04 핵심 메커니즘.** readiness 게이트
+  (`wait_for_upstream.sh`)는 litellm 포트 단독 TCP 체크를 명시적으로 배제 — litellm 은 flashnext
+  로드 여부와 무관하게 자기 리스너를 열기 때문에, TCP 만으로는 SVC-04 가 다루려는 두 시나리오
+  (flashnext 의도적 다운, 부팅 중 104GiB 로딩)에서 항상 "ready" 로 오판한다. 대신 flashnext 자신의
+  `/health`(`loaded_model` 비어있지 않음) + litellm 이 `flashnext` alias 를 실제로 광고하는지를
+  요구. 루프 꼬리 페이싱은 어느 단계가 실패했든 항상 적용 — stage 1(`wait_for_port.sh`)의 자체
+  바운디드 대기만 믿으면, TCP 포트가 이미 열려있을 때 stage 1 은 매 iteration 거의 즉시 리턴하므로
+  stage-2/3 실패가 타임아웃 예산 전체를 curl/python3 서브프로세스로 스핀시킨다.
+  텔레그램 래퍼의 실제 호출은 `--provider`/`--model` 풀네임만 사용 — `cline connect telegram` 은
+  one-shot 프롬프트 서페이스(`CLINE_COMMON_FLAGS` 가 쓰는 `-P`/`-m`)와 플래그 서페이스가 완전히
+  다르며, 이 서브커맨드엔 `-P` 짧은 플래그가 아예 없고(라이브 확인: `unknown option '-P'`) `-m`
+  은 `--bot-username` 에 바인딩돼 있어 절대 축약하지 않음(실제 토큰 주입 후 첫 실행에서 크래시루프
+  하는 것을 막기 위함). 설명용 주석이 플랜 자체의 grep 기반 검증(literal `cline kanban`,
+  `--auto-approve`, 고립된 `-P`, `sleep infinity`)과 4건 충돌 — 의미는 보존한 채 표현만 재작성해
+  통과(02-01 의 kill/pkill 주석 충돌과 동일 기법, 동작 변경 없음).
 
 ### Pending Todos
 
@@ -695,19 +760,30 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-30
-Stopped at: **05-02-PLAN.md 완료 (wave 1, 05-01 과 병렬 — 05-01 진행 상황은 이 SUMMARY 의 소관
-아님, 해당 SUMMARY 확인 필요).** `check_versions.sh` Check C 에 `KANBAN_NO_AUTO_UPDATE=1` 게이트
-추가(fixture 쌍으로 증명), `restart_service.sh` 를 포크 없이 확장해 포트 없는 라벨 재시작 지원
-(비동기 bootout teardown-wait 보존, 10초+ 동일-pid 헬스 증거). 서비스 등록/재시작 0건, pid 3종
-(46573/75548/48525) 불변, `cline` 호출 1/2, 편차 0건. 두 태스크 모두 개별 커밋
-(`e7ab02b`/`a23c1f1`), SUMMARY 작성 완료, STATE.md 갱신 완료.
-**다음:** wave 1 의 나머지 절반(05-01)이 아직 진행 중이거나 완료됐는지 확인 후, wave 2(05-03 이후)
-로 진행. `docs/headless-wrapper.md` 4절/8절이 남긴 `--auto-approve false` "안전하지만 무력" 한계에
-대한 에스컬레이션 결정(사람이 명시적으로: `--auto-approve true` 수용 vs 업스트림 기능 대기)과,
-Phase 5 의 launchd plist 가 `WorkingDirectory` 를 반드시 명시해야 한다는 요구사항은 여전히 이후
-플랜(05-03+)이 검토해야 할 항목.
+Stopped at: **05-01-PLAN.md 완료 — wave 1(05-01/05-02, 병렬) 둘 다 완료.**
+`phase-05/services/{config.env,wait_for_port.sh,wait_for_upstream.sh,run_kanban_service.sh,
+run_telegram_service.sh}` 작성. 3단 readiness 게이트를 라이브 스택 대상 3종(전체 통과/stage-2
+강제실패/stage-3 강제실패) 실측 확인. 텔레그램 래퍼 빈 토큰 idle 분기(숫자 sleep 루프, exit 없음,
+`sleep infinity` 없음)와 실제 호출 줄(`-i --no-tools` + `--provider`/`--model` 풀네임)을 grep 으로
+전부 재확인. 이 플랜은 아무것도 등록/재시작하지 않음 — pid 3종(46573/75548/48525) 불변,
+`EXTRA_ALLOW_PATHS` 무변경, `phase-05/` 안 `launchctl bootstrap` 0건, `cline` 호출 0회. 편차 0건
+(주석 리터럴 4건 표현만 재작성, 아래 결정 로그 참조). 세 태스크 모두 개별 커밋
+(`1b6fd84`/`dc6e8ba`/`aa3b532`), SUMMARY 작성 완료, STATE.md 갱신 완료.
+**다음:** wave 2(05-03 이후)로 진행. `docs/headless-wrapper.md` 4절/8절이 남긴
+`--auto-approve false` "안전하지만 무력" 한계에 대한 에스컬레이션 결정(사람이 명시적으로:
+`--auto-approve true` 수용 vs 업스트림 기능 대기)과, Phase 5 의 launchd plist 가
+`WorkingDirectory` 를 반드시 명시해야 한다는 요구사항은 여전히 이후 플랜(05-03+)이 검토해야 할
+항목. `phase-05/services/` 의 두 래퍼는 아직 어떤 plist 에도 연결되지 않았음 — 실제 plist
+작성/등록은 05-04/05-05 의 소관(이 플랜의 명시적 스코프 제외 사항).
 
 이전 세션: 2026-08-30
+정지 지점: **05-02-PLAN.md 완료 (wave 1, 05-01 과 병렬).** `check_versions.sh` Check C 에
+`KANBAN_NO_AUTO_UPDATE=1` 게이트 추가(fixture 쌍으로 증명), `restart_service.sh` 를 포크 없이
+확장해 포트 없는 라벨 재시작 지원(비동기 bootout teardown-wait 보존, 10초+ 동일-pid 헬스 증거).
+서비스 등록/재시작 0건, pid 3종 불변, `cline` 호출 1/2, 편차 0건. 두 태스크 모두 개별 커밋
+(`e7ab02b`/`a23c1f1`), SUMMARY 작성 완료, STATE.md 갱신 완료.
+
+더 이전 세션: 2026-08-30
 정지 지점: **04-04-PLAN.md 완료 — Phase 4 전체 종료(wave 3, 마지막 플랜).**
 criterion 3(HLS-03) 을 `phase-04/verify_sandbox_via_cline.sh --timeout 180` 실제 1회 라이브 실행으로
 확정: exit 0, `VERDICT: DENIED` — 화이트리스트 밖 `/Users/ohama/.zshrc` 읽기가 커널 EPERM 으로
