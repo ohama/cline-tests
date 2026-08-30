@@ -1322,6 +1322,14 @@ frozen 으로 선언(wave 2 두 플랜이 read-only 소비), 13개 pytest 전부
 자체 발견/수정 이슈 1건(F8 의 라이브 샌드박스 Node 실행이 SIGABRT/MODULE_NOT_FOUND 로 실패 —
 근본 원인 두 가지 모두 실측 후 수정, 아래 결정 로그 참조).
 
+Progress: [██████████] Phase 1-8/8 완료 (2026-08-31, 08-06 로 마일스톤 전체 종료 — 48/48
+plans: Phase 1(6) + Phase 2(4) + Phase 3(4) + Phase 4(4) + Phase 5(7) + Phase 6(8) +
+Phase 7(10, gap-closure 07-06~10 포함) + Phase 8(6, 08-01~08-06). ROADMAP 8개 Phase 체크박스
+전부 `[x]`. 남은 human_needed 항목(NET-01/05 관측, cline 버전 되돌리기, 실토큰 트라이얼)은
+전부 사람이 결정할 몫으로 정직하게 남아 있고, 어느 것도 이 프로젝트의 자동화 플랜이 대신
+확인했다고 주장하지 않는다.)
+
+이전 Progress 기록 (2026-08-30, Phase 7 최초 완료 시점 — gap-closure/Phase 8 반영 전):
 Progress: [██████████] Phase 1-7/8 완료 (알려진 38/38 plans 완료 —
 Phase 1(6) + Phase 2(4) + Phase 3(4) + Phase 4(4) + Phase 5(7) + Phase 6(8, 06-04.1/06-04.2
 삽입 포함) + Phase 7(5/5, 07-05 완료로 종료). Phase 6 는 8/8 plans 로 종료 — **네트워크 OPEN,
