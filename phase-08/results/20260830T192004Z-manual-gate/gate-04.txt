@@ -1,0 +1,11 @@
+=== check_manual_claims.sh — 2026-08-30T19:23:18Z ===
+MANUAL_DIR=/Users/ohama/projs/cline-tests/docs/manual
+IN_SCOPE=04-32k-operations.md
+NEGATIVE_CONTROL=0
+
+CHECK C1-exists:04-32k-operations.md PASS — 126 lines
+CHECK C2-evidence-pointer:04-32k-operations.md PASS — '근거 문서:' + docs/ path present in first 15 lines
+CHECK C3-markers:04-32k-operations.md PASS — all required markers present
+CHECK C4-links:04-32k-operations.md PASS — no dangling paths
+CASES 4/4
+MANUAL_CLAIMS_GATE: PASS
