@@ -107,7 +107,47 @@ real 29,000/32,768 ceiling. It is void as evidence for that lever.
 - After: `3.0.53` (unchanged — no `cline` invocation occurred anywhere in this plan, so there is no
   opportunity for drift to have occurred).
 
-## Standing gate sweep
+## Live run not authorized (Task 3)
 
-See Task 3 below and `gates/` for the read-only post-change gate sweep, run regardless of
-selection.
+`DECISION.md` records `SELECTION: doc-only`, not `config-change-plus-run`. **Live run not
+authorized.** No task was run, no new directory was created under `bench/runs/`, and
+`gates/memory-context.txt` was not produced (it is only required when a live run occurs). The gap
+phase's one-live-run budget remains fully unspent — confirmed by `bench/runs/` containing only its
+two pre-existing directories (`20260830T093657Z-phase07/`, `20260830T122809Z-phase07-fix/`) plus
+`CANARY.txt`, unchanged.
+
+## Standing gate sweep (Task 3, always run)
+
+All read-only, captured to `gates/`:
+
+| Gate | Result | Expected | File |
+|---|---|---|---|
+| `phase-01/config/verify_config.sh` | exit 0, OK | contextWindow=29000, no models[] override | `gates/verify_config.txt` |
+| `phase-02/infra/verify_no_regression.sh` | exit 0, INF03 PASS | INF03: PASS | `gates/verify_no_regression.txt` |
+| `phase-03/sandbox/verify_sandbox.sh` | exit 0, CASES 16/16, CRITERION 4 PASS | 16/16, CRITERION 4 PASS | `gates/verify_sandbox.txt` |
+| `phase-05/services/verify_services.sh` | exit 0, CASES 15/15 | 15/15 | `gates/verify_services.txt` |
+| `phase-06/net/verify_network.sh --baseline .../20260830T051403Z-baseline` | exit 0, CASES 24/24 | 24/24 | `gates/verify_network.txt` |
+| `phase-07/bench/verify_bench.sh --run-dir bench/runs/20260830T122809Z-phase07-fix` | exit 0, CASES 11/11 | pass | `gates/verify_bench-fix.txt` |
+| `phase-07/bench/verify_bench.sh --run-dir bench/runs/20260830T093657Z-phase07` | exit 0, CASES 10/10 (B11 SKIP — pre-fix run, expected) | pass | `gates/verify_bench-phase07.txt` |
+
+**All standing gates green.** No new run directory existed to sweep (no live run authorized). The
+sweep scripts each create their own timestamped artifact directory under their own phase's
+`results/` (e.g. `phase-02/results/20260831T021136Z-inf03/`) as their normal read-verification
+side effect — this is the scripts' own documented behavior, not a write this plan made, and none
+of it touches `bench/runs/*/meta/`, `phase-01/`, or shipped provider configuration.
+
+## Post-execution safety confirmation
+
+- `providers.json` sha256 after sweep: `534151965f81089b11d96d4af0b8a115b558f38efd42e82a9edd2a76f44fc214`
+  — unchanged.
+- Six live service pids unchanged versus `pre/pids.txt`: `com.ohama.flashnext` 46573,
+  `com.ohama.role-shim` 75548, `com.ohama.litellm` 48525, `com.ohama.kanban` 36175,
+  `com.ohama.kanban-proxy` 19669, `com.ohama.telegram-connect` 99162 (all confirmed by
+  `verify_services.sh`/`verify_bench.sh` B10 passing, and by direct `ps -p` re-check).
+- `colima status` → "colima is not running" (left stopped throughout).
+- `lsof -i :3000` → empty.
+- `~/local-llm-settings/` not touched.
+- `bench/runs/20260830T122809Z-phase07-fix/meta/` and `bench/runs/20260830T093657Z-phase07/meta/`
+  byte-unchanged (no write occurred; `verify_bench.sh` reads only).
+- `git status --short phase-01/` empty.
+- Zero `cline`/`kanban` invocations across this entire plan.
