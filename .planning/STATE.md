@@ -116,6 +116,37 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 5 waves, `841c046`)로 Phase 7 을 재개했다. BCH-01 과제 수를 채우는 계획이 아니라 감사가
 지목한 fail-context 근인을 규명하는 계획 — 사용자가 명시적으로 근인 규명을 선택했다.
 
+**07-14(원격화 결정, gap closure, wave 13) — 완료.** 라이브 실행 0회, 모델 호출 0회.
+Task 1(`fe92a3c`): `phase-07/results/20260831T011037Z-remediation/CANDIDATE-MATRIX.md` —
+07-11/07-12 의 근인을 5개 고유 메커니즘으로 통합, 과제별 required-headroom 산수를
+`token-ladder.tsv` 에서 직접 인용, 후보 A~F(contextWindow 하향/tool-output 상한/compaction
+전략/max_tokens 하한/메모리 경합/한계 수용)를 메커니즘마다 스코어링. Task 2(`793cc26`):
+`RECOMMENDATION.md` — **contextWindow 무변경**을 권고(indeterminate 아님, 확정 판정): 07-13
+이 인계한 M4(실제 압축 완료 이벤트 2/2건 모두 메시지 0건 삭제, 토큰은 오히려 증가)가 confirmed
+defect 이므로, contextWindow 를 낮추는 것은 "언제 압축이 발동하냐"만 바꿀 뿐 "압축이 실제로
+도움되냐"는 안 바꾼다는 메커니즘 근거. B(tool-output 상한)·D(max_tokens 하한)는 산수로는
+두 과제(v-edit/telegram 계열)를 닫지만 이 프로젝트가 찾은 어떤 설정 표면으로도 도달 불가 —
+"promising" 아니라 0점(not applicable) 처리. 유일하게 미검증·유망한 후보는 **C
+(`--compaction basic`)** — M4 를 직접 겨냥하지만 이 스택에서 top-level config 로 실행된 적이
+단 한 번도 없음. Falsification 조건 명시(신선한 실제 completed 압축 이벤트가
+`messagesAfter<messagesBefore` 를 보이면 이 권고는 틀림). Core Value 문구 수정 제안(합성
+회귀에서만 증명됐다는 한정어 추가, PROJECT.md 자체는 07-15/07-16 소관, 이 플랜에서 편집 안 함).
+Task 3(체크포인트, `f735d1a`, 컨티뉴에이션 에이전트가 재개): 사용자가 4개 canonical 옵션·
+🔴 kanban/kanban-proxy 라이브 영향 리스크를 확인 후 **`SELECTION: doc-only`**(RECOMMENDATION
+과 정확히 일치) 선택 — verbatim 응답과 canonical 라벨 나란히 `DECISION.md` 에 기록. 별도
+질문으로 "매트릭스가 유일하게 유망하다고 본 C(`--compaction basic`) 가 4개 canonical 옵션
+중 어디로도 안 이어진다(07-15 apply 메커니즘이 contextWindow 만 다룸)"는 불일치를 사용자에게
+제시 — 사용자는 "후속 과제로 기록만"(현재 phase 범위 확장 안 함, 라이브/합성 테스트 안 함)
+선택, `DECISION.md` 에 이 lever 를 **의식적으로 유예된 follow-up**으로 별도 라벨링해 기록
+(누락이 아니라 검토 후 보류임을 명시). 세션 중 이전에 실행됐던
+`phase-01/results/exp-basic/`(`--compaction basic` 실험)는 이 질문에 대한 증거로 **무효**임을
+`DECISION.md` 에 명시 정정 — 그 실행은 `contextWindow` 가 `models[]` 안에 있어 128k fallback
+이 발동했고 실제 32K 천장과 무관하기 때문(이 프로젝트가 원래 잡으려던 바로 그 버그). 안전 확인
+(작성 전후 모두): `providers.json` sha256 `534151965f81089b...` 불변, 6개 pid 전부 불변, colima
+계속 정지, `lsof -i :3000` 빈 상태, `cline`/`kanban`/`harbor` 프로세스 미기동. SUMMARY:
+`07-14-SUMMARY.md`. **다음: 07-15(조건부 라이브 런 — `SELECTION: doc-only` 를 실행해야 함:
+config 무변경, 문서화만)·07-16 — 이 세션은 07-14 로 종료.**
+
 **07-13(분류기 수정, gap closure, wave 12) — 완료.** 07-12 가 남긴 5개 결함 목록(`CLASSIFIER-
 AUDIT.md`§3)을 그대로 수리. 라이브 실행 0회, 모델 호출 0회. Task 1(`52a27f5`): `run_task.sh`
 의 `HTTP_400_SEEN`(맨 `\b400\b` grep)을 진짜 거부 문구
@@ -1469,6 +1500,14 @@ unavailable/부분충족으로 기록해야 함), 08-06(00-시작하기 + README
 충족**으로 기록해야 함 — 격상 금지. 남은 Phase 8: 08-06(00-시작하기 + README 인덱스 +
 phase-close, Phase 8 마지막 플랜). 전체 진행률 48/49(Phase 8 이 6/6 이 되면 49/49).
 
+**갱신 (07-14 완료 시점, 마일스톤 8/8 완료 이후 재개된 Phase 7 2차 gap-closure):** 완료 plan 수
+실측 **53**(`find .planning/phases -name '*-SUMMARY.md' | wc -l`) = 위 48(마일스톤 전체 종료
+시점) + 07-11/07-12/07-13/07-14(마일스톤 감사 사후 재개된 2차 gap-closure `07-11`~`07-16`
+6 plans 중 4개 완료). 07-14 는 원격화 결정(라이브 실행 0회) — `SELECTION: doc-only`(contextWindow
+무변경) 확정, `--compaction basic` 은 의식적으로 유예된 follow-up 으로 기록. 남은 2차
+gap-closure: 07-15(조건부 라이브 런 — 이번엔 `doc-only` 이므로 config 변경/라이브 런 없이
+문서화만 수행해야 함), 07-16.
+
 ## Performance Metrics
 
 **Velocity:**
@@ -1487,9 +1526,21 @@ phase-close, Phase 8 마지막 플랜). 전체 진행률 48/49(Phase 8 이 6/6 �
 | 4 | 4/4 | ~42 min | ~10.5 min |
 | 5 | 7/7 | ~116 min | ~16.6 min |
 | 6 | 8/8 | ~70 min (+35 min BLOCKED 06-04, uncounted above) | ~14 min |
-| 7 | 7/10 (gap closure in progress) | ~174 min | ~25 min |
+| 7 | 8/10 base + 4/6 second gap-closure (07-11~07-16 in progress) | ~229 min | ~24 min |
 
 **Recent Trend:**
+- 07-14 (~55 min, gap-closure wave 13 — analysis-only remediation decision, zero live runs, zero
+  model calls. Built `CANDIDATE-MATRIX.md` scoring candidates A-F against 5 root-cause mechanisms
+  with per-task arithmetic; wrote `RECOMMENDATION.md` recommending no `contextWindow` change on a
+  confirmed-defect basis (M4: real completed compaction events add rather than prune tokens, 2/2
+  observed), with falsification condition and Core Value scope-check. At the Task 3 checkpoint the
+  user selected `SELECTION: doc-only` (matching the recommendation) and, on a second question,
+  chose to record the one untested-but-promising candidate (`--compaction basic`) as a deferred
+  follow-up rather than exercise it now — both decisions and a correction voiding an earlier
+  same-session `exp-basic` run as evidence (its `contextWindow` sat inside `models[]`, triggering
+  the 128k fallback instead of the real ceiling) recorded verbatim in `DECISION.md`. Three commits
+  (`fe92a3c`/`793cc26`/`f735d1a`), the last one written by a continuation agent after the
+  checkpoint. `providers.json` sha256 and all six service pids unchanged throughout.)
 - 07-13 (~12 min, gap-closure wave 12 — repaired `run_task.sh`'s `HTTP_400_SEEN` verdict rule
   per 07-12's 5-defect list: bare-`\b400\b` grep replaced with a match on the authoritative
   `Request needs ... MAX_KV_SIZE is ...` rejection phrase, shared via a new
@@ -2611,7 +2662,24 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-31
-Stopped at: **07-13-PLAN.md 완료 (분류기 수정, gap closure, wave 12, 3/3 tasks) — 마일스톤
+Stopped at: **07-14-PLAN.md 완료 (원격화 결정, gap closure, wave 13, 3/3 tasks, Task 3 는
+블로킹 체크포인트를 거쳐 컨티뉴에이션 에이전트가 재개) — 마일스톤 감사 사후 Phase 7
+gap-closure(07-11~07-16) 진행 중.** 커밋 3개, 개별(`fe92a3c`/`793cc26`/`f735d1a`). 라이브
+실행 0회, 모델 호출 0회. Task 1(`fe92a3c`): `CANDIDATE-MATRIX.md` — 5개 근인 메커니즘 x
+후보 A~F 스코어링, 과제별 required-headroom 산수를 `token-ladder.tsv` 에서 직접 인용. Task 2
+(`793cc26`): `RECOMMENDATION.md` — contextWindow 무변경 권고(확정 판정, M4 확인 결함 근거),
+falsification 조건과 Core Value 문구 수정 제안 포함. Task 3(체크포인트 → `f735d1a`): 사용자가
+`SELECTION: doc-only` 선택(RECOMMENDATION 과 일치); 별도 질문으로 매트릭스가 유일하게
+유망하다고 본 `--compaction basic` 이 4개 canonical 옵션 어디로도 안 이어지는 불일치를
+제시했고, 사용자는 "후속 과제로 기록만"(범위 확장/라이브·합성 테스트 없음) 선택 —
+`DECISION.md` 에 의식적 유예로 별도 기록. 세션 중 이전 `phase-01/results/exp-basic/` 실행은
+이 질문의 증거로 무효임을 정정 기록(`contextWindow` 가 `models[]` 안에 있어 128k fallback
+발동, 실제 32K 천장과 무관). 안전 확인(작성 전후 모두): `providers.json` sha256
+`534151965f81089b...` 불변, 6개 pid 전부 불변, colima 계속 정지, `lsof -i :3000` 빈 상태,
+`cline`/`kanban`/`harbor` 프로세스 미기동. SUMMARY: `07-14-SUMMARY.md`. Resume file: None.
+**다음: 07-15(조건부 라이브 런 — `SELECTION: doc-only` 실행: config 무변경, 문서화만)·07-16.**
+
+이전: **07-13-PLAN.md 완료 (분류기 수정, gap closure, wave 12, 3/3 tasks) — 마일스톤
 감사 사후 Phase 7 gap-closure(07-11~07-16) 진행 중.** 커밋 3개, 개별
 (`52a27f5`/`282b560`/`1714181`). Task 1(`52a27f5`): `run_task.sh`의 `HTTP_400_SEEN`(맨
 `\b400\b` grep)을 진짜 거부 문구(`Request needs <T> context tokens (<P> prompt + <G> max
