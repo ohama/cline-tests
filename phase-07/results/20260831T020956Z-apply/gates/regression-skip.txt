@@ -1,0 +1,11 @@
+Task 2 (re-prove Core Value at new value): SKIPPED.
+
+Reason: no configuration value changed (SELECTION: doc-only). Per plan text: "Skip this task
+entirely if no configuration value changed — record 'skipped: no value changed' in APPLIED.md
+and move on. The existing Phase 1 proof still stands unmodified in that case."
+
+The existing proof of the Core Value at contextWindow=29000 remains valid and unmodified:
+  phase-01/results/exp-verify29k/ (18 fillers completed, 0 server 400s)
+
+Host cline pin: unchanged at 3.0.53 throughout (no cline invocation occurred in this plan,
+so no drift window existed to check).

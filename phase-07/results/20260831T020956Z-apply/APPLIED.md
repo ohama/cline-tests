@@ -75,9 +75,10 @@ starting mid-apply-window) is specific to the config-change branches and does no
 
 ## Regression (Task 2)
 
-Skipped: no configuration value changed. `phase-01/results/exp-verify29k/` (18 fillers completed,
+**Skipped: no value changed.** `phase-01/results/exp-verify29k/` (18 fillers completed,
 0 server 400s, measured at `contextWindow: 29000`) remains the standing, unmodified proof of the
-Core Value — it was never invalidated because the value it was measured at never changed.
+Core Value — it was never invalidated because the value it was measured at never changed. See
+`gates/regression-skip.txt` for the recorded skip marker.
 
 ## Live bench run (Task 3)
 
