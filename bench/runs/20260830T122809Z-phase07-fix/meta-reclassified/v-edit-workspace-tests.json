@@ -1,0 +1,14 @@
+{
+  "task": "v-edit-workspace-tests",
+  "supersedes": "meta/v-edit-workspace-tests.json",
+  "old_verdict": "fail-context",
+  "verdict": "fail-context",
+  "changed": false,
+  "model_turns": 12,
+  "reward": 0,
+  "max_prompt_tokens_accepted": 30696,
+  "max_prompt_tokens_attempted": 30843,
+  "maxkv_rejections_serverlog": 1,
+  "maxkv_rejections_transcript": 3,
+  "oom_failures": 1
+}

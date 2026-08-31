@@ -1,0 +1,14 @@
+{
+  "task": "discord-trivia-approval-keyerror",
+  "supersedes": "meta/discord-trivia-approval-keyerror.json",
+  "old_verdict": "fail-infra",
+  "verdict": "fail-infra",
+  "changed": false,
+  "model_turns": 0,
+  "reward": 0,
+  "max_prompt_tokens_accepted": 0,
+  "max_prompt_tokens_attempted": 0,
+  "maxkv_rejections_serverlog": 0,
+  "maxkv_rejections_transcript": 0,
+  "oom_failures": 0
+}

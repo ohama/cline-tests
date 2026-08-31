@@ -159,7 +159,12 @@ except Exception:
     print('PARSE-ERROR')
 " "$f")"
     case "$V" in
-      pass|fail-task|fail-context|fail-infra) : ;;
+      # fail-oom added 07-13 gap closure (classify_lib.sh's classify_verdict) --
+      # distinguishes a memory/GPU exhaustion death with zero model turns from
+      # both fail-context (a genuine MAX_KV_SIZE rejection) and the
+      # zero-evidence fail-infra catch-all. Admitting it here is a vocabulary
+      # widening only; it does not weaken this check for any existing verdict.
+      pass|fail-task|fail-context|fail-oom|fail-infra) : ;;
       *) B2_BAD="$B2_BAD $(basename "$f")=$V;" ;;
     esac
   done

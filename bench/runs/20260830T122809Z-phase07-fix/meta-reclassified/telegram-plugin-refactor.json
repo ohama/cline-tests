@@ -1,0 +1,14 @@
+{
+  "task": "telegram-plugin-refactor",
+  "supersedes": "meta/telegram-plugin-refactor.json",
+  "old_verdict": "fail-context",
+  "verdict": "fail-context",
+  "changed": false,
+  "model_turns": 6,
+  "reward": 0,
+  "max_prompt_tokens_accepted": 21036,
+  "max_prompt_tokens_attempted": 36155,
+  "maxkv_rejections_serverlog": 1,
+  "maxkv_rejections_transcript": 3,
+  "oom_failures": 0
+}
