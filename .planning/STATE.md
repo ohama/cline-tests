@@ -148,6 +148,32 @@ match-provenance.md,CLASSIFIER-AUDIT.md}` 4개 파일, 커밋 3개(`e53ed5e`/`a5
 프로세스 미기동. SUMMARY: `07-12-SUMMARY.md`. **다음: 07-13(분류기 수정) 또는 병렬
 07-11/07-14~16 — 이 세션은 07-12 로 종료.**
 
+**07-11(context-ceiling 포렌식, wave 11, 07-12 와 병렬) — 완료.** 라이브 실행 0회, 모델 호출
+0회, 저장된 증거만으로 두 fail-context 과제(`telegram-plugin-refactor`/`v-edit-workspace-tests`)
+의 진짜 근인을 규명. 서버로그를 두 줄 형식(수락된 `Generation queued:` + 거부된 `Request needs
+... MAX_KV_SIZE`) 모두 파싱해 `max_prompt_tokens` 측정 결손을 정량화: telegram 은 원장이
+21,036 을 기록하지만 실제 거부 시점 프롬프트는 **36,155**(15,119 토큰 과소집계, `run_task.sh`
+가 거부 줄을 아예 못 보기 때문), v-edit 은 30,696 대 **30,843**(147 토큰, 훨씬 좁은 차이) —
+같은 측정 결손이라도 과제마다 규모가 완전히 다름을 실측으로 확인, 07-12(분류기 감사)에
+이름으로 인계(분류기 자체는 수정 안 함). 두 과제는 **같은 현상이 아니라고 명시적으로 판정**:
+telegram 은 압축이 정시(iteration 6, trigger 26100)에 발동했지만 `plugins/gopher-ai/src`
+전체 6개 파일을 줄범위 제한 없이 읽은 단일 tool 호출 하나가 그 자체로 ~11,764 토큰을 더해
+다음 실제 요청이 36,155 로 벽을 훨씬 넘김; v-edit 은 압축이 한 번(iteration 8) 발동한 뒤
+iteration 9~11~12 세 번(문서상 총 4회) 연속으로 `auto-compaction-skipped` 를 내며(사유 필드
+없음, indeterminate 로 명시) 4턴에 걸쳐 27,173→30,843 로 천천히 기어올라 벽을 단 123 토큰
+차이로 넘음(도중에 컨텍스트와 무관한 METAL/OOM 실패+자동 재시도 1건 확인, confound 로 기록).
+단, 두 과제 모두 실제 압축 이벤트의 `.compaction.json` 이 `messagesBefore==messagesAfter==16`
+(원본 메시지 16개 중 하나도 안 지워짐, 요약만 얹힘)을 보여줘 — 공유 결함 가설(압축이 실제로는
+안 지운다)은 명시했지만 세 번째 사례가 없어 "증명됐다"고는 안 씀. `docs/32k-compaction-policy.md`
+§4 의 2,700~3,100 토큰 오버슈트 예산과 대조: telegram 오버슈트 12,526(≈4.3배), v-edit 은 실제
+압축 시점 자체는 예산 안(1,909)이었지만 이후 스킵 구간에서 누적. `phase-07/results/
+20260831T003728Z-context-forensics/{README,token-ladder.tsv,compaction-events.tsv,
+CONTEXT-FORENSICS.md}` 4개 파일, 커밋 3개. 6개 pid 중 감시 대상 3개(flashnext/role-shim/
+litellm) 불변, `providers.json` sha256 불변, colima 계속 정지 상태, `lsof -i :3000` 빈 상태,
+`harbor`/`cline` 프로세스 미기동, `bench/runs/` 전과정 byte-unchanged. SUMMARY:
+`07-11-SUMMARY.md`. **다음: 07-13(분류기 수정)·07-14(원격화 결정)·07-15(조건부 라이브
+런)·07-16 — 이 세션은 07-11 로 종료.**
+
 이전(마일스톤 완료 시점 기록, 그대로 보존): Phase: 8 of 8 (한글 사용 매뉴얼) — **완료, 6/6 plan
 종료(08-01~08-06).** wave 1(08-01/08-02)
 완료, wave 2(08-03/08-04) 완료, wave 3(08-05) 완료, wave 4(08-06) 완료. **8개 Phase 전부
