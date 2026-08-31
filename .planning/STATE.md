@@ -147,6 +147,30 @@ Task 3(체크포인트, `f735d1a`, 컨티뉴에이션 에이전트가 재개): �
 `07-14-SUMMARY.md`. **다음: 07-15(조건부 라이브 런 — `SELECTION: doc-only` 를 실행해야 함:
 config 무변경, 문서화만)·07-16 — 이 세션은 07-14 로 종료.**
 
+**07-15(결정 실행 — no-op 분기, gap closure, wave 14) — 완료.** `DECISION.md`
+`SELECTION: doc-only` 를 verbatim 확인 후 no-op 분기 정확히 실행: `apply_provider_config.sh`
+미호출, `settings.contextWindow` 29000 그대로, `providers.json` sha256
+`534151965f81089b...` 실행 전후 byte-identical, 라이브 벤치 런 0회, 모델 호출 0회. Task 1
+(`e4a452e`): `pre/`(providers.json.bak+해시+6개 pid+호스트 `cline` 버전 3.0.53 — 바이너리
+미호출, `package.json` 만 읽음) 캡처 후 `SELECTION` 확인 — doc-only 이므로 플랜이 명시한 대로
+kanban/telegram in-flight 프리컨디션 체크(쓰기 보호용) 자체를 건너뜀(누락이 아니라 플랜의
+디스패치 순서). `APPLIED.md` 에 선택값·before/after config(둘 다 29000)·롤백 커맨드(미사용,
+기록만)·잔여 리스크 해당없음 사유 기록. Task 2(`88148dd`): 값 변경 없으므로 회귀 재실행
+스킵 — `phase-01/results/exp-verify29k/`(18 filler, 서버 400 0건) 증거 그대로 유효. Task 3
+(`ecaa33b`): 라이브 런 미승인(`config-change-plus-run` 아님) 확인 후 상시 게이트 6종 전부
+읽기전용 재실행 — `verify_config.sh`(OK)·`verify_no_regression.sh`(INF03 PASS)·
+`verify_sandbox.sh`(16/16, CRITERION 4 PASS)·`verify_services.sh`(15/15)·`verify_network.sh`
+(24/24, `20260830T051403Z-baseline` 대조)·`verify_bench.sh`(post-fix 11/11, pre-fix 10/10 +
+예상된 B11 SKIP) 전부 그린. `DECISION.md` 가 별도로 기록한 "`--compaction basic` 은 의식적으로
+유예된 follow-up"과 "`exp-basic` 실험은 그 lever 의 증거로 무효(contextWindow 가 `models[]`
+안에 있어 128k fallback 발동)"를 `APPLIED.md` 에 그대로 인계. `phase-07/results/
+20260831T020956Z-apply/{APPLIED.md,pre/*,gates/*}` 신설, 커밋 3개(`e4a452e`/`88148dd`/
+`ecaa33b`). 6개 pid 전부 불변, colima 계속 정지, `lsof -i :3000` 빈 상태,
+`~/local-llm-settings/` 무변경, `bench/runs/*/meta/` byte-unchanged, `git status --short
+phase-01/` 빈 상태, `cline`/`kanban` 프로세스 0회 호출. SUMMARY: `07-15-SUMMARY.md`. **다음:
+07-16(docs/`.planning` 전파 — Core Value 문구 한정어 + `--compaction basic` follow-up 기록) —
+이 세션은 07-15 로 종료.**
+
 **07-13(분류기 수정, gap closure, wave 12) — 완료.** 07-12 가 남긴 5개 결함 목록(`CLASSIFIER-
 AUDIT.md`§3)을 그대로 수리. 라이브 실행 0회, 모델 호출 0회. Task 1(`52a27f5`): `run_task.sh`
 의 `HTTP_400_SEEN`(맨 `\b400\b` grep)을 진짜 거부 문구
@@ -1508,13 +1532,18 @@ phase-close, Phase 8 마지막 플랜). 전체 진행률 48/49(Phase 8 이 6/6 �
 gap-closure: 07-15(조건부 라이브 런 — 이번엔 `doc-only` 이므로 config 변경/라이브 런 없이
 문서화만 수행해야 함), 07-16.
 
+**갱신 (07-15 완료 시점):** 완료 plan 수 실측 **54**(위 53 + 07-15). 07-15 는 `SELECTION:
+doc-only` no-op 분기를 정확히 실행 — `settings.contextWindow` 29000 그대로,
+`providers.json` sha256 실행 전후 byte-identical, 라이브 벤치 런 0회, 모델 호출 0회, 상시
+게이트 6종 전부 재확인 그린. 남은 2차 gap-closure: 07-16(docs/`.planning` 전파).
+
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 40 (06-04 excluded — BLOCKED, not counted as completed; its 35 min is
+- Total plans completed: 41 (06-04 excluded — BLOCKED, not counted as completed; its 35 min is
   tracked separately below)
 - Average duration: ~16 min
-- Total execution time: ~10.9 hours
+- Total execution time: ~11.0 hours
 
 **By Phase:**
 
@@ -1526,9 +1555,20 @@ gap-closure: 07-15(조건부 라이브 런 — 이번엔 `doc-only` 이므로 co
 | 4 | 4/4 | ~42 min | ~10.5 min |
 | 5 | 7/7 | ~116 min | ~16.6 min |
 | 6 | 8/8 | ~70 min (+35 min BLOCKED 06-04, uncounted above) | ~14 min |
-| 7 | 8/10 base + 4/6 second gap-closure (07-11~07-16 in progress) | ~229 min | ~24 min |
+| 7 | 8/10 base + 5/6 second gap-closure (07-11~07-16 in progress) | ~235 min | ~23.5 min |
 
 **Recent Trend:**
+- 07-15 (~6 min, gap-closure wave 14 — executed the `SELECTION: doc-only` no-op branch of the
+  remediation decision: read the selection verbatim, confirmed it as canonical, then changed
+  nothing (`apply_provider_config.sh` never invoked, `settings.contextWindow` stays 29000,
+  `providers.json` sha256 identical before/after). Correctly skipped the live-service in-flight
+  precondition checks — the plan scopes them to protect a write, and doc-only performs none.
+  Skipped Task 2's Core Value re-regression (no value changed). Live bench run not authorized
+  (requires `config-change-plus-run`); zero live runs, zero model calls. Ran the full read-only
+  standing-gate sweep (`verify_config.sh`, `verify_no_regression.sh` INF03, `verify_sandbox.sh`
+  16/16, `verify_services.sh` 15/15, `verify_network.sh` 24/24, `verify_bench.sh` x2) all green.
+  Three commits (`e4a452e`/`88148dd`/`ecaa33b`). All six pids and providers.json hash unchanged
+  throughout.)
 - 07-14 (~55 min, gap-closure wave 13 — analysis-only remediation decision, zero live runs, zero
   model calls. Built `CANDIDATE-MATRIX.md` scoring candidates A-F against 5 root-cause mechanisms
   with per-task arithmetic; wrote `RECOMMENDATION.md` recommending no `contextWindow` change on a
@@ -2662,7 +2702,29 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-31
-Stopped at: **07-14-PLAN.md 완료 (원격화 결정, gap closure, wave 13, 3/3 tasks, Task 3 는
+Stopped at: **07-15-PLAN.md 완료 (결정 실행 — no-op 분기, gap closure, wave 14, 3/3 tasks) —
+마일스톤 감사 사후 Phase 7 gap-closure(07-11~07-16) 진행 중.** 커밋 3개, 개별
+(`e4a452e`/`88148dd`/`ecaa33b`). `DECISION.md` `SELECTION: doc-only` 를 verbatim 확인 후
+no-op 분기 정확히 실행: `apply_provider_config.sh` 미호출, `settings.contextWindow` 29000
+그대로, `providers.json` sha256 `534151965f81089b...` 실행 전후 byte-identical, 라이브 벤치
+런 0회, 모델 호출 0회. Task 1(`e4a452e`): `pre/`(providers.json.bak+해시+6개 pid+호스트
+`cline` 버전 3.0.53, 바이너리 미호출) 캡처 후 `SELECTION` 확인 — doc-only 이므로 플랜이 명시한
+대로 kanban/telegram in-flight 프리컨디션 체크(쓰기 보호용)를 건너뜀(누락 아니라 플랜의
+디스패치 순서), `APPLIED.md` 에 선택값·before/after config·롤백 커맨드(미사용)·잔여 리스크
+해당없음 기록. Task 2(`88148dd`): 값 변경 없어 회귀 재실행 스킵 —
+`phase-01/results/exp-verify29k/` 증거 그대로 유효. Task 3(`ecaa33b`): 라이브 런 미승인
+확인 후 상시 게이트 6종 읽기전용 재실행 — `verify_config.sh`(OK)·`verify_no_regression.sh`
+(INF03 PASS)·`verify_sandbox.sh`(16/16, CRITERION 4 PASS)·`verify_services.sh`(15/15)·
+`verify_network.sh`(24/24)·`verify_bench.sh`(post-fix 11/11, pre-fix 10/10+예상 B11 SKIP)
+전부 그린. `DECISION.md` 의 `--compaction basic` 의식적 유예 follow-up 과 `exp-basic` 증거
+무효화를 `APPLIED.md` 에 그대로 인계. `phase-07/results/20260831T020956Z-apply/{APPLIED.md,
+pre/*,gates/*}` 신설. 안전 확인: 6개 pid 전부 불변, colima 계속 정지, `lsof -i :3000` 빈
+상태, `~/local-llm-settings/` 무변경, `bench/runs/*/meta/` byte-unchanged, `git status
+--short phase-01/` 빈 상태, `cline`/`kanban` 프로세스 0회 호출. SUMMARY: `07-15-SUMMARY.md`.
+Resume file: None. **다음: 07-16(docs/`.planning` 전파 — Core Value 문구 한정어 +
+`--compaction basic` follow-up 기록).**
+
+이전: **07-14-PLAN.md 완료 (원격화 결정, gap closure, wave 13, 3/3 tasks, Task 3 는
 블로킹 체크포인트를 거쳐 컨티뉴에이션 에이전트가 재개) — 마일스톤 감사 사후 Phase 7
 gap-closure(07-11~07-16) 진행 중.** 커밋 3개, 개별(`fe92a3c`/`793cc26`/`f735d1a`). 라이브
 실행 0회, 모델 호출 0회. Task 1(`fe92a3c`): `CANDIDATE-MATRIX.md` — 5개 근인 메커니즘 x
