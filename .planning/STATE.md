@@ -116,6 +116,45 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 5 waves, `841c046`)로 Phase 7 을 재개했다. BCH-01 과제 수를 채우는 계획이 아니라 감사가
 지목한 fail-context 근인을 규명하는 계획 — 사용자가 명시적으로 근인 규명을 선택했다.
 
+**07-13(분류기 수정, gap closure, wave 12) — 완료.** 07-12 가 남긴 5개 결함 목록(`CLASSIFIER-
+AUDIT.md`§3)을 그대로 수리. 라이브 실행 0회, 모델 호출 0회. Task 1(`52a27f5`): `run_task.sh`
+의 `HTTP_400_SEEN`(맨 `\b400\b` grep)을 진짜 거부 문구
+(`Request needs <T> context tokens (<P> prompt + <G> max generation), but MAX_KV_SIZE is <K>`)
+매치로 교체 — 세 과제(`discord-trivia-approval-keyerror`/`telegram-plugin-refactor`/
+`v-edit-workspace-tests`) 서버로그·트랜스크립트에서 바이트 단위로 재확인. 새 공유 라이브러리
+`phase-07/bench/classify_lib.sh` 신설(플랜의 `key_links` 요구사항 — `run_task.sh`와
+`reclassify_runs.sh`가 판정 로직을 한 곳에서만 공유해야 함 — 을 만족시키기 위한 편차
+Rule 2 추가 파일, 플랜 Task 2 본문이 직접 제안한 구현 방식). `max_prompt_tokens`(하위호환,
+값·계산 불변, accepted-only)와 별도로 `max_prompt_tokens_attempted`(거부된 요청까지 포함한
+진짜 최대치, telegram 36155/v-edit 30843/discord 31179) 신설. 결함 4의 죽은 OR 항
+(`max_prompt_tokens>=32768`)은 완전 제거(fallback 으로도 안 남김) — 구조적으로 발동 불가능함이
+증명됐으므로. 새 `fail-oom` 판정(메모리/GPU 고갈, 컨텍스트 거부 없고 모델 턴 0건일 때만) 추가,
+두 신호가 공존할 때는 `fail-context` 가 우선(discord-trivia 가 실측 근거 — OOM 6건 회복 후
+컨텍스트 거부가 terminal). Task 2(`282b560`): `reclassify_runs.sh` 신설 — 저장된 증거만으로
+과제별 판정을 재도출해 `<run-dir>/meta-reclassified/<task>.json` 사이드카에 기록, `meta/`
+내부 쓰기는 하드 assertion 으로 거부, 멱등 확인(재실행 결과 byte-identical). 양쪽 실행
+디렉터리(`bench/runs/20260830T122809Z-phase07-fix/` 4건 +
+`bench/runs/20260830T093657Z-phase07/` 1건 = 총 5건) 전부 **판정 변경 0건** — 수정된
+분류기가 기존 라벨을 정확히 재현함을 실증. `verify_bench.sh` B2 허용 어휘에 `fail-oom` 추가
+후 재실행: post-fix 런 `11/11 PASS`, pre-fix 런 `PASS`(B11 SKIP), `/nonexistent` 는 여전히
+exit 1. Task 3(`1714181`): 합성 fixture 4개로 새 탐지기 증명 — decode 텔레메트리
+(`generated_tokens=400`)와 벤치 과제 자신의 소스 코드 리터럴(`case 400:` 등)은 fail-context
+를 유발하지 **않음**, 진짜 거부 문구는 유발하며 `max_prompt_tokens_attempted=36155` 를 정확히
+추출, 단독 OOM 이벤트는 새 `fail-oom` 을 유발(모두 MATCH). `RECLASSIFICATION.md` 에 5건 전체
+old-vs-new 표 + 재확인된 헤드라인 수치(N=4/M=3/P=0, 전 문서와 동일, 변경 없음). 오케스트레이터가
+전달한 "압축이 실제로 안 지우는가" 단서를 값싸게 검증: phase-01 합성 실행과 실제 벤치의
+`.compaction.json` 이 동일한 `auto_compaction` notice 스키마(같은 필드명, 같은 생산자)를 씀을
+확인한 뒤, 양쪽의 모든 `completed` 이벤트를 대조 — 합성 5/5건은 메시지를 지우고 토큰도 줄었지만,
+실제 벤치 2/2건은 메시지를 하나도 안 지우고 토큰이 오히려 늘었음(07-11 가설의 재확인·강화).
+원격화 결론은 내지 않고 07-14 앞으로 명시적 finding 으로만 인계(2개 데이터 포인트뿐이라는
+한계 명시). `phase-07/results/20260831T010013Z-reclassify/{README,RECLASSIFICATION.md,
+negative-controls.txt,fixtures/*}` 신설, 커밋 3개(`52a27f5`/`282b560`/`1714181`). 6개 pid 중
+감시 대상 3개(46573/75548/48525) 불변, `providers.json` sha256
+`534151965f81089b...` 불변, colima 계속 정지, `lsof -i :3000` 빈 상태,
+`harbor`/`cline` 프로세스 미기동, `bench/runs/*/meta/` 실행 전후 byte-unchanged. SUMMARY:
+`07-13-SUMMARY.md`. **다음: 07-14(원격화 결정, 07-13 이 인계한 "압축 미프루닝" finding 을
+검토해야 함)·07-15(조건부 라이브 런)·07-16 — 이 세션은 07-13 으로 종료.**
+
 **07-12(fail-context 분류기 감사, wave 11, 07-11 과 병렬) — 완료.** 라이브 실행 0회, 모델
 호출 0회, 포렌식만(`bench/runs/`/`phase-07/bench/` 양쪽 다 `git status --short` 빈 상태로
 불변 확인). 판정: **분류기(`run_task.sh`)는 불건전하다** — (1) 서버로그 쪽 `HTTP_400_SEEN`
@@ -1433,10 +1472,10 @@ phase-close, Phase 8 마지막 플랜). 전체 진행률 48/49(Phase 8 이 6/6 �
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 39 (06-04 excluded — BLOCKED, not counted as completed; its 35 min is
+- Total plans completed: 40 (06-04 excluded — BLOCKED, not counted as completed; its 35 min is
   tracked separately below)
 - Average duration: ~16 min
-- Total execution time: ~10.7 hours
+- Total execution time: ~10.9 hours
 
 **By Phase:**
 
@@ -1448,9 +1487,22 @@ phase-close, Phase 8 마지막 플랜). 전체 진행률 48/49(Phase 8 이 6/6 �
 | 4 | 4/4 | ~42 min | ~10.5 min |
 | 5 | 7/7 | ~116 min | ~16.6 min |
 | 6 | 8/8 | ~70 min (+35 min BLOCKED 06-04, uncounted above) | ~14 min |
-| 7 | 6/10 (gap closure in progress) | ~162 min | ~27 min |
+| 7 | 7/10 (gap closure in progress) | ~174 min | ~25 min |
 
 **Recent Trend:**
+- 07-13 (~12 min, gap-closure wave 12 — repaired `run_task.sh`'s `HTTP_400_SEEN` verdict rule
+  per 07-12's 5-defect list: bare-`\b400\b` grep replaced with a match on the authoritative
+  `Request needs ... MAX_KV_SIZE is ...` rejection phrase, shared via a new
+  `phase-07/bench/classify_lib.sh` sourced by both `run_task.sh` and the new
+  `reclassify_runs.sh`. Added `max_prompt_tokens_attempted` (recovers 07-11's named undercount)
+  and a distinct `fail-oom` verdict (fail-context takes precedence when both fire). Re-classified
+  all 5 stored run instances from preserved evidence — 0 verdicts changed, `meta/` byte-unchanged.
+  Proved the fix against 4 synthetic negative/positive-control fixtures, all MATCH. Checked the
+  orchestrator's pruning-observation lead (confirmed schema match between the phase-01 synthetic
+  run and real bench `.compaction.json` notices; 5/5 synthetic completed-compaction events pruned,
+  2/2 real-bench events did not) and handed it to 07-14 as a named finding rather than acting on
+  it. Zero live runs, zero model calls. Three commits (`52a27f5`/`282b560`/`1714181`) all
+  individual.)
 - 07-06 (~37 min, Phase 7's first gap-closure plan — diagnosed why 07-02's contextWindow/
   BASE_URL injection doesn't take effect. Settled H1 (version skew) against the REAL
   container-side cline 3.0.53 build, not the host's drifted 3.0.60 (`H1_VERDICT: ruled-out`,
@@ -2559,7 +2611,31 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-31
-Stopped at: **07-12-PLAN.md 완료 (fail-context 분류기 감사, wave 11, 07-11 과 병렬, 3/3 tasks)
+Stopped at: **07-13-PLAN.md 완료 (분류기 수정, gap closure, wave 12, 3/3 tasks) — 마일스톤
+감사 사후 Phase 7 gap-closure(07-11~07-16) 진행 중.** 커밋 3개, 개별
+(`52a27f5`/`282b560`/`1714181`). Task 1(`52a27f5`): `run_task.sh`의 `HTTP_400_SEEN`(맨
+`\b400\b` grep)을 진짜 거부 문구(`Request needs <T> context tokens (<P> prompt + <G> max
+generation), but MAX_KV_SIZE is <K>`) 매치로 교체, 새 공유 라이브러리
+`phase-07/bench/classify_lib.sh` 신설(플랜 key_links 요구 — 두 스크립트가 판정 로직을 한
+곳에서만 공유 — 를 만족시키는 편차 Rule 2 파일). `max_prompt_tokens`(하위호환, 값 불변)와
+별도로 `max_prompt_tokens_attempted`(거부 요청 포함 진짜 최대치) 신설, 결함 4의 죽은 OR 항은
+완전 제거, 새 `fail-oom` 판정 추가(두 신호 공존 시 `fail-context` 우선, discord-trivia 실측
+근거). Task 2(`282b560`): `reclassify_runs.sh` 신설 — 저장된 증거만으로 재판정,
+`meta-reclassified/` 사이드카에 기록, `meta/` 쓰기는 하드 assertion 으로 거부, 멱등 확인.
+양쪽 실행 디렉터리 5건 전부 **판정 변경 0건**. `verify_bench.sh` B2 에 `fail-oom` 추가 후
+재실행: post-fix `11/11 PASS`, pre-fix `PASS`(B11 SKIP), `/nonexistent` 여전히 exit 1.
+Task 3(`1714181`): 합성 fixture 4개로 새 탐지기 증명(전부 MATCH) — decode 텔레메트리·벤치
+과제 자신의 소스 코드 리터럴은 fail-context 유발 안 함, 진짜 거부 문구는 유발하며
+`max_prompt_tokens_attempted` 정확 추출, 단독 OOM 은 새 `fail-oom` 유발. `RECLASSIFICATION.md`
+에 5건 old-vs-new 표 + 재확인된 헤드라인(N=4/M=3/P=0, 변경 없음). 오케스트레이터의 "압축이
+실제로 안 지우는가" 단서를 값싸게 검증(스키마 동일성 확인 + 합성 5/5 vs 실제 2/2 대조)해
+07-14 앞으로 finding 으로 인계(원격화 결론은 안 냄). 안전 확인: pid 46573/75548/48525 불변,
+`providers.json` sha256 `534151965f81089b...` 불변, colima 정지 유지, `lsof -i :3000` 빈
+상태, `harbor`/`cline` 프로세스 미기동, `bench/runs/*/meta/` byte-unchanged. SUMMARY:
+`07-13-SUMMARY.md`. Resume file: None. **다음: 07-14(원격화 결정, 07-13 이 인계한 "압축
+미프루닝" finding 검토 필요)·07-15(조건부 라이브 런)·07-16.**
+
+이전: **07-12-PLAN.md 완료 (fail-context 분류기 감사, wave 11, 07-11 과 병렬, 3/3 tasks)
 — 마일스톤 감사 사후 Phase 7 gap-closure(07-11~07-16) 진행 중.** 커밋 3개, 개별
 (`e53ed5e`/`a58abab`/`f074348`). Task 1: `discord-trivia-approval-keyerror` 실패 구성 정량화
 — 원시 카운트로는 METAL/GPU OOM 6건이 MAX_KV 거부 1건을 압도하지만(나이브
