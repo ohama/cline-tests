@@ -1,0 +1,1 @@
+{"ts":"2026-08-31T00:00:00.000Z","type":"tool_result","tool":"read_files","content":"  switch (status) {\n    case 400:\n      throw new ApiError('Invalid request', 400, 'Submit search job');\n    default:\n      break;\n  }\n"}

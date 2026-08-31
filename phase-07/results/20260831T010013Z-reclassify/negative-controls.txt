@@ -1,0 +1,40 @@
+# Negative/positive control proofs for classify_lib.sh's authoritative-phrase detector
+# Generated: 2026-08-31T01:00:49Z
+# Method: source phase-07/bench/classify_lib.sh and call its functions directly
+# against small synthetic fixture files under fixtures/ in this directory.
+
+## Control 1: decode telemetry (generated_tokens=400) must NOT yield a context verdict
+Fixture: fixtures/control1-decode-telemetry.serverlog.txt
+Content: 'Decode progress: request=82ed511f70 generated_tokens=400 elapsed=24.410s rate=10.5 tok/s'
+maxkv_rejections (server-log target) = 0
+Expected: maxkv_rejections=0, verdict != fail-context
+Actual:   maxkv_rejections=0, verdict=fail-infra
+RESULT: MATCH
+
+## Control 2: benchmark repo's own HTTP-status source literals must NOT yield a context verdict
+Fixture: fixtures/control2-repo-source.transcript.txt
+Content: contains "case 400:" and "throw new ApiError('Invalid request', 400, 'Submit search job')"
+maxkv_rejections (transcript target) = 0
+Expected: maxkv_rejections=0, verdict != fail-context
+Actual:   maxkv_rejections=0, verdict=fail-infra
+RESULT: MATCH
+
+## Control 3: the real MAX_KV_SIZE rejection line MUST yield a context verdict, with the correct attempted prompt size
+Fixture: fixtures/control3-real-rejection.serverlog.txt
+Content: 'Request needs 38203 context tokens (36155 prompt + 2048 max generation), but MAX_KV_SIZE is 32768.'
+maxkv_rejections (server-log target) = 1
+max_prompt_tokens_attempted = 36155
+Expected: maxkv_rejections=1, verdict=fail-context, max_prompt_tokens_attempted=36155
+Actual:   maxkv_rejections=1, verdict=fail-context, max_prompt_tokens_attempted=36155
+RESULT: MATCH
+
+## Control 4: a memory/GPU exhaustion event alone MUST yield the memory-exhaustion verdict, NOT a context verdict
+Fixture: fixtures/control4-oom-only.serverlog.txt
+Content: 'Request failed: ... [METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory).'
+maxkv_rejections = 0, oom_failures = 1
+Expected: maxkv_rejections=0, oom_failures=1, verdict=fail-oom
+Actual:   maxkv_rejections=0, oom_failures=1, verdict=fail-oom
+RESULT: MATCH
+
+## Summary
+4/4 controls run. See RESULT lines above for MATCH/MISMATCH per control.

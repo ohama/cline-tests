@@ -1,0 +1,1 @@
+2026-08-31 02:07:35,961 - WARNING - Request failed: endpoint=/chat/completions model=/Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4 stream=True error=Request needs 38203 context tokens (36155 prompt + 2048 max generation), but MAX_KV_SIZE is 32768. in_flight=0
