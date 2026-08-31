@@ -164,7 +164,7 @@ Plans:
   2. 각 실행 디렉터리에 프롬프트 원문과 결과가 모두 파일로 저장돼 있다 — `met` (시도된 4개 과제/5개
      인스턴스 기준, 두 런 디렉터리 모두)
   3. 통과/실패와 소요 시간을 정리한 표가 파일로 존재한다 — `met`
-**Plans**: 10 plans
+**Plans**: 16 plans (10 original + 6 gap-closure: root-cause of the `fail-context` failures)
 
 Plans:
 - [x] 07-01-PLAN.md — harbor/cline-bench 설치 + 상시 게이트 프리플라이트 + 과제 인벤토리
@@ -177,6 +177,12 @@ Plans:
 - [x] 07-08-PLAN.md — (gap) 실측 비용 제시(cost.md) + 추가 실행 개수 결정 체크포인트(사람, `plus-three` 해석) → SELECTED_TASKS_GAP
 - [x] 07-09-PLAN.md — (gap) 선택된 3개 과제 순차 실행(2개 모델 도달·fail-context, 1개 fail-infra) + BCH-03 표 재생성 + 배치 후 게이트
 - [x] 07-10-PLAN.md — (gap) docs/cline-bench.md §4/§9 정정 + criteria2.md + ROADMAP/REQUIREMENTS/STATE 동기화 + 과대주장 감사
+- [ ] 07-11-PLAN.md — (gap2) 컨텍스트 천장 사망 2건 포렌식: 거부된 요청 포함 실제 토큰 사다리 + 압축 이벤트/오버슈트 정량화
+- [ ] 07-12-PLAN.md — (gap2) discord OOM 구성비 정량화 + `fail-context` 분류기 정오 감사(위양성·위음성 실증)
+- [ ] 07-13-PLAN.md — (gap2) 분류기 수정 + 저장 증거로 오프라인 재분류(meta/ 불변, 사이드카) + 음성 대조군
+- [ ] 07-14-PLAN.md — (gap2) 후보 대책 × 근본원인 매트릭스 + 권고(또는 판정불가) + 사용자 결정 체크포인트
+- [ ] 07-15-PLAN.md — (gap2) 결정 집행(설정 변경 시 apply_provider_config.sh 경유 + Phase 1 회귀 재실행) + 게이트 스윕
+- [ ] 07-16-PLAN.md — (gap2) docs/기획문서 정합 + 매뉴얼 클레임 게이트 재실행 + 과대주장 감사 8/8
 
 ### Phase 8: 한글 사용 매뉴얼
 **Goal**: 실제로 출하된 것을 기준으로 CLI·웹(Kanban)·iPad/iPhone 사용법과 32K 운용 주의사항을
@@ -221,5 +227,5 @@ Phase 1·2·3 은 서로 병렬 가능(의존성 없음). Phase 4·5 는 1·2·3
 | 4. 헤드리스 CLI 래퍼 | 4/4 | ✓ Complete | 2026-08-30 |
 | 5. Kanban·Telegram 서비스화 | 7/7 | ✓ Complete | 2026-08-30 |
 | 6. 네트워크 노출 | 8/8 | ◆ 서버측 완료 — 기준 1·5 human_needed (iPad/Telegram 미관측) | 2026-08-30 |
-| 7. cline-bench 동작 검증 | 10/10 | ◆ 완료(gap-closure 포함) — 기준 1 `not_met`(고유 4개 과제, 3개 모델 도달, 5~8 하한 미달), 기준 2·3 `met` | 2026-08-30 |
+| 7. cline-bench 동작 검증 | 10/16 | ◆ 완료(gap-closure 포함) — 기준 1 `not_met`(고유 4개 과제, 3개 모델 도달, 5~8 하한 미달), 기준 2·3 `met` | 2026-08-30 |
 | 8. 한글 사용 매뉴얼 | 6/6 | ✓ Complete — DOC-01/03/04 met, DOC-02 partially met (worktree unavailable) | 2026-08-31 |
