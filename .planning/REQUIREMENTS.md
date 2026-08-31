@@ -80,6 +80,22 @@
   <br>※ 2026-08-31 정정 — gap-closure(07-06~09) 로 주입 메커니즘은 고쳐져 모델 도달까지
   실측 증명됐지만(3개 과제, 32K 천장에서 거부), 실제 실행된 고유 과제 수는 4개로 여전히
   5~8 하한에 못 미친다. `not_met` 그대로.
+  <br>※ 2026-08-31 추가(gap-closure 2, 07-11~07-16) — 그 3개 과제가 32K 천장에서 거부된
+  근인을 규명했다: 하나가 아니라 최소 두 가지 서로 다른 메커니즘(`telegram-plugin-refactor`:
+  압축이 프루닝 없이 발동한 직후 단일 tool 결과가 벽을 5,435 토큰 초과; `v-edit-workspace-tests`:
+  압축이 한 번 발동한 뒤 4턴 연속 스킵되며 서서히 기어올라 123 토큰 초과;
+  `discord-trivia-approval-keyerror`: 459 토큰 초과, 메커니즘 미측정). `fail-context` 를
+  매기던 분류기(`\b400\b` 단순 매치)를 위양성·위음성 모두 확인 후 수리했고, 저장된 5개
+  실행 인스턴스를 오프라인 재분류한 결과 판정은 **0건 변경** — 기존 판정이 정확했음을
+  재확인했다. `settings.contextWindow` 는 무변경(`SELECTION: doc-only`) — 압축이 실제로는
+  프루닝하지 않는다는 확인된 결함이 있으므로 그 값을 조정해도 근본 원인은 닫히지 않는다는
+  판단이다. 이 조사는 과제 실행 개수를 늘리지 않았다 — **BCH-01 은 여전히 `not_met`이며
+  체크박스도 그대로 미체크다.** 근거:
+  `phase-07/results/20260831T003728Z-context-forensics/CONTEXT-FORENSICS.md`,
+  `phase-07/results/20260831T004024Z-classifier-audit/CLASSIFIER-AUDIT.md`,
+  `phase-07/results/20260831T010013Z-reclassify/RECLASSIFICATION.md`,
+  `phase-07/results/20260831T011037Z-remediation/RECOMMENDATION.md`,
+  `phase-07/results/20260831T011037Z-remediation/DECISION.md`.
 - [x] **BCH-02**: 각 실행의 **프롬프트와 결과가 모두** 파일로 저장된다
 - [x] **BCH-03**: 통과/실패와 소요 시간이 한 표로 요약된다
 
@@ -173,7 +189,7 @@
 | NET-03 | Phase 6 | Complete |
 | NET-04 | Phase 6 | Complete |
 | NET-05 | Phase 6 | Human-needed |
-| BCH-01 | Phase 7 | Not met (고유 4/12 과제, 3개 모델 도달·32K 천장에서 fail-context, 5~8 하한 미달) |
+| BCH-01 | Phase 7 | Not met (고유 4/12 과제, 3개 모델 도달·32K 천장에서 fail-context, 5~8 하한 미달; gap2 07-11~16 이 근인 규명, contextWindow 무변경, 판정 불변) |
 | BCH-02 | Phase 7 | Complete (시도된 4개 과제/5개 인스턴스 기준, 두 런 디렉터리 모두) |
 | BCH-03 | Phase 7 | Complete (시도된 4개 과제/5개 인스턴스 기준, 두 런 디렉터리 모두) |
 | DOC-01 | Phase 8 | Complete |

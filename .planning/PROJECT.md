@@ -13,9 +13,21 @@
 
 **Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것.**
 
-> ✅ **2026-08-30 — 달성됨.** `providers.json` 의 **`settings` 최상위**에 `contextWindow: 29000`
-> 을 넣으면 트리거(26,100)가 정상 발동한다. 실측: `phase-01/results/exp-verify29k/`
+> ✅ **2026-08-30 — 합성 회귀에서 달성됨.** `providers.json` 의 **`settings` 최상위**에
+> `contextWindow: 29000` 을 넣으면 트리거(26,100)가 정상 발동하고, 균일 filler 워크로드에서는
+> 실제로 프루닝돼 토큰이 준다. 실측: `phase-01/results/exp-verify29k/`
 > (필러 18개 완주, 압축 3회 이상, 서버 400 0건). 상세: `docs/32k-compaction-policy.md`.
+>
+> 🔶 **2026-08-31 정정(범위 좁힘, 반전 아님) — 임의의 실제 에이전트 작업으로 일반화되지
+> 않는다.** Phase 7 cline-bench gap-closure 가 실제 워크로드에서 캡처한 `completed` 압축
+> 이벤트는 2건뿐이지만, **2/2건 모두 메시지를 하나도 지우지 않았고 토큰이 오히려 늘었다** —
+> 그 결과 모델에 도달한 cline-bench 과제 3개 전부 32K 천장에서 죽었다(`fail-context`,
+> 통과 여전히 0개). `contextWindow` 값은 바뀌지 않는다(`SELECTION: doc-only`) — 압축이
+> 실제로는 대역을 만들어 주지 않는다는 확인된 결함이 있으므로, 그 값을 낮추는 것은 문제의
+> 축이 아니라는 판단이다. 합성 증명은 지워지지 않는다 — 위 필러 회귀는 여전히 유효하고
+> 재현 가능하다. 상세: `docs/32k-compaction-policy.md` §1·§4a,
+> `phase-07/results/20260831T011037Z-remediation/RECOMMENDATION.md` §6,
+> `phase-07/results/20260831T011037Z-remediation/DECISION.md`.
 
 🔴 초기 가정을 실측으로 뒤집었다. 모델 서버는 조용히 고장 나지 않는다 —
 `prompt + max_tokens > 32768` 이면 prefill 전에 **HTTP 400 으로 크게 실패**한다.
@@ -91,7 +103,14 @@ Cline (새로 만드는 부분)
 기준 문서는 `~/local-llm-settings/` (README·TOPOLOGY·STATE·VALIDATED).
 `STATE.md` 는 `sync.sh` 가 생성하므로 손으로 고치지 않는다.
 
-### ✅ 32K 압축 — 해결됨 (2026-08-30)
+### ✅ 32K 압축 트리거 — 합성 회귀에서 해결됨 (2026-08-30)
+
+🔶 **2026-08-31 정정(범위 좁힘)** — 아래 표는 트리거 발동 메커니즘(맞음, 최상위
+`contextWindow` → `maxInputTokens`, `×0.9`)과 합성 filler 회귀에서의 결과만 기술한다.
+실제 cline-bench 워크로드에서는 압축이 발동해도 프루닝하지 않아(메시지 0건 삭제, 토큰
+오히려 증가, 2/2건) 모델에 도달한 과제 3개 전부 이 천장에서 죽었다(`fail-context`, 통과
+0개) — `docs/32k-compaction-policy.md` §1·§4a, `docs/cline-bench.md` §4,
+`phase-07/results/20260831T011037Z-remediation/RECOMMENDATION.md`.
 
 ```jsonc
 // providers.json — CLI 가 읽는 유일한 경로

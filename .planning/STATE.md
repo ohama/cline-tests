@@ -110,11 +110,42 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 
 ## Current Position
 
-**[2026-08-31] 마일스톤 감사(v1-MILESTONE-AUDIT.md) 사후 gap-closure 진행 중 — Phase 7 재개.**
+**[2026-08-31] 마일스톤 감사(v1-MILESTONE-AUDIT.md) 사후 gap-closure 2 완료 — Phase 7 재종료.**
 8개 Phase 전부 완료(아래 08-06 항목) 후 실행된 마일스톤 감사가 1b("Core Value 는 합성
 테스트에서 증명됐고 실제 에이전트 부하에서는 아니다")를 지적해, `07-11`~`07-16`(6 plans,
 5 waves, `841c046`)로 Phase 7 을 재개했다. BCH-01 과제 수를 채우는 계획이 아니라 감사가
-지목한 fail-context 근인을 규명하는 계획 — 사용자가 명시적으로 근인 규명을 선택했다.
+지목한 fail-context 근인을 규명하는 계획 — 사용자가 명시적으로 근인 규명을 선택했다. **이제
+16/16 plans 로 Phase 7 이 다시 종료됐다** — ROADMAP criterion 1/BCH-01 은 여전히 정직하게
+`not_met`.
+
+**07-16(docs/기획문서 정합 + 매뉴얼 클레임 게이트 재실행 + 과대주장 감사 8/8, gap closure 2,
+wave 15, 마일스톤 마지막 플랜) — 완료.** 라이브 실행 0회, 모델 호출 0회. Task 1(`83cde88`):
+세 문서(`docs/32k-compaction-policy.md`§1·§4a(신설)·§5·§8, `docs/manual/04-32k-operations.md`
+§2·§4·§7, `docs/cline-bench.md`§4)에 07-11~07-15 의 결론을 정합 — §1 의 무한정 "자동 압축은
+정상 작동한다"를 합성 회귀 범위로 좁히고, 실제 캡처된 완료 압축 이벤트 2/2건이
+`messagesBefore==messagesAfter`(0건 삭제)·`tokensAfter>tokensBefore`(토큰 증가)임을 명시.
+`contextWindow=29000` 값은 그대로 유지하되(`SELECTION: doc-only`) 근거를 정직하게 재서술 —
+합성 오버슈트(2,700~3,100)와 실제 오버슈트(telegram 12,526/v-edit 1,909-then-skip-creep)를
+나란히 표로 대조. 압축이 "늦게" 뿐 아니라 "완전히 스킵"되기도 한다는 v-edit 의 4턴 연속
+`auto-compaction-skipped` 사실을 §4a 에 신설. DOC-04 가 폐기한 "작업 예산/태스크 쪼개기"
+조언은 되살리지 않음(정정 문구에 명시). `docs/cline-bench.md`§4 는 `max_prompt_tokens`
+(수락-only, 과소집계)와 `max_prompt_tokens_attempted`(실제 거부 시점) 를 나란히 적어
+과소집계 폭(telegram 15,119/v-edit 147/discord-trivia 716)을 밝히고, 두 가지 서로 다른
+근접 메커니즘(단일 초과 tool 결과 vs 압축-스킵 후 서서히 기어오름)과 분류기 결함-수리 사실을 §9 는
+건드리지 않고 추가. `check_manual_claims.sh --file 04-32k-operations.md` `CASES 4/4` 확인
+후 커밋. Task 2(이 커밋): `.planning/PROJECT.md`(Core Value + "32K 압축" 절 둘 다
+"합성 회귀에서" 로 한정, 반전 없이 범위만 좁힘), `.planning/REQUIREMENTS.md`(BCH-01 에
+gap2 근인 규명 각주 추가, 체크박스는 그대로 미체크, Traceability 행 갱신),
+`.planning/ROADMAP.md`(07-11~07-16 체크박스 `[x]`, 진행 표 `16/16`, criterion 1 문구에
+근인 규명 사실 추가·`not_met` 유지), `.planning/v1-MILESTONE-AUDIT.md`(§1b 에 근인 규명
+정정 블록 추가, 열린 항목 6 갱신, `tech_debt` phase 07 항목 갱신) 정합 — YAML frontmatter
+파싱 확인. Task 3: `phase-07/results/20260831T0*Z-close/gates/`(`check_manual_claims.txt`,
+`verify_bench.sh --run-dir bench/runs/20260830T122809Z-phase07-fix`,
+`phase-01/config/verify_config.sh` 재실행 결과) + `anti-overclaim.md`(8/8 PASS, 문서별
+인용) 작성. 안전 확인: `providers.json` sha256 `534151965f81089b...` 불변, 6개 pid 전부
+불변, colima 계속 정지, `lsof -i :3000` 빈 상태, `cline`/`kanban`/`harbor` 프로세스 미기동,
+`bench/runs/*/meta/` byte-unchanged. SUMMARY: `07-16-SUMMARY.md`. **다음: 없음 — Phase 7
+gap-closure 2 완료, 마일스톤 재종료.**
 
 **07-14(원격화 결정, gap closure, wave 13) — 완료.** 라이브 실행 0회, 모델 호출 0회.
 Task 1(`fe92a3c`): `phase-07/results/20260831T011037Z-remediation/CANDIDATE-MATRIX.md` —

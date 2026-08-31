@@ -33,7 +33,10 @@ tech_debt:
       - "온와이어 시스템 프롬프트 미캡처"
   - phase: 07
     items:
-      - "모델에 도달한 3개 과제 전부 fail-context — 압축이 발동했는데도"
+      - "모델에 도달한 3개 과제 전부 fail-context — 근인 규명 완료(gap-closure 2, 07-11~16):
+        압축이 실제로는 프루닝하지 않음(2/2 real completed events), 두 가지 서로 다른 근접
+        원인(단일 초과 tool 결과 / 압축-스킵 후 서서히 기어오름). contextWindow 무변경(doc-only);
+        --compaction basic 은 미검증 후속 과제로 유예"
   - phase: 08
     items:
       - "--auto-approve 자세 결정이 한 번도 내려지지 않음 (Kanban/Telegram 은 --no-tools 로 우회)"
@@ -77,6 +80,29 @@ tech_debt:
 앞지를 수 있다.** 이건 어느 문서도 과대주장하지 않았고 `docs/cline-bench.md` §4 와
 `docs/manual/04-32k-operations.md` §7 이 정직하게 기록하고 있다 — 다만 "해결됨" 이라는 서술을
 "임의의 실제 작업에서 해결됨" 으로 읽으면 안 된다.
+
+**※ 2026-08-31 정정(gap-closure 2, 07-11~07-16) — 근인이 규명됐고, "예산을 앞지른다"는
+서술은 부정확했다.** 실제 근인은 압축이 프루닝하지 않는 것이다: 지금까지 캡처된 실제
+`completed` 압축 이벤트 2/2건 모두 `messagesBefore==messagesAfter`(0건 삭제)이고
+`tokensAfter > tokensBefore`(토큰 증가)다 — 합성 회귀의 5/5건은 반대로 프루닝됐다. 세 과제는
+하나가 아니라 최소 두 가지 서로 다른 메커니즘으로 죽었다: `telegram-plugin-refactor` 는
+압축이 정시에 발동했지만 프루닝 없이 요약만 얹었고, 곧바로 이어진 단일 tool 호출(줄범위
+제한 없는 `read_files`)이 그 자체로 ~11,764 토큰을 더해 벽을 5,435 토큰 넘겼다;
+`v-edit-workspace-tests` 는 압축이 한 번 발동한 뒤 4턴 연속으로 건너뛰며(원인 미상,
+indeterminate) 서서히 벽까지 기어올라 123 토큰 차이로 넘었다; `discord-trivia-approval-keyerror`
+는 459 토큰 차이로 넘었으나 어느 메커니즘인지는 측정되지 않았다. `fail-context` 를 판정하던
+분류기(단순 `\b400\b` 매치)는 위양성·위음성이 모두 있는 불건전한 분류기였음이 감사로
+드러났으나, 수리된 분류기로 저장된 5개 실행 인스턴스를 전부 재분류한 결과 **판정은 0건도
+바뀌지 않았다** — 위 세 판정은 정확했다. 사용자는 이 발견에 대해 `contextWindow` 를 바꾸지
+않기로(`SELECTION: doc-only`) 결정했다 — 압축의 비프루닝 결함이 확인된 이상 이 값을 낮추는
+것은 근본 원인을 겨냥하지 못한다는 근거 때문이다. 유일하게 미검증·유망한 후보
+(`--compaction basic`)는 의식적으로 후속 과제로 유예됐다. 근거:
+`phase-07/results/20260831T003728Z-context-forensics/CONTEXT-FORENSICS.md`,
+`phase-07/results/20260831T004024Z-classifier-audit/CLASSIFIER-AUDIT.md`,
+`phase-07/results/20260831T010013Z-reclassify/RECLASSIFICATION.md`,
+`phase-07/results/20260831T011037Z-remediation/CANDIDATE-MATRIX.md`,
+`phase-07/results/20260831T011037Z-remediation/RECOMMENDATION.md`,
+`phase-07/results/20260831T011037Z-remediation/DECISION.md`.
 
 ### 1c. Phase 1 에 VERIFICATION.md 가 없다
 
@@ -135,7 +161,10 @@ Phase 7 이 Phase 1 의 top-level `contextWindow` 형태를 명시적으로 복�
 3. **NET-05** — Telegram 표시 미관측 (`.../20260830T071532Z-net05/decision.md`)
 4. **Telegram 토큰 미주입** — 토큰-존재 경로 미실행, 첫 기동에서 `unknown option` 가능
 5. **BCH-01** — 고유 4개(하한 5), 통과 0개. 사용자 결정 정지점
-6. **실제 부하에서의 fail-context** — 압축 발동에도 3/3 이 32K 천장에서 사망 (1b)
+6. **실제 부하에서의 fail-context** — 근인 규명 완료(gap-closure 2, 07-11~07-16): 압축이
+   실제로는 프루닝하지 않는 확인된 결함(2/2 실제 완료 이벤트) + 두 가지 서로 다른 근접
+   원인(단일 초과 tool 결과 / 압축-스킵 후 서서히 기어오름). `contextWindow` 무변경
+   (`doc-only`), `--compaction basic` 은 미검증·의식적 유예 후속 과제로 기록. 상세 (1b)
 7. **DOC-02 worktree** — 불가. 정확한 수정안과 비용은 `phase-08/results/20260830T193634Z-widening/DECISION.md`
 8. **재부팅 지속성** — 프록시 증거. 실제 재부팅은 `iogpu.wired_limit_mb` 재적용 필요
 9. **기존 공개 Funnel** `:8443 → 3000` 존치. 포트 3000 금지가 보상 통제
