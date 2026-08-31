@@ -1,3 +1,13 @@
+# Requirements Archive: v1 Cline 로컬 서버
+
+**Archived:** 2026-08-31
+**Status:** ✅ SHIPPED (기술부채 수용)
+
+v1 의 요구사항 명세 아카이브. 현재 요구사항은 다음 마일스톤에서 새로 정의된다.
+누적 기록은 PROJECT.md 의 Validated 절이 담당한다.
+
+---
+
 # Requirements: Cline 로컬 서버
 
 **Defined:** 2026-08-29
@@ -205,3 +215,34 @@
 ---
 *Requirements defined: 2026-08-29*
 *Last updated: 2026-08-29 after Phase 1 research — CFG-03 재서술, CFG-04 재정의, CFG-07 신설*
+
+---
+
+## Milestone Summary
+
+**Shipped:** 38 개 v1 요구사항 중 33 complete, 1 partial, 2 human_needed, 2 not met
+
+**Adjusted (구현 중 변경):**
+- CFG-02 — `models[].contextWindow: 32768` → **`settings` 최상위 `contextWindow: 29000`**
+  (`models[]` 는 VS Code 용 경로이고 CLI 가 읽지 않음이 소스로 확인됨)
+- CFG-03 — "maxTokens 상한 설정" → "실제 전송값을 관측하고 대응책을 정한다"
+  (providers.json 의 maxTokens 미적용. 실측 2048 로 예산이 충족되어 Branch A)
+- CFG-04 — "Compact Prompt 켜기" → "`--compaction` 모드 명시 고정"
+  (Compact Prompt 는 VS Code 확장 전용이며 CLI 에 존재하지 않음)
+- CFG-07 — **신설**. `flashnext-codex` 별칭 차단 (호출 시 모델 서버 사망, 29초 다운 실측)
+- NET-05 — "작업 중 표시" → "프리필 대기 + **압축 중** 상태 표시"
+- DOC-04 — "26k 작업 예산·태스크 쪼개기" → 삭제. 설정 위치 주의로 대체
+
+**Not met (기술부채로 수용):**
+- **CFG-05** — `CLINE_NO_AUTO_UPDATE=1` 이 자동 업데이트를 막지 못함. 드리프트 반복
+- **BCH-01** — 고유 4과제(하한 5), 통과 0개. 사용자 정지 결정
+
+**Human needed (미관측):**
+- **NET-01** — iPad Safari 에서 Kanban 접속. 서버측만 증명, iPad 오프라인
+- **NET-05** — Telegram 실토큰 시험 거절
+
+**Partial:**
+- **DOC-02** — worktree 불가. 사용자가 샌드박스 확장을 명시적으로 거절
+
+---
+*Archived: 2026-08-31 as part of v1 milestone completion*

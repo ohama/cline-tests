@@ -9,6 +9,25 @@
 세 개의 표면을 올린다 — **Kanban 웹 UI**(브라우저·아이패드), **Telegram 커넥터**(아이폰),
 **헤드리스 래퍼**(스크립트·자동화). 셋 다 같은 Cline 에이전트 코어와 같은 로컬 모델을 쓴다.
 
+## Current State
+
+**Shipped:** v1 (2026-08-31) — 8 phases, 55 plans, 276 commits.
+아카이브: `.planning/milestones/v1-{ROADMAP,REQUIREMENTS,MILESTONE-AUDIT}.md`, `v1-phases/`
+
+세 표면(Kanban :3484 · Telegram 커넥터 · 헤드리스 래퍼)이 launchd 상시 서비스로 돌고,
+Tailscale 로 iPad/iPhone 에서 닿으며, `sandbox-exec` 로 경계가 그어져 있다.
+한글 매뉴얼 5편(`docs/manual/`)이 출하됐다.
+
+🔴 **v1 이 증명하지 못한 것** — 실제 에이전트 부하에서 압축이 프루닝하지 않는다.
+cline-bench 과제 통과는 **0개**. `contextWindow` 는 이 결함의 지렛대가 아니다.
+상세: `docs/32k-compaction-policy.md`
+
+## Next Milestone Goals
+
+- `--compaction basic` 검증 — 근인 행렬이 지목한 유일한 유망 미테스트 지렛대
+- CFG-05 — `CLINE_NO_AUTO_UPDATE=1` 이 듣지 않는 문제의 실질적 해결
+- 실사용 후 매뉴얼 보정, NET-01/NET-05 실관측
+
 ## Core Value
 
 **Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것.**
@@ -45,14 +64,21 @@ Cline 의 압축이 ~26.2k 에서 실제로 도는지 — 이것만은 실측으
 
 ### Validated
 
-<!-- 이 프로젝트 이전에 이미 이 기계에서 검증된 것들. 손대지 않는다. -->
+<!-- v1 에서 출하되고 확인된 것. -->
 
-- ✓ Qwen3.8-Flash-Next-MLX-oQ4 + MTP drafter 가 `:8000` 에 상주 — `--max-kv-size 32768`
-- ✓ `role-shim`(`:8011`) 이 mlx_vlm.server 의 role 제약을 흡수
-- ✓ `litellm`(`:4000`) 이 OpenAI 호환 엔드포인트로 `flashnext` 별칭 제공
-- ✓ 위 세 서비스 모두 `RunAtLoad` + `KeepAlive` 로 부팅 자동 기동
-- ✓ 32K 에서 실측 — peak 120.16 GB(여유 4.39 GB), TTFT 64.3s, 생성 17.0 tok/s
-- ✓ 정확도 전 축 통과 — coding 95% · reasoning 100% · agent 93.3%
+- ✓ 추론 스택(litellm→role-shim→mlx_vlm.server, --max-kv-size 32768) 무손상 유지 — v1
+- ✓ Cline 이 `flashnext` 를 `:4000` 으로 호출 — v1 (CFG-01)
+- ✓ `settings` 최상위 `contextWindow: 29000` → trigger 26,100 — v1 (CFG-02, 정정됨)
+- ✓ `--compaction agentic` 명시 고정 — v1 (CFG-04, 재정의됨)
+- ✓ `flashnext-codex` 별칭 차단 — v1 (CFG-07, 신설)
+- ✓ 다중 턴 압축 회귀 테스트 (합성 조건) — v1 (VER-01~04)
+- ✓ `--max-num-seqs` 동시성 상한 + litellm 노출 차단 — v1 (INF-01~03)
+- ✓ `sandbox-exec` OS 수준 샌드박스 + 저장소 화이트리스트 — v1 (SBX-01~04)
+- ✓ 헤드리스 래퍼 (`--auto-approve false` 명시) — v1 (HLS-01~03)
+- ✓ Kanban·Telegram launchd 상시 서비스, KeepAlive 자가 복구 — v1 (SVC-01~05)
+- ✓ Tailscale 무인증 + LAN 토큰 게이팅, 포트 3000 금지 — v1 (NET-02~04)
+- ✓ cline-bench 로컬 Docker 실행 + 프롬프트·결과 보존 — v1 (BCH-02~03)
+- ✓ 한글 매뉴얼 5편 — v1 (DOC-01, 03, 04)
 
 ### Active
 
@@ -249,4 +275,4 @@ prompt 13 + max_tokens  4096 → 200
 | 기존 Funnel(:8443→3000) 은 그대로 둔다 | 사용자 결정. 이 프로젝트 범위 밖이고 되돌리기 어려운 변경이다. 대신 3000 바인딩을 금지해 우회한다 | ✓ Good |
 
 ---
-*Last updated: 2026-08-29 after research — 가드 제거, Core Value 재서술, 자동 업데이트 대응 추가*
+*Last updated: 2026-08-31 after v1 milestone*
