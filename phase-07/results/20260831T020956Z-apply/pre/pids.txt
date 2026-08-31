@@ -1,0 +1,7 @@
+  PID COMM
+19669 /opt/homebrew/bin/node
+36175 node
+46573 /Users/ohama/projs/qwen38-flash-next-tests/.venv-mlxvlm-new/bin/python3
+48525 /Users/ohama/agent-stack/venv/bin/python
+75548 /Users/ohama/agent-stack/venv/bin/python
+99162 /bin/bash
