@@ -460,24 +460,42 @@ fi
 tail -c +$((OFF_BEFORE + 1)) "$FLASHNEXT_ERR_LOG" > "$RUN/server-log/$TASK.flashnext.err.txt"
 manifest_add "server-log/$TASK.flashnext.err.txt (byte-offset slice of \$FLASHNEXT_ERR_LOG for this task's wall-clock window)"
 
-# NOTE: deliberately NOT `grep -c ... || echo 0` -- `grep -c` on zero
-# matches already prints "0" to stdout but still exits 1 (no match found),
-# which would make the `||` fallback print a SECOND "0" on its own line,
-# turning this into a two-line value ("0\n0") that corrupts the meta.json
-# heredoc below (observed live 2026-08-30, smoke run: "invalid syntax.
-# Perhaps you forgot a comma?" at the model_turns line). `${VAR:-0}`
-# catches the genuinely-empty case (file missing/unreadable) without
-# double-counting grep's own legitimate "0".
-MODEL_TURN_COUNT="$(grep -c 'Request completed:' "$RUN/server-log/$TASK.flashnext.err.txt" 2>/dev/null)"
-MODEL_TURN_COUNT="${MODEL_TURN_COUNT:-0}"
-MAX_PROMPT_TOKENS="$(grep -oE 'prompt_tokens=[0-9]+' "$RUN/server-log/$TASK.flashnext.err.txt" 2>/dev/null | grep -oE '[0-9]+' | sort -n | tail -1)"
-MAX_PROMPT_TOKENS="${MAX_PROMPT_TOKENS:-0}"
+# shellcheck disable=SC1091
+# classify_lib.sh is the single shared source for every count/verdict function
+# below, also sourced by reclassify_runs.sh, so live runs and offline
+# re-classification of stored evidence cannot diverge (07-13 gap closure).
+source "$SCRIPT_DIR/classify_lib.sh"
 
-HTTP_400_SEEN=0
-if grep -qE '\b400\b' "$RUN/server-log/$TASK.flashnext.err.txt" 2>/dev/null; then
-  HTTP_400_SEEN=1
+MODEL_TURN_COUNT="$(count_model_turns "$RUN/server-log/$TASK.flashnext.err.txt")"
+
+TRANSCRIPT_FILE=""
+if [ -n "${TRIAL_DIR:-}" ] && [ -f "$TRIAL_DIR/agent/cline.txt" ]; then
+  TRANSCRIPT_FILE="$TRIAL_DIR/agent/cline.txt"
 fi
-if [ -n "${TRIAL_DIR:-}" ] && [ -f "$TRIAL_DIR/agent/cline.txt" ] && grep -qE '\b400\b' "$TRIAL_DIR/agent/cline.txt" 2>/dev/null; then
+
+MAX_PROMPT_TOKENS_ACCEPTED="$(max_prompt_tokens_accepted "$RUN/server-log/$TASK.flashnext.err.txt")"
+MAX_PROMPT_TOKENS_ATTEMPTED="$(max_prompt_tokens_attempted "$RUN/server-log/$TASK.flashnext.err.txt" "$TRANSCRIPT_FILE")"
+# Backward-compat key (read by make_summary.sh and by historical ledger
+# comparisons in 07-11's CONTEXT-FORENSICS.md) -- carries the ACCEPTED-ONLY
+# figure, unchanged in value and computation from the pre-07-13 rule. Use
+# max_prompt_tokens_attempted (above) for the true fatal-request peak.
+MAX_PROMPT_TOKENS="$MAX_PROMPT_TOKENS_ACCEPTED"
+
+MAXKV_REJECTIONS_SERVERLOG="$(count_maxkv_rejections "$RUN/server-log/$TASK.flashnext.err.txt")"
+MAXKV_REJECTIONS_TRANSCRIPT="$(count_maxkv_rejections "$TRANSCRIPT_FILE")"
+OOM_FAILURES="$(count_oom_failures "$RUN/server-log/$TASK.flashnext.err.txt")"
+
+# http_400_seen: key name kept for backward compatibility (nothing in this repo
+# reads it besides this script and the human-readable meta.json record itself --
+# verify_bench.sh's B2 only checks the `verdict` field's vocabulary, and
+# make_summary.sh only transcribes `verdict`). Its True/False semantics are
+# unchanged; only the underlying signal changed, from a bare `\b400\b` substring
+# (07-12 CLASSIFIER-AUDIT.md defects 1+2: false-negative on the real rejection
+# line, false-positive on decode telemetry and on the benchmark repo's own
+# HTTP-status source literals) to a match on the authoritative MAX_KV_SIZE
+# rejection phrase (classify_lib.sh's CLASSIFY_LIB_MAXKV_PATTERN).
+HTTP_400_SEEN=0
+if [ "$MAXKV_REJECTIONS_SERVERLOG" -gt 0 ] 2>/dev/null || [ "$MAXKV_REJECTIONS_TRANSCRIPT" -gt 0 ] 2>/dev/null; then
   HTTP_400_SEEN=1
 fi
 
@@ -513,26 +531,38 @@ fi
 # ---------------------------------------------------------------------------
 # 9. Meta record. Verdict rule (auditable classification, exactly one of):
 #      pass          reward == 1
-#      fail-task     reward == 0 and no 400 and the agent visibly worked
-#      fail-context  a 400 / context-window rejection is present, OR
-#                     max_prompt_tokens >= 32768
+#      fail-task     reward == 0 (or missing) and the agent completed >=1 model
+#                     turn
+#      fail-context  the authoritative MAX_KV_SIZE rejection phrase is present
+#                     in the server-log slice and/or the agent transcript
+#                     (classify_lib.sh's CLASSIFY_LIB_MAXKV_PATTERN) -- takes
+#                     precedence over fail-oom even when both are present (see
+#                     classify_lib.sh's classify_verdict for why)
+#      fail-oom      no MAX_KV_SIZE rejection, zero model turns completed, and
+#                     a GPU/host memory-exhaustion event (kIOGPUCommandBuffer-
+#                     CallbackErrorOutOfMemory / Insufficient Memory) is present
+#                     in the server-log slice -- added 07-13 gap closure so a
+#                     memory-exhaustion death is never silently folded into
+#                     fail-context or the zero-evidence fail-infra catch-all
 #      fail-infra    harbor failed before any model request (image build,
-#                     OOM, harness error) -- i.e. no model turns were seen
-#                     at all in the server-log slice.
+#                     harness error, environment_setup crash) -- no model
+#                     turns AND no memory-exhaustion evidence in the
+#                     server-log slice at all
+#
+# 07-13 gap closure (07-12's CLASSIFIER-AUDIT.md defect list; full rationale in
+# classify_lib.sh's header and phase-07/results/<UTC>-reclassify/RECLASSIFICATION.md):
+#   - Replaced `grep -qE '\b400\b'` (defects 1+2) with classify_lib.sh's shared
+#     authoritative-phrase match, computed above into
+#     MAXKV_REJECTIONS_SERVERLOG / MAXKV_REJECTIONS_TRANSCRIPT.
+#   - The old rule's second OR-term (`max_prompt_tokens >= 32768` against the
+#     accepted-only figure) is REMOVED, not merely deprioritized: defect 4 proved
+#     this term structurally could never fire (a rejected request is never
+#     queued, so its prompt count never reaches the accepted-only grep target)
+#     -- it was dead weight in every real fail-context verdict audited.
+#   - classify_verdict() is the single function shared with reclassify_runs.sh
+#     (via classify_lib.sh) -- this call is the entire verdict rule.
 # ---------------------------------------------------------------------------
-VERDICT="fail-infra"
-if [ "$HTTP_400_SEEN" -eq 1 ] || [ "$MAX_PROMPT_TOKENS" -ge 32768 ] 2>/dev/null; then
-  VERDICT="fail-context"
-elif [ "$REWARD" = "1" ]; then
-  VERDICT="pass"
-elif [ "$REWARD" = "0" ] && [ "$MODEL_TURN_COUNT" -gt 0 ] 2>/dev/null; then
-  VERDICT="fail-task"
-elif [ "$MODEL_TURN_COUNT" -gt 0 ] 2>/dev/null; then
-  # Model was reached and produced turns, but reward is missing/unparseable --
-  # still not infra failure; treat conservatively as fail-task rather than
-  # silently mislabeling it fail-infra.
-  VERDICT="fail-task"
-fi
+VERDICT="$(classify_verdict "$MAXKV_REJECTIONS_SERVERLOG" "$MAXKV_REJECTIONS_TRANSCRIPT" "$OOM_FAILURES" "$REWARD" "$MODEL_TURN_COUNT")"
 
 DIFFICULTY="$(python3 -c "
 import tomllib, sys
@@ -576,6 +606,11 @@ data = {
     "duration_sec_jobs": ($DURATION_SEC_JOBS if "$DURATION_SEC_JOBS" != "null" else None),
     "model_turns": $MODEL_TURN_COUNT,
     "max_prompt_tokens": $MAX_PROMPT_TOKENS,
+    "max_prompt_tokens_accepted": $MAX_PROMPT_TOKENS_ACCEPTED,
+    "max_prompt_tokens_attempted": $MAX_PROMPT_TOKENS_ATTEMPTED,
+    "maxkv_rejections_serverlog": $MAXKV_REJECTIONS_SERVERLOG,
+    "maxkv_rejections_transcript": $MAXKV_REJECTIONS_TRANSCRIPT,
+    "oom_failures": $OOM_FAILURES,
     "http_400_seen": $([ "$HTTP_400_SEEN" -eq 1 ] && echo True || echo False),
     "system_prompt_in_transcript": "$SYSTEM_PROMPT_IN_TRANSCRIPT",
     "post_guard_notes": "$POST_GUARD_NOTES",
