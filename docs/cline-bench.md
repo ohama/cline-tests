@@ -125,6 +125,25 @@ Phase 8 이 이 phase 의 산출물을 다시 검증하고 싶을 때 재실행�
   관측됐다. **이것은 아마 이 phase 가 배운 가장 유용한 사실이다: (적어도 이 3개) cline-bench
   과제는 이 스택의 컨텍스트 예산을 초과한다.** `docs/32k-compaction-policy.md` 가 이미 문서화한
   호스트 측 32K 벽과 같은 종류의 제약이 harbor 컨테이너 내부에서도 그대로 재현된다.
+- **※ 2026-08-31 정정(gap-closure 2, 07-11~07-16; 판정 변경 없음).** 위 `max_prompt_tokens`
+  는 **수락된 요청만의 최댓값**이라 거부당한 실제 요청 크기를 과소집계했다(서버가 거부한
+  요청은 애초에 큐에 들어가지 않아 이 필드가 못 본다) — `telegram-plugin-refactor` 는
+  15,119 토큰, `v-edit-workspace-tests` 는 147 토큰, `discord-trivia-approval-keyerror` 는
+  716 토큰 과소집계됐다. 새 필드 `max_prompt_tokens_attempted` 가 이제 실제 거부 시점
+  프롬프트를 기록한다: `discord-trivia-approval-keyerror` 31,179(부족 459 토큰),
+  `telegram-plugin-refactor` 36,155(부족 5,435 토큰), `v-edit-workspace-tests`
+  30,843(부족 123 토큰) — 전부 `MAX_KV_SIZE=32768` 대비 `prompt+max_tokens(2048)` 기준.
+  또한 이 3개 과제는 하나가 아니라 최소 두 가지 서로 다른 메커니즘으로 죽었다:
+  `telegram-plugin-refactor` 는 압축이 정시에 발동했지만 프루닝 없이 요약만 얹었고,
+  곧바로 한 번의 tool 호출(`read_files`, 줄범위 제한 없음)이 그 자체로 ~11,764 토큰을 더해
+  벽을 넘겼다; `v-edit-workspace-tests` 는 압축이 한 번 발동한 뒤 4턴 연속으로 건너뛰며
+  서서히 벽까지 기어올랐다; `discord-trivia-approval-keyerror` 는 근인이 측정되지 않았다
+  (indeterminate). 원래 판정 기준(`\b400\b` 단순 매치)은 위양성·위음성이 모두 있는 불건전한
+  분류기였음이 감사로 드러났으나(`phase-07/results/20260831T004024Z-classifier-audit/CLASSIFIER-AUDIT.md`),
+  수리된 분류기로 저장된 5개 실행 인스턴스를 전부 재분류한 결과 **판정은 0건도 바뀌지
+  않았다** — 위 세 `fail-context` 판정은 정확했다. 근거:
+  `phase-07/results/20260831T003728Z-context-forensics/CONTEXT-FORENSICS.md`,
+  `phase-07/results/20260831T010013Z-reclassify/RECLASSIFICATION.md`.
 - **"벤치가 돌았다"는 "벤치가 통과했다"가 아니다.** `fail-infra` 행 하나는 스택이 실제로 동작함을
   보여주는 증거가 될 수 없다 — 이 구분을 이 문서 전체에서 유지한다.
 - `docs/32k-compaction-policy.md` 는 **호스트** 설정(최상위 `contextWindow: 29000`, 정상 작동

@@ -46,6 +46,13 @@ bash phase-06/net/verify_network.sh --baseline phase-06/results/20260830T051403Z
 추가 지연을 낳는다.** 이게 사용자가 인식해야 할 두 번째 종류의 정상 멈춤이다: §1의 프리필
 대기와는 별개로, "지금 압축이 돌고 있어서" 잠깐 더 걸리는 순간이 있을 수 있다.
 
+※ 2026-08-31 정정(범위 좁힘) — 위 설명은 압축이 **발동한다**는 사실만 보증한다. 실제
+cline-bench 워크로드에서 캡처된 압축 완료 이벤트 2건은 **메시지를 하나도 지우지 않았고
+(요약만 얹혔다) 토큰이 오히려 늘었다** — 그 결과 이 스택은 모델에 도달한 cline-bench 과제
+3개 전부에서 32K 천장에 부딪혀 죽었다(§7). "압축이 돈다"를 "압축이 벽 충돌을 막아준다"로
+읽지 말 것. 증거: `phase-07/results/20260831T003728Z-context-forensics/CONTEXT-FORENSICS.md`,
+`phase-07/results/20260831T010013Z-reclassify/RECLASSIFICATION.md`.
+
 ## 3. ⚠️ [GAP-COMPACTION-CONFIG] contextWindow는 반드시 이 칸에
 
 `contextWindow` 는 `providers.json` 의 **`settings` 최상위**에 있어야 한다.
@@ -83,6 +90,11 @@ bash phase-01/config/verify_config.sh
 지금 규칙은 단순하다: 세션을 미리 자르지 말고, §1·§2 의 정상 지연을 인식하고, §5 의 터미널
 실패가 뜨면 그때만 새로 시작한다.
 
+※ 2026-08-31 추가 — Phase 7 gap-closure(07-11~07-16)가 실제 워크로드에서 압축이 프루닝하지
+않는 결함(§2 정정, §7)을 찾았다. 이 발견은 위 폐기 결정을 되돌리지 않는다 — 사용자는 이
+결과를 보고도 `doc-only`(설정·조언 변경 없음)를 선택했다. 근거:
+`phase-07/results/20260831T011037Z-remediation/DECISION.md`.
+
 ## 5. 서버 400은 회복 불가 — 재시도하지 말고 다시 시작
 
 설정이 잘못된 칸(§3)으로 되돌아가면, 서버가 `MAX_KV_SIZE`(32768) 초과로 HTTP 400 을 다시
@@ -109,6 +121,20 @@ Mac 에서 한다. 모바일 화면의 나머지 사용법은 모바일 사용�
 2. 파이프라인(설치 → 실행 → 검증)이 서로 다른 4개 과제에 대해 반복적으로 동작했다.
 3. 이 스택은 관측된 3개 과제 어디에서도 32K 컨텍스트 예산 안에서 과제를 완료하지 못했다 —
    **통과 0개**다.
+
+※ 2026-08-31 추가(gap-closure 2, 07-11~07-16; 판정 변경 없음) — 이 3개 과제는 하나의
+원인이 아니라 최소 두 가지 서로 다른 메커니즘으로 죽었다: `telegram-plugin-refactor` 는
+압축이 정시에 발동했지만 프루닝 없이 요약만 얹었고, 곧바로 이어진 단일 tool 호출(줄범위
+제한 없는 `read_files`)이 그 자체로 ~11,764 토큰을 더해 벽을 5,435 토큰 넘겼다.
+`v-edit-workspace-tests` 는 압축이 한 번 발동한 뒤 4턴 연속으로 건너뛰며 서서히 벽까지
+기어올라 123 토큰 차이로 넘었다. `discord-trivia-approval-keyerror` 는 459 토큰 차이로
+넘었으나 어느 메커니즘인지는 측정되지 않았다(indeterminate). 이 3개 과제의 판정
+(`fail-context`) 을 매기던 분류기는 원래 `\b400\b` 단순 매치였고 위양성·위음성이 모두
+있는 불건전한 분류기였음이 감사로 드러났으나, 수리된 분류기로 저장된 5개 실행 인스턴스를
+전부 재분류한 결과 **판정은 0건도 바뀌지 않았다** — 위 세 판정은 정확했다. 근거:
+`phase-07/results/20260831T003728Z-context-forensics/CONTEXT-FORENSICS.md`,
+`phase-07/results/20260831T004024Z-classifier-audit/CLASSIFIER-AUDIT.md`,
+`phase-07/results/20260831T010013Z-reclassify/RECLASSIFICATION.md`.
 
 다음 문장들은 절대 쓰지 않는다: cline-bench 가 통과했다, 공식 스위트가 검증됐다, 온와이어
 프롬프트가 캡처됐다, BCH-01 이 충족됐다, 이 스택이 cline-bench 과제를 완료할 수 있다. 이

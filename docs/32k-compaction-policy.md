@@ -6,12 +6,27 @@
 
 ## 1. 결론 (한 줄)
 
-**자동 압축은 정상 작동한다.** `contextWindow` 를 `providers.json` 의 **`settings` 최상위**에
-넣으면 트리거가 발동하고, 32K 벽에 닿지 않은 채 작업이 계속된다.
+**자동 압축은 합성 회귀(균일 필러 파일)에서 정상 작동한다.** `contextWindow` 를
+`providers.json` 의 **`settings` 최상위**에 넣으면 트리거가 발동하고, 그 워크로드에서는
+32K 벽에 닿지 않은 채 작업이 계속된다.
 증거: `phase-01/results/exp-verify29k/` (필러 18개 완주, 압축 3회 이상, **서버 400 0건**, 8분 22초).
+
+> ※ **2026-08-31 추가 정정(범위 좁힘, 반전 아님).** 위 문장을 "임의의 실제 에이전트 작업에서
+> 압축이 벽 충돌을 막아준다"로 일반화하면 틀린다. Phase 7 cline-bench gap-closure(07-11,
+> 07-13)가 실제 워크로드에서 캡처한 `completed` 압축 이벤트는 지금까지 2건뿐인데, **2/2건
+> 모두 메시지를 하나도 지우지 않았고(`messagesBefore==messagesAfter==16`) 토큰은 오히려
+> 늘었다**(`tokensAfter > tokensBefore`) — 합성 회귀의 5/5건은 반대로 메시지도 줄고 토큰도
+> 줄었다. 그 결과 모델에 도달한 cline-bench 과제 3개 전부(`discord-trivia-approval-keyerror`/
+> `telegram-plugin-refactor`/`v-edit-workspace-tests`) 32K 천장에서 죽었다 — 통과는 여전히
+> **0개**다(`docs/cline-bench.md` §4). 트리거가 발동한다는 것(§2·§3, 최상위 `contextWindow`
+> → `maxInputTokens`, `×0.9`)은 그대로 유효하다 — 바뀐 것은 "발동 후 실제로 대역을 만들어
+> 주는가"에 대한 답이 실제 부하에서는 아니오였다는 것뿐이다. 상세는 §4a. 증거:
+> `phase-07/results/20260831T003728Z-context-forensics/CONTEXT-FORENSICS.md` §1·§3,
+> `phase-07/results/20260831T010013Z-reclassify/RECLASSIFICATION.md` §4.
 
 1차 결론이 "압축 불가"였던 이유는 #12520 버그가 아니라, `contextWindow` 를 **`models[]` 안에**
 넣었기 때문이다. `models[]` 는 VS Code 용 per-model override 경로이고 **CLI 는 읽지 않는다.**
+이 진단(§2·§3)은 그대로 유효하다 — 실제 부하에서 바뀐 것은 §4 의 오버슈트 예산 서술뿐이다.
 
 ## 2. 근본 원인 — 어느 칸에 넣느냐
 
@@ -66,13 +81,60 @@ iter 10   29,136 → 22,250   (13 → 9)
 iter 12   29,230 → 22,045   (13 → 9)
 ```
 
+### 4a. ※ 2026-08-31 정정 — 실측 레짐 구분: 합성 vs 실제 에이전트
+
+위 오버슈트(2,700~3,100 토큰)와 `contextWindow=29000` 값은 **합성 회귀**(균일 ~1,440토큰
+filler 파일을 한 번에 하나씩 읽는 시나리오)에서 측정됐다. Phase 7 gap-closure(07-11)가 실제
+cline-bench 워크로드 두 건에서 같은 방식(압축 시점의 `tokensBefore − trigger`)으로 오버슈트를
+재측정했다:
+
+| 시나리오 | task | 오버슈트(트리거 대비) | 비고 |
+| --- | --- | ---: | --- |
+| 합성(균일 filler) | `exp-verify29k` | 2,700~3,100 | 5/5 압축 완료 이벤트 전부 프루닝됨(메시지·토큰 모두 감소) |
+| 실제 에이전트 | `telegram-plugin-refactor` | **12,526**(≈4.3배) | 단일 tool 호출(`read_files`, 줄범위 제한 없음)이 한 턴에 ~11,764 토큰을 추가, 압축은 정시 발동했으나 프루닝 없음 |
+| 실제 에이전트 | `v-edit-workspace-tests` | 1,909 (압축이 실제로 발동한 시점 자체는 합성과 비슷한 범위) | 그러나 그 직후 4턴 연속 `auto-compaction-skipped` 로 벽까지 서서히 기어올랐다(아래 참고) |
+
+출처: `phase-07/results/20260831T003728Z-context-forensics/compaction-events.tsv`,
+`phase-07/results/20260831T003728Z-context-forensics/CONTEXT-FORENSICS.md` §1·§2.
+
+**`contextWindow=29000` 값 자체와 위 §4 의 오버슈트 예산 계산식은 바뀌지 않는다** —
+사용자가 `SELECTION: doc-only` 를 명시적으로 선택했다
+(`phase-07/results/20260831T011037Z-remediation/DECISION.md`). 그러나 그 값의 근거는
+정직하게 재서술돼야 한다: §4 의 공식(`trigger + 오버슈트 + max_tokens < MAX_KV_SIZE`)은
+"압축이 발동하면 실제로 프루닝해 토큰을 줄인다"는 전제 위에 서 있다. 지금까지 캡처된 실제
+`completed` 압축 이벤트 2건은 **정확히 이 전제를 어긴다** — 메시지는 0건 삭제됐고
+(`messagesBefore==messagesAfter==16`), 토큰은 오히려 늘었다(`tokensAfter > tokensBefore`:
+telegram 38,626→49,750, v-edit 28,009→48,554). 압축이 실제로는 대역을 만들어 주지 않으므로,
+`contextWindow` 를 어떻게 고르든 — 더 낮추더라도 — 이 결함 자체는 고쳐지지 않는다(트리거가
+더 일찍 울릴 뿐, 압축이 프루닝하도록 만들지는 못한다). 실제로 `contextWindow` 를 낮추는
+후보는 세 실제 과제의 부족분(telegram 5,435 / v-edit 123 / discord-trivia 459 토큰,
+`MAX_KV_SIZE=32768` 대비 거부 시점 프롬프트+`max_tokens` 기준)을 어느 것도 닫지 못한다는
+산수·근거 기반 판정이 이미 내려졌다 — 상세:
+`phase-07/results/20260831T011037Z-remediation/CANDIDATE-MATRIX.md`,
+`phase-07/results/20260831T011037Z-remediation/RECOMMENDATION.md`. **29,000 은 "합성
+회귀에서 실측 검증된 값"으로 남고, "실제 에이전트 워크로드에서 벽 충돌을 막아준다는 값"으로는
+재서술되지 않는다.**
+
+**압축은 "한 턴 늦게" 뿐 아니라 "여러 턴 연속으로 완전히 건너뛰기"도 한다.**
+`v-edit-workspace-tests` 는 압축이 한 번(iteration 8) 발동한 뒤, 곧바로 이어지는
+iteration 9~12 네 번 연속으로 `auto-compaction-skipped` 를 냈다(원인 필드 없음,
+indeterminate) — 그 4턴 동안 프롬프트가 27,173→30,843 으로 기어올라 벽을 123 토큰 차이로
+넘었다. 위 §4 의 "한 턴 늦게 반응한다"는 서술은 늦게라도 발동하는 경우만 다루며, 이 완전한
+skip 경로는 다루지 않는다. 출처: `phase-07/results/20260831T003728Z-context-forensics/CONTEXT-FORENSICS.md` §2.2.
+
 ## 5. 운영 방침
 
 1. **`settings.contextWindow = 29000`.** `models[]` 는 두지 않는다.
    `phase-01/config/apply_provider_config.sh` 가 이 상태를 강제하고,
    `verify_config.sh` 가 검사한다(최상위가 없거나 `models[]` 가 있으면 FAIL).
-2. **작업 크기 제한은 불필요하다.** 압축이 대역을 유지하므로 긴 세션도 완주한다
-   (필러 18개 = 누적 30k 초과 시나리오에서 검증).
+2. **작업 크기 제한은 불필요하다 — 단, 이는 합성 회귀에서 실측된 문장이다.** 압축이 대역을
+   유지하므로 긴 세션도 완주한다(필러 18개 = 누적 30k 초과 시나리오에서 검증).
+   ※ 2026-08-31 정정 — 실제 cline-bench 워크로드에서는 압축이 실제로 프루닝하지 않는 결함
+   (§4a)이 있어 이 문장을 일반화할 수 없다: 모델에 도달한 3개 과제 전부 32K 천장에서
+   죽었다(`docs/cline-bench.md` §4). 이 정정이 §4 의 폐기된 "작업 예산 / 태스크 쪼개기"
+   조언(`docs/manual/04-32k-operations.md` §4, 2026-08-30 폐기)을 되살리는 것은 **아니다** —
+   사용자가 `doc-only`(설정·조언 변경 없음)를 선택했으므로, 이 문서는 폐기된 조언을 다시
+   지침으로 내지 않는다. 근거: `phase-07/results/20260831T011037Z-remediation/DECISION.md`.
 3. **UI 는 "압축 중"을 표시해야 한다.** 압축 자체가 요약 호출을 발생시켜 지연을 만든다
    (실측: 압축 턴에 요약용 짧은 호출 ~458 토큰이 추가로 발생). Phase 6 NET-05 에 반영.
 4. **`contextWindow` 를 올릴 때는 오버슈트를 함께 계산한다.**
@@ -107,6 +169,18 @@ Phase 5(서비스 감독)는 컨텍스트를 다루지 않으므로 영향 없�
 - **`cline` 자동 업데이트가 `CLINE_NO_AUTO_UPDATE=1` 로 막히지 않는다.** 이 정정 작업 중에도
   3.0.53 → 3.0.60 드리프트가 재현됐다. CFG-05 의 성공 기준이 위태롭다. 별도 과제.
 - `providers.json` 의 `maxTokens` 는 여전히 미적용(실측 2048 고정). Branch A 라 문제되지 않는다.
+- **※ 2026-08-31 추가 — 실제 에이전트 워크로드에서 압축이 프루닝하지 않는 결함(§4a, M4).**
+  지금까지 캡처된 실제 `completed` 압축 이벤트는 2건뿐이라 이 패턴이 체계적인지, 이 2건의
+  우연인지는 확정되지 않았다(`phase-07/results/20260831T003728Z-context-forensics/CONTEXT-FORENSICS.md`
+  §3·§5). 원인(cline 소스 레벨에서 왜 프루닝하지 않는지)도 미상 — 이 프로젝트는 cline
+  자체를 고치지 않는다는 범위 제약이 있어 별도 조사 없이는 닫히지 않는다.
+- **미검증·의식적으로 유예된 후속 과제: `--compaction basic`.** 근본 결함(M4)을 직접
+  겨냥하는 유일한 후보였으나, `phase-01/results/exp-basic/`(같은 세션에서 실행된 실험)은
+  이 lever 의 증거로 **무효**다 — 그 실행은 `contextWindow` 가 `models[]` 안에 있어 128k
+  fallback 이 발동했고, 이 문서가 애초에 잡으려던 바로 그 오설정 버그와 같은 상태였기
+  때문이다. `--compaction basic` 은 올바른 최상위 `contextWindow` 설정 위에서 한 번도
+  테스트된 적이 없다 — 실행하려면 별도의 라이브 런 승인이 필요하다. 근거:
+  `phase-07/results/20260831T011037Z-remediation/DECISION.md`.
 
 ---
 
