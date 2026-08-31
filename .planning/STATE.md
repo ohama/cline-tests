@@ -110,7 +110,46 @@ byte-identical 로 증명), pid 5종 불변, 포트 3000/8444 미바인딩, `ver
 
 ## Current Position
 
-Phase: 8 of 8 (한글 사용 매뉴얼) — **완료, 6/6 plan 종료(08-01~08-06).** wave 1(08-01/08-02)
+**[2026-08-31] 마일스톤 감사(v1-MILESTONE-AUDIT.md) 사후 gap-closure 진행 중 — Phase 7 재개.**
+8개 Phase 전부 완료(아래 08-06 항목) 후 실행된 마일스톤 감사가 1b("Core Value 는 합성
+테스트에서 증명됐고 실제 에이전트 부하에서는 아니다")를 지적해, `07-11`~`07-16`(6 plans,
+5 waves, `841c046`)로 Phase 7 을 재개했다. BCH-01 과제 수를 채우는 계획이 아니라 감사가
+지목한 fail-context 근인을 규명하는 계획 — 사용자가 명시적으로 근인 규명을 선택했다.
+
+**07-12(fail-context 분류기 감사, wave 11, 07-11 과 병렬) — 완료.** 라이브 실행 0회, 모델
+호출 0회, 포렌식만(`bench/runs/`/`phase-07/bench/` 양쪽 다 `git status --short` 빈 상태로
+불변 확인). 판정: **분류기(`run_task.sh`)는 불건전하다** — (1) 서버로그 쪽 `HTTP_400_SEEN`
+grep(`\b400\b`)은 진짜 `MAX_KV_SIZE` 거부 줄에는 맨 `400`이 전혀 없어 위음성이고, decode
+텔레메트리(`generated_tokens=400`)·로그 타임스탬프 밀리초(`,400`)에 위양성으로 매칭된다.
+(2) `agent/cline.txt` 쪽은 litellm 이 릴레이한 진짜 `Error code: 400`(true-signal)과 별개로
+**벤치 과제 자신의 저장소 소스 코드**(`telegram-plugin-refactor`의 `case 400:`,
+`new ApiError(...,400,...)`)에도 매칭돼 실제 위양성 벡터가 실증됐다(가설이 아니라 실측).
+(3) `MAX_PROMPT_TOKENS`는 성공한 `Request completed:` 계열 줄에서만 추출돼 거부당한 요청
+자체의 프롬프트 크기는 구조적으로 절대 못 잡는다(예: telegram 은 기록상 21,036 이지만 실제
+거부 시점 프롬프트는 36,155). 그럼에도 감사 대상 4개 과제(`discord-trivia-approval-keyerror`
+38턴/`telegram-plugin-refactor` 6턴/`v-edit-workspace-tests` 12턴 = `fail-context`,
+`filmarchiver` = `fail-infra`, 각각 서버로그 원본 거부 줄과 트랜스크립트 relay 숫자가 일치)
+전부 **라벨은 정확** — 우연이 아니라 각 fail-context 과제마다 독립적인 true-signal 매치가
+존재했기 때문. `discord-trivia-approval-keyerror`는 원시 이벤트 개수로는 METAL/GPU OOM(6건)이
+MAX_KV 거부(1건)를 압도하지만, 6번 모두 재시도로 회복했고 마지막(terminal) 이벤트가 바로 그
+컨텍스트 거부였다 — "메모리 고갈로 죽었나 컨텍스트 천장으로 죽었나"라는 질문에 두 답 모두
+부분적으로 맞다고 명시. `20260830T093515Z-smoke/ANALYSIS.md`의 `fail-infra`(pre-fix,
+`bench/runs/20260830T093657Z-phase07/`, 07-07 스키마 수정 전, 실제 OpenAI API 히트, 서버로그
+0바이트)와 마일스톤 감사의 `fail-context`(post-fix, `bench/runs/20260830T122809Z-phase07-fix/`,
+38턴, 진짜 MAX_KV 거부)는 **모순이 아니라 서로 다른 두 실행 디렉터리에 대한 각각 옳은 서술**
+— 양쪽 메타 레코드를 인용해 확정. 마일스톤 헤드라인("모델에 도달한 3/3 이 32K 천장에서
+fail-context 로 죽었다")은 **그대로 유지** — 서버로그 원본 거부 줄과 relay 숫자를 직접 대조해
+재확인했다. 분류기 자체는 안 고침(07-13 소관, `phase-07/bench/*.sh` 무변경 `git status`로
+확인) — 5개 결함을 번호 매겨 `CLASSIFIER-AUDIT.md`§3에 07-13 이 바로 쓸 수 있게 남김.
+`phase-07/results/20260831T004024Z-classifier-audit/{README,failure-composition.tsv,
+match-provenance.md,CLASSIFIER-AUDIT.md}` 4개 파일, 커밋 3개(`e53ed5e`/`a58abab`/`f074348`).
+6개 pid(46573/75548/48525) 중 감시 대상 3개(flashnext/role-shim/litellm) 불변,
+`providers.json` sha256 불변, colima 계속 정지 상태, `lsof -i :3000` 빈 상태, `harbor`/`cline`
+프로세스 미기동. SUMMARY: `07-12-SUMMARY.md`. **다음: 07-13(분류기 수정) 또는 병렬
+07-11/07-14~16 — 이 세션은 07-12 로 종료.**
+
+이전(마일스톤 완료 시점 기록, 그대로 보존): Phase: 8 of 8 (한글 사용 매뉴얼) — **완료, 6/6 plan
+종료(08-01~08-06).** wave 1(08-01/08-02)
 완료, wave 2(08-03/08-04) 완료, wave 3(08-05) 완료, wave 4(08-06) 완료. **8개 Phase 전부
 완료 — 마일스톤 종료.**
 Plan: 06 of 6 in current phase — **완료(3 tasks, 개별 커밋).**
@@ -2494,7 +2533,30 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-08-31
-Stopped at: **08-06-PLAN.md 완료 (00-시작하기 + README 인덱스 + ROADMAP/REQUIREMENTS/STATE
+Stopped at: **07-12-PLAN.md 완료 (fail-context 분류기 감사, wave 11, 07-11 과 병렬, 3/3 tasks)
+— 마일스톤 감사 사후 Phase 7 gap-closure(07-11~07-16) 진행 중.** 커밋 3개, 개별
+(`e53ed5e`/`a58abab`/`f074348`). Task 1: `discord-trivia-approval-keyerror` 실패 구성 정량화
+— 원시 카운트로는 METAL/GPU OOM 6건이 MAX_KV 거부 1건을 압도하지만(나이브
+`grep -c kIOGPUCommandBufferCallbackErrorOutOfMemory`는 이벤트당 4줄을 찍어 24로 4배
+과대집계됨을 확인·기록), 6번 모두 재시도로 회복하고 마지막 이벤트가 그 컨텍스트 거부였음을
+타임라인으로 실증. Task 2: `run_task.sh`의 `HTTP_400_SEEN` 두 grep 타깃(서버로그,
+`agent/cline.txt`)을 4개 과제 전부에 대해 수동 재실행 — 서버로그 쪽은 진짜 MAX_KV 거부 줄에
+맨 `400`이 아예 없어 위음성, decode 텔레메트리·로그 타임스탬프 밀리초에 위양성; cline.txt
+쪽은 litellm 릴레이(true-signal)와 별개로 `telegram-plugin-refactor`에서 벤치 과제 자신의
+저장소 소스 코드(`case 400:` 등)에 실제 위양성 매칭을 실증. `make_summary.sh`는 verdict 를
+전사만 함(재계산 없음), `verify_bench.sh` B2 는 verdict 어휘 소속만 검사(정확성 검사 아님).
+Task 3: `CLASSIFIER-AUDIT.md` 작성 — 4개 과제 라벨-증거 표(전부 `correct`, `coincidentally-
+correct`/`incorrect` 없음), `discord-trivia-approval-keyerror`의 fail-infra(smoke,
+pre-fix 런)/fail-context(감사, post-fix 런) "충돌"을 서로 다른 두 실행 디렉터리에 대한 각각
+옳은 서술로 해소, 분류기 판정("불건전, 5개 결함 목록화, 07-13 소관"), 마일스톤 헤드라인
+영향("3/3 이 32K 천장에서 죽었다"는 그대로 유지, 재확인됨). `phase-07/bench/*.sh` 무변경
+(`git status --short` 빈 상태), `bench/runs/` 무변경. SUMMARY: `07-12-SUMMARY.md`.
+안전 확인: pid 46573/75548/48525 불변, `providers.json` sha256
+`534151965f81089b...` 불변, colima 정지 상태 유지, `lsof -i :3000` 빈 상태, `harbor` 프로세스
+없음, 호스트 `cline`/`kanban` 호출 0회. Resume file: None. **다음: 07-13(분류기 수정) 또는
+병렬 진행 중인 07-11/07-14~16.**
+
+이전(마일스톤 완료 시점 기록, 그대로 보존): **08-06-PLAN.md 완료 (00-시작하기 + README 인덱스 + ROADMAP/REQUIREMENTS/STATE
 정합 + phase-close 스윕, 3/3 tasks) — Phase 8·마일스톤 전체가 이 플랜으로 종료됐다.**
 커밋 3개, 개별. Task 1: `docs/manual/00-getting-started.md`(133줄) — 매뉴얼 입구, 여섯 서비스
 표, `[GAP-REBOOT]`/`[GAP-CLINE-VERSION]`/`[GAP-READONLY]`/`[GAP-PORT3000]`, 증상→문서 표,
