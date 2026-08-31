@@ -4,6 +4,10 @@
 > 반드시 통과해야 한다. `~/local-llm-settings/config/litellm-config.yaml` 수정이 필요하다.
 >
 > 작성 2026-09-01 · 근거는 이 문서 안에 실측 출처를 명시한다.
+>
+> **구현 계획: `docs/plan-act-reasoning-implementation.md`.**
+> 그 계획은 이 문서의 L1(`allowed_openai_params` 통과)을 쓰지 않는다 — litellm 별칭이
+> 파라미터를 주입하면 Cline 이 `--thinking` 을 보낼 필요가 없어 400 차단을 아예 만나지 않는다.
 
 ## 0. 요약
 
