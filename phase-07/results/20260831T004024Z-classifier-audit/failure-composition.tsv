@@ -1,0 +1,17 @@
+task	event_class	count	first_ts	last_ts	sample_line
+discord-trivia-approval-keyerror	maxkv-rejection	1	2026-08-30 21:56:00,762	2026-08-30 21:56:00,762	2026-08-30 21:56:00,762 - WARNING - Request failed: endpoint=/chat/completions ... error=Request needs 33227 context tokens (31179 prompt + 2048 max generation), but MAX_KV_SIZE is 32768. in_flight=0
+discord-trivia-approval-keyerror	metal-oom	6	2026-08-30 21:36:06,619	2026-08-30 21:53:33,116	2026-08-30 21:36:06,619 - WARNING - Request failed: endpoint=/chat/completions ... error=[METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory). in_flight=0
+discord-trivia-approval-keyerror	other-request-failed	0	-	-	(none: 1 maxkv + 6 metal-oom = 7, matches full "Request failed:" count of 7)
+discord-trivia-approval-keyerror	completed	38	2026-08-30 21:29:42,826	2026-08-30 21:56:00,599	2026-08-30 21:56:00,599 - INFO - Request completed: ... prompt_tokens=30463 generated_tokens=408 ... finish_reason=tool_calls in_flight=0
+telegram-plugin-refactor	maxkv-rejection	1	2026-08-31 02:07:35,961	2026-08-31 02:07:35,961	2026-08-31 02:07:35,961 - WARNING - Request failed: endpoint=/chat/completions ... error=Request needs 38203 context tokens (36155 prompt + 2048 max generation), but MAX_KV_SIZE is 32768. in_flight=0
+telegram-plugin-refactor	metal-oom	0	-	-	(none found)
+telegram-plugin-refactor	other-request-failed	0	-	-	(none: 1 maxkv = full "Request failed:" count of 1)
+telegram-plugin-refactor	completed	6	2026-08-31 02:05:32,752	2026-08-31 02:07:35,829	2026-08-31 02:07:35,829 - INFO - Request completed: ... prompt_tokens=330 generated_tokens=319 finish_reason=stop in_flight=0
+filmarchiver	maxkv-rejection	0	-	-	(server-log slice is 0 bytes -- flashnext never logged a request for this task's wall-clock window)
+filmarchiver	metal-oom	0	-	-	(server-log slice is 0 bytes)
+filmarchiver	other-request-failed	0	-	-	(server-log slice is 0 bytes)
+filmarchiver	completed	0	-	-	(server-log slice is 0 bytes; meta model_turns=0, verdict=fail-infra)
+v-edit-workspace-tests	maxkv-rejection	1	2026-08-31 02:24:39,034	2026-08-31 02:24:39,034	2026-08-31 02:24:39,034 - WARNING - Request failed: endpoint=/chat/completions ... error=Request needs 32891 context tokens (30843 prompt + 2048 max generation), but MAX_KV_SIZE is 32768. in_flight=0
+v-edit-workspace-tests	metal-oom	1	2026-08-31 02:22:33,225	2026-08-31 02:22:33,225	2026-08-31 02:22:33,225 - WARNING - Request failed: endpoint=/chat/completions ... error=[METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory). in_flight=0
+v-edit-workspace-tests	other-request-failed	0	-	-	(none: 1 maxkv + 1 metal-oom = 2, matches full "Request failed:" count of 2)
+v-edit-workspace-tests	completed	12	2026-08-31 02:16:53,202	2026-08-31 02:24:38,919	2026-08-31 02:24:38,919 - INFO - Request completed: ... prompt_tokens=30696 generated_tokens=42 finish_reason=tool_calls in_flight=0
