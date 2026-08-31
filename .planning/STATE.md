@@ -139,7 +139,7 @@ gap2 근인 규명 각주 추가, 체크박스는 그대로 미체크, Traceabil
 `.planning/ROADMAP.md`(07-11~07-16 체크박스 `[x]`, 진행 표 `16/16`, criterion 1 문구에
 근인 규명 사실 추가·`not_met` 유지), `.planning/v1-MILESTONE-AUDIT.md`(§1b 에 근인 규명
 정정 블록 추가, 열린 항목 6 갱신, `tech_debt` phase 07 항목 갱신) 정합 — YAML frontmatter
-파싱 확인. Task 3: `phase-07/results/20260831T0*Z-close/gates/`(`check_manual_claims.txt`,
+파싱 확인. Task 3: `phase-07/results/20260831T023128Z-close/gates/`(`check_manual_claims.txt`,
 `verify_bench.sh --run-dir bench/runs/20260830T122809Z-phase07-fix`,
 `phase-01/config/verify_config.sh` 재실행 결과) + `anti-overclaim.md`(8/8 PASS, 문서별
 인용) 작성. 안전 확인: `providers.json` sha256 `534151965f81089b...` 불변, 6개 pid 전부
