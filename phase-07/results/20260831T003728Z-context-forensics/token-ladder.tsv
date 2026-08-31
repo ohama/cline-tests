@@ -1,0 +1,23 @@
+task	seq	timestamp	line	request_id	prompt_tokens	max_tokens	sum	outcome	detail
+telegram-plugin-refactor	1	2026-08-31 02:05:24,098	2	82eab02780	2861	24003	26864	accepted	
+telegram-plugin-refactor	2	2026-08-31 02:05:32,971	21	82eaab24e0	4186	22529	26715	accepted	
+telegram-plugin-refactor	3	2026-08-31 02:05:43,764	46	82ed54fb60	12848	13456	26304	accepted	
+telegram-plugin-refactor	4	2026-08-31 02:06:08,890	71	82ebd215b0	17848	7928	25776	accepted	
+telegram-plugin-refactor	5	2026-08-31 02:06:42,328	93	82ebd2ff50	21036	4281	25317	accepted	
+telegram-plugin-refactor	6	2026-08-31 02:07:26,177	130	82ebd73b00	330	4096	4426	accepted	
+telegram-plugin-refactor	7	2026-08-31 02:07:35,961	168	(none-rejected-before-queue)	36155	2048	38203	rejected-maxkv	Request needs 38203 context tokens (36155 prompt + 2048 max generation), but MAX_KV_SIZE is 32768. in_flight=0
+v-edit-workspace-tests	1	2026-08-31 02:16:44,125	2	82ed54f0b0	2852	23993	26845	accepted	
+v-edit-workspace-tests	2	2026-08-31 02:16:53,312	23	82ebd72bd0	4516	22559	27075	accepted	
+v-edit-workspace-tests	3	2026-08-31 02:17:01,783	37	82eaacda90	12646	14602	27248	accepted	
+v-edit-workspace-tests	4	2026-08-31 02:17:24,184	55	82ea9dbb30	15495	11685	27180	accepted	
+v-edit-workspace-tests	5	2026-08-31 02:17:52,245	74	82eab00a70	18296	8770	27066	accepted	
+v-edit-workspace-tests	6	2026-08-31 02:18:26,219	94	82eaa03aa0	20845	6118	26963	accepted	
+v-edit-workspace-tests	7	2026-08-31 02:19:05,529	117	82eab00110	23780	3280	27060	accepted	
+v-edit-workspace-tests	8	2026-08-31 02:19:52,446	140	82eaa35520	321	4096	4417	accepted	
+v-edit-workspace-tests	9	2026-08-31 02:20:04,591	179	82ebcfb530	27173	118	27291	accepted	
+v-edit-workspace-tests	10	2026-08-31 02:20:58,276	204	82ebd2efc0	29218	2048	31266	accepted	
+v-edit-workspace-tests	11	2026-08-31 02:21:57,325	230	82ea9db440	30117	2048	32165	accepted	
+v-edit-workspace-tests	12	2026-08-31 02:22:33,225	256	(none-failed-other)				failed-other	endpoint=/chat/completions model=/Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4 stream=True error=[METAL] Command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory). in_flight=0
+v-edit-workspace-tests	13	2026-08-31 02:22:35,457	287	82ebd23860	30117	2048	32165	accepted	
+v-edit-workspace-tests	14	2026-08-31 02:23:37,143	313	82eaacd220	30696	2048	32744	accepted	
+v-edit-workspace-tests	15	2026-08-31 02:24:39,034	338	(none-rejected-before-queue)	30843	2048	32891	rejected-maxkv	Request needs 32891 context tokens (30843 prompt + 2048 max generation), but MAX_KV_SIZE is 32768. in_flight=0
