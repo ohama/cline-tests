@@ -1,0 +1,3 @@
+=== CFG-16 reading (2026-09-01T08:50:21Z) ===
+8011 nonempty=True  4000-plan nonempty=True  4000-control nonempty=False
+READING: CFG-16 answered POSITIVELY -- 8011 direct and flashnext-plan through :4000 both produced nonempty reasoning while the flashnext negative control did not. Nothing further needed.

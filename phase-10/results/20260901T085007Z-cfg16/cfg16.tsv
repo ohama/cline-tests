@@ -1,0 +1,4 @@
+arm	http_code	reasoning_content_len	reasoning_len	content_len	prompt_tokens	completion_tokens	nonempty
+8011	200	284	284	2	29	179	True
+4000-plan	200	284	0	2	29	179	True
+4000-control	200	0	0	2	31	3	False
