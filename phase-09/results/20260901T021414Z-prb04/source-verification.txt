@@ -1,0 +1,98 @@
+=== verify_reasoning_history_source.sh -- 2026-09-01T02:18:22Z ===
+
+--- Check 1: cline-src tag ---
+git -C /Users/ohama/projs/cline-src describe --tags => cli-v3.0.53
+PASS: cline-src tag matches pinned cli-v3.0.53
+git -C /Users/ohama/projs/cline-src status --porcelain => ''
+PASS: cline-src working tree clean (read-only inspection confirmed, nothing modified)
+
+--- Check 2: shouldIncludeReasoningHistory (ai-sdk.ts) ---
+grep -n 'shouldIncludeReasoningHistory' /Users/ohama/projs/cline-src/sdk/packages/llms/src/providers/ai-sdk.ts =>
+93:		includeReasoning: shouldIncludeReasoningHistory(request, context),
+284:function shouldIncludeReasoningHistory(
+PASS: shouldIncludeReasoningHistory found in ai-sdk.ts (2 hit(s))
+--- sed -n '284,289p' /Users/ohama/projs/cline-src/sdk/packages/llms/src/providers/ai-sdk.ts (function body, verbatim) ---
+function shouldIncludeReasoningHistory(
+	request: GatewayStreamRequest,
+	context: GatewayProviderContext,
+): boolean {
+	return !isCerebrasProvider(request, context);
+}
+PASS: function body observed to literally contain 'return !isCerebrasProvider(...)' at/after line 284
+
+--- Check 3: isCerebrasProvider ---
+grep -n 'isCerebrasProvider' /Users/ohama/projs/cline-src/sdk/packages/llms/src/providers/ai-sdk.ts =>
+34:	isCerebrasProvider,
+288:	return !isCerebrasProvider(request, context);
+grep -n 'isCerebrasProvider' /Users/ohama/projs/cline-src/sdk/packages/llms/src/providers/model-facts.ts =>
+449:export function isCerebrasProvider(
+PASS: isCerebrasProvider referenced in ai-sdk.ts (import + call site)
+LOUD: isCerebrasProvider's actual DEFINITION lives in model-facts.ts, not ai-sdk.ts (ai-sdk.ts only imports and calls it) -- 09-RESEARCH.md's citation implied it was local to ai-sdk.ts; this is a minor correction to that citation, not a change to the finding itself
+
+--- Check 4: agentPartToContentBlock (agent-message-codec.ts) ---
+grep -n 'agentPartToContentBlock' /Users/ohama/projs/cline-src/sdk/packages/core/src/runtime/config/agent-message-codec.ts =>
+123:		.map(agentPartToContentBlock)
+148:			.map(agentPartToContentBlock)
+231:function agentPartToContentBlock(
+PASS: agentPartToContentBlock found in agent-message-codec.ts (3 hit(s))
+grep -n 'case "reasoning"' /Users/ohama/projs/cline-src/sdk/packages/core/src/runtime/config/agent-message-codec.ts => line 237
+--- sed -n '237,253p' /Users/ohama/projs/cline-src/sdk/packages/core/src/runtime/config/agent-message-codec.ts (case "reasoning" branch, verbatim) ---
+		case "reasoning": {
+			if (part.redacted === true) {
+				const data =
+					(part.metadata as { data?: string } | undefined)?.data ?? "";
+				return {
+					type: "redacted_thinking",
+					data,
+				} satisfies RedactedThinkingContent;
+			}
+			const metadata = part.metadata as
+				| { signature?: string; details?: unknown[] }
+				| undefined;
+			return {
+				type: "thinking",
+				thinking: part.text,
+				signature: metadata?.signature,
+				details: metadata?.details,
+PASS: case "reasoning" branch observed to convert to a 'type: "thinking"' content block at/after line 237
+
+--- Check 5: thinking block budget counting (message-builder.ts) ---
+grep -n 'thinking' /Users/ohama/projs/cline-src/sdk/packages/core/src/session/services/message-builder.ts =>
+1213:				} else if (block.type === "thinking") {
+1214:					total += utf8ByteLength(block.thinking);
+PASS: message-builder.ts observed counting 'block.type === "thinking"' toward the text budget at line 1213
+
+--- Check 6: litellm _extract_reasoning_content (installed venv backing com.ohama.litellm) ---
+grep -n '_extract_reasoning_content' -A 8 /Users/ohama/agent-stack/venv/lib/python3.12/site-packages/litellm/litellm_core_utils/prompt_templates/common_utils.py => (def at line 1337)
+def _extract_reasoning_content(message: dict) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Extract reasoning content and main content from a message.
+
+    Args:
+        message (dict): The message dictionary that may contain reasoning_content
+
+    Returns:
+        tuple[Optional[str], Optional[str]]: A tuple of (reasoning_content, content)
+PASS: installed litellm's _extract_reasoning_content observed checking BOTH 'reasoning_content' and 'reasoning' keys, at/after line 1337
+
+--- Check 7: docs/plan-act-reasoning-{implementation,design,diagrams}.md edit targets ---
+--- docs/plan-act-reasoning-implementation.md ---
+43:T2  Gate ① 컨텍스트 누적    ← kill condition
+93:누적되면 32K 천장에 **더 빨리** 부딪히고, 압축은 여전히 줄이지 못한다.
+96:- `agentic-compaction.ts:88` 의 `reasoningChars` 는 **압축 요약기 자신의** reasoning 출력을
+97:  세는 텔레메트리다. 요약문 `text` 만 반환되고 reasoning 은 버려진다. **누적의 증거가 아니다.**
+98:- `toGatewayRequestMessages()` (`compat.ts:306`) 는 `message.content` 배열만 순회한다.
+102:**소스는 "누적되지 않는다" 쪽을 가리키나 결정적이지 않다.** 실측으로 확정한다:
+229:| 사고 트레이스가 컨텍스트에 누적된다 | T2 가 kill condition |
+244:T2    사고 트레이스 누적 확인         → 계획 폐기
+--- docs/plan-act-reasoning-design.md ---
+204:1. 게이트 ① 컨텍스트 누적 측정        ← "누적됨"이면 설계 폐기
+--- docs/plan-act-reasoning-diagrams.md ---
+160:    T2["T2 · Gate ① 컨텍스트 누적<br/>사고 트레이스가 되돌아오는가"]
+161:    K2{{"누적되면<br/>→ 계획 폐기"}}
+187:> 컨텍스트는 단조 증가한다. 여기에 사고 트레이스까지 누적되면 32K 천장에 더 빨리 부딪히고,
+190:> 소스 조사는 "누적되지 않는다" 쪽을 가리킨다 — `toGatewayRequestMessages()` 는 `content`
+191:> 배열만 순회하고, `agentic-compaction.ts:88` 의 `reasoningChars` 는 *요약기 자신의* 출력을
+PASS: docs/plan-act-reasoning-implementation.md contains the false-negative paragraph's source citations (see source-verification.txt for exact lines)
+
+=== overall: PASS ===
