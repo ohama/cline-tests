@@ -50,7 +50,7 @@ FLASHNEXT_LOG = str(Path.home() / "llm-system" / "services" / "logs" / "flashnex
 URL_8011 = "http://localhost:8011/v1/chat/completions"
 URL_4000 = "http://localhost:4000/v1/chat/completions"
 
-MAX_TOKENS = 4
+MAX_TOKENS = 4            # hard cap for every request this script fires (max_tokens: 4)
 ATTEMPT_MAX = 3           # rounds of the full 6-request matrix (anti-flake loop)
 ATTR_RETRY_MAX = 3        # per-request local retry on Prefill-line attribution ambiguity
 

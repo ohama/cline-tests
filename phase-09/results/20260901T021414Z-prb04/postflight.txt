@@ -1,4 +1,4 @@
-=== postflight 2026-09-01T02:14:43Z ===
+=== postflight 2026-09-01T02:17:02Z ===
 OK: service PIDs unchanged (no restart)
 OK: config file hashes unchanged (litellm-config.yaml, providers.json)
 --- independent check: verify_config.sh (non-fatal, always recorded) ---

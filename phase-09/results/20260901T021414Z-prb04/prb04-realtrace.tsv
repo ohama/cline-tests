@@ -1,0 +1,5 @@
+trace_label	source_file	char_length	endpoint	http_code	prompt_tokens	delta
+LONGEST	/Users/ohama/projs/cline-tests/phase-09/results/20260901T015706Z-prb03/realtrace-t3.txt	989	8011	200	46	0
+LONGEST	/Users/ohama/projs/cline-tests/phase-09/results/20260901T015706Z-prb03/realtrace-t3.txt	989	4000	200	46	0
+CONCAT	realtrace-t1.txt,realtrace-t2.txt,realtrace-t3.txt	2497	8011	200	46	0
+CONCAT	realtrace-t1.txt,realtrace-t2.txt,realtrace-t3.txt	2497	4000	200	46	0

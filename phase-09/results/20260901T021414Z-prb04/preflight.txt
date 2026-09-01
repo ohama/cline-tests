@@ -1,4 +1,4 @@
-=== preflight 2026-09-01T02:14:14Z ===
+=== preflight 2026-09-01T02:16:46Z ===
 --- pids-before.txt ---
 com.ohama.flashnext 46573
 com.ohama.litellm 48525
@@ -6,11 +6,11 @@ com.ohama.role-shim 75548
 --- hashes-before.txt ---
 12e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c  /Users/ohama/local-llm-settings/config/litellm-config.yaml
 5cf3800da31de8855b06e1d1cc85f415d68332dbee2625a587da2b4d8093e0a1  /Users/ohama/.cline/data/settings/providers.json
-LOG_WATERMARK=22752
+LOG_WATERMARK=22836
 --- tail -2 /Users/ohama/llm-system/services/logs/flashnext.err ---
-2026-09-01 11:02:20,584 - INFO - Decode completed: request=835bec05f0 generated_tokens=50 elapsed=1.435s rate=34.1 tok/s finish_reason=stop
-2026-09-01 11:02:20,610 - INFO - Request completed: endpoint=/chat/completions model=/Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4 stream=False backend=continuous_batching prompt_tokens=681 generated_tokens=50 elapsed=3.508s prefill=341.8 tok/s decode=34.8 tok/s finish_reason=stop in_flight=0
-idle check: OK -- 2026-09-01 11:02:20,610 - INFO - Request completed: endpoint=/chat/completions model=/Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4 stream=False backend=continuous_batching prompt_tokens=681 generated_tokens=50 elapsed=3.508s prefill=341.8 tok/s decode=34.8 tok/s finish_reason=stop in_flight=0
+2026-09-01 11:14:42,204 - INFO - Decode completed: request=835bec2c30 generated_tokens=4 elapsed=0.099s rate=30.2 tok/s finish_reason=length
+2026-09-01 11:14:42,228 - INFO - Request completed: endpoint=/chat/completions model=/Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4 stream=False backend=continuous_batching prompt_tokens=46 generated_tokens=4 elapsed=1.131s prefill=48.1 tok/s decode=40.2 tok/s finish_reason=length in_flight=0
+idle check: OK -- 2026-09-01 11:14:42,228 - INFO - Request completed: endpoint=/chat/completions model=/Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4 stream=False backend=continuous_batching prompt_tokens=46 generated_tokens=4 elapsed=1.131s prefill=48.1 tok/s decode=40.2 tok/s finish_reason=length in_flight=0
 --- advisory (hint only, NOT a hard gate): running cline processes ---
 4672 node /opt/homebrew/bin/cline
 4673 /opt/homebrew/lib/node_modules/cline/bin/.cline
