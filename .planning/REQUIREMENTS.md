@@ -11,8 +11,11 @@
 
 - [ ] **PRB-01**: `reasoning_effort: medium` 이 `:8011` 직결에서 실제로 응답에 `reasoning` 필드를
   만드는지 확인되고 결과가 기록된다
-  <br>🔴 **게이트.** `reasoning` 이 비면 medium 은 사고를 켜지 않는다는 뜻이고, 그 경우
-  이 마일스톤은 구현 없이 종료한다(정당한 결과)
+  <br>🔶 **2026-09-01 게이트에서 강등.** 별칭이 `enable_thinking: true` 를 함께 주입하도록
+  바뀌었으므로(CFG-11), effort 단독으로 사고가 켜지지 않아도 마일스톤은 계속된다 — 조합이
+  그 역할을 한다. 이 측정은 여전히 가치 있다: **"effort 하나로 충분한가"** 에 답하고,
+  충분하다면 별칭을 단순화할 근거가 된다. 부정적이어도 **종료 사유가 아니다.**
+  <br>🔴 남은 진짜 킬 컨디션은 **PRB-04** 하나다
 - [ ] **PRB-02**: `enable_thinking: false` 가 litellm 을 통과하는지 확인된다 →
   `flashnext-act` 별칭 생성 여부가 이 결과로 결정된다
 - [ ] **PRB-03**: effort 별 `prompt_tokens` 차이(미지정 23 / medium 21 / low 51 / xhigh 63)가
@@ -23,14 +26,23 @@
 
 ### CFG — 별칭과 주입
 
-- [ ] **CFG-11**: `flashnext-plan` 별칭이 `reasoning_effort: medium` 을 주입한다
-  (Cline 은 `--thinking` 을 쓰지 않는다)
+- [ ] **CFG-11**: `flashnext-plan` 별칭이 **`enable_thinking: true` 와 `reasoning_effort: medium` 을 함께**
+  주입한다 (Cline 은 `--thinking` 을 쓰지 않는다)
+  <br>※ **2026-09-01 변경.** 원래는 `reasoning_effort` 만 주입할 계획이었다. `VALIDATED.md` §4 의
+  권장이 *"중간 → `enable_thinking: true` + `reasoning_effort: medium`"* 으로 **두 파라미터를 함께**
+  쓰라고 명시하고, `enable_thinking` 의 기본값이 `false` 이므로 effort 만으로 사고가 켜진다는 보장이
+  없다. 실제로 `medium`(21) < 미지정(23) 이라는 시스템 프롬프트 길이 이상 징후가 그 의심의 근거다.
+  두 개를 함께 넣으면 이 불확실성 자체가 사라진다
 - [ ] **CFG-12**: PRB-02 가 통과를 확인한 경우에만 `flashnext-act` 별칭이 만들어진다.
   통과하지 못하면 만들지 않고 그 사실이 기록된다
 - [ ] **CFG-13**: 기존 `flashnext` 별칭은 변경되지 않는다 (회귀 판정 기준선)
 - [ ] **CFG-14**: `drop_params: true` 를 쓰지 않는다 — 파라미터를 조용히 버려 200 을 만드는
   실패 모드이며, 이 프로젝트가 두 번 당한 것과 같은 종류다
 - [ ] **CFG-15**: 변경이 `~/local-llm-settings` 에 반영되고 `sync.sh` 결과에 나타난다
+- [ ] **CFG-16**: 별칭이 주입하는 **두 파라미터 조합**(`enable_thinking: true` + `reasoning_effort: medium`)이
+  실제로 `reasoning` 필드를 만드는 것이 `:8011` 과 `:4000` 양쪽에서 확인된다
+  <br>※ **2026-09-01 신설.** 이 조합은 이 스택에서 측정된 적이 없다. VALIDATED.md 의 권장은
+  `:8000` 직결 시절 기록이다. 조합이 안 되면 별칭 정의를 고쳐야 하므로 Phase 10 안에서 답이 나야 한다
 
 ### VRF — 도달 증명
 
@@ -88,6 +100,7 @@
 | CFG-13 | Phase 10 | Pending |
 | CFG-14 | Phase 10 | Pending |
 | CFG-15 | Phase 10 | Pending |
+| CFG-16 | Phase 10 | Pending |
 | VRF-01 | Phase 10 | Pending |
 | VRF-02 | Phase 10 | Pending |
 | VRF-03 | Phase 10 | Pending |
@@ -99,8 +112,8 @@
 | USE-05 | Phase 12 | Pending |
 
 **Coverage:**
-- v1.1 requirements: 18 total
-- Mapped to phases: 18
+- v1.1 requirements: 19 total
+- Mapped to phases: 19
 - Unmapped: 0 ✓
 
 ---

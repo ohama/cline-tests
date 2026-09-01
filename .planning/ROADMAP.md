@@ -48,8 +48,11 @@ litellm 설정 변경(Phase 10)은 그 답이 나온 뒤에만 일어난다. 게
      (23/21/51/63)과 대조한 표로 남는다 (PRB-03)
   4. thinking on/off 로 각 3턴 이상 실행한 두 시퀀스의 `prompt_tokens` 증가폭이 비교·기록된다
      (PRB-04, 게이트)
-  5. PRB-01·PRB-04 두 게이트의 판정에 따라 "Phase 10 진행" 또는 "마일스톤 종료"가 문서에
-     명시된다 — 어느 쪽이든 이 기준을 충족시킨다
+  5. 게이트 판정이 문서에 명시된다 — "Phase 10 진행" · "마일스톤 종료" · "판정 보류" 중 하나.
+     어느 쪽이든 이 기준을 충족시킨다
+     <br>※ **2026-09-01 변경.** 킬 컨디션은 이제 **PRB-04 하나**다. 별칭이 `enable_thinking: true` 를
+     함께 주입하도록 바뀌어(CFG-11), PRB-01 이 부정이어도 조합이 사고를 켜므로 종료 사유가 아니다.
+     PRB-01 은 "effort 하나로 충분한가"에 답하는 진단 항목으로 남는다
 **Plans**: 4 plans
 
 Plans:
@@ -63,11 +66,15 @@ Plans:
 **그것이 실제 `cline` CLI 실행에서 작동함이 관측되며,**
 주입된 파라미터가 실제로 모델까지 도달했음이 HTTP 200 이 아니라 서버 측 증거로 증명된다.
 **Depends on**: Phase 9 (두 게이트 모두 "진행" 판정이어야 착수)
-**Requirements**: CFG-11, CFG-12, CFG-13, CFG-14, CFG-15, VRF-01, VRF-02, VRF-03
+**Requirements**: CFG-11, CFG-12, CFG-13, CFG-14, CFG-15, CFG-16, VRF-01, VRF-02, VRF-03, VRF-04
 **Success Criteria** (관찰 가능·반증 가능):
   1. `~/local-llm-settings/config/litellm-config.yaml` 에 `flashnext-plan` 별칭이 추가되어
-     `reasoning_effort: medium` 을 주입하며, `drop_params` 가 어디에도 설정되지 않았음이
-     diff 로 확인된다 (CFG-11, CFG-14)
+     **`enable_thinking: true` 와 `reasoning_effort: medium` 을 함께** 주입하며, `drop_params` 가
+     어디에도 설정되지 않았음이 diff 로 확인된다 (CFG-11, CFG-14)
+     <br>※ 2026-09-01 변경 — effort 단독 주입에서 두 파라미터 주입으로. `enable_thinking` 기본값이
+     `false` 라 effort 만으로 사고가 켜진다는 보장이 없다 (VALIDATED.md §4 권장이 둘을 함께 쓴다)
+  1b. 🔴 그 **조합이 실제로 `reasoning` 을 만드는 것**이 `:8011` 과 `:4000` 양쪽 curl 로 확인된다.
+     이 조합은 이 스택에서 측정된 적이 없다 — 안 되면 별칭 정의를 고친다 (CFG-16)
   2. PRB-02 판정에 따라 `flashnext-act` 별칭 생성 여부가 결정·실행되고, 그 근거(통과했다면
      생성, 통과 못 했다면 미생성과 사유)가 기록된다 (CFG-12)
   3. 기존 `flashnext` 별칭 설정이 변경 전후 바이트 단위로 동일함이 확인된다 (CFG-13, 회귀
