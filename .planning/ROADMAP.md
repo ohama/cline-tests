@@ -20,15 +20,15 @@ litellm 설정 변경(Phase 10)은 그 답이 나온 뒤에만 일어난다. 게
 
 **Phase Numbering:** v1 이 1–8 을 썼다. v1.1 은 9 에서 시작한다 (연속 번호, 재시작 없음).
 
-- [ ] **Phase 9: 사전 확인 게이트 (스택 무변경)** - `:8011` 직결 무위험 실측으로 두 킬 컨디션에 근거 있는 답을 낸다
+- [x] **Phase 9: 사전 확인 게이트 (스택 무변경)** - `:8011` 직결 무위험 실측으로 두 킬 컨디션에 근거 있는 답을 낸다
 - [ ] **Phase 10: 별칭 주입과 도달 증명** - litellm 재기동을 감수하고 별칭을 추가한 뒤, 서버 로그로 도달을 증명한다
 - [ ] **Phase 11: 사용 표면 — 래퍼와 A/B 게이트** - `cline-plan`/`cline-act` 짝 강제와 medium 개선 여부 판정
 - [ ] **Phase 12: 문서 갱신** - 매뉴얼·고정값·설계문서를 실측 결과로 갱신
 
 **실행 순서:** 9 → 10 → 11 → 12, **전 구간 순차 실행.** `config.json` 의
 `parallelization: true` 는 이 마일스톤에 적용되지 않는다 — 게이트 순서(제약 2)와 설정 변경
-의존성이 병렬화를 허용하지 않는다. Phase 10 은 Phase 9 의 두 게이트가 모두 "진행" 판정일
-때만 착수한다. 어느 한쪽이 "폐기/중단"이면 마일스톤은 Phase 9 에서 종료하며, Phase 10–12 는
+의존성이 병렬화를 허용하지 않는다. Phase 10 은 Phase 9 의 게이트가 "진행" 판정일
+때만 착수한다. **2026-09-01: 판정 완료 — Phase 10 진행.** 어느 한쪽이 "폐기/중단"이면 마일스톤은 Phase 9 에서 종료하며, Phase 10–12 는
 집행되지 않고 그 사실이 STATE.md·PROJECT.md 에 기록된다 — 이 또한 유효한 출하 결과다.
 
 ## Phase Details
@@ -54,12 +54,23 @@ litellm 설정 변경(Phase 10)은 그 답이 나온 뒤에만 일어난다. 게
      함께 주입하도록 바뀌어(CFG-11), PRB-01 이 부정이어도 조합이 사고를 켜므로 종료 사유가 아니다.
      PRB-01 은 "effort 하나로 충분한가"에 답하는 진단 항목으로 남는다
 **Plans**: 4 plans
+**Status**: ✅ 완료 (2026-09-01) — 검증 32/32, `09-VERIFICATION.md`
+**판정**: **Phase 10 진행** — `phase-09/GATE-VERDICT.md` (사람 확인 완료)
+  - PRB-04 (🔴 유일한 킬 컨디션): **양성.** 통제 리플레이 16/16 이 `delta=0`,
+    `prompt_tokens=46` 고정. 두 엔드포인트 · 두 필드명(`reasoning_content`/`reasoning`) ·
+    합성 1,380자 및 실제 트레이스 2,497자 전부. 길이 임계 효과 없음
+  - PRB-01 (진단): **양성.** `medium` 단독 → `reasoning` 179자, 미지정 대조군 → 0자
+  - PRB-02: `enable_thinking:false` 는 거부되지 않음(200). `true` 대조군이 실제 적용을 입증 → CFG-12
+  - PRB-03: 6갈래 스윕 A/B 완전 일치. 델타는 두 선행 데이터셋과 정확히 일치
+  - **스택 무변경 확인**: 전 실행에서 PID·설정 해시 불변, `verify_config.sh` OK, `cline` 미호출
+**Phase 10 이 물려받는 것**: reach 프로브는 `low`(+28)/`xhigh`(+40) 사용 — `medium`·`et-medium`
+  의 −2 마진은 너무 좁다. CFG-16 질문은 좁혀짐(§3.2). VRF-04(실제 cline 검증)는 미이행 이월
 
 Plans:
-- [ ] 09-01-PLAN.md — 프로브 안전 외피(PID·설정 해시·gpu-stream 플레이크 판별) 구축 후 PRB-01·PRB-02 독립 재현
-- [ ] 09-02-PLAN.md — PRB-03 `prompt_tokens` 오라클 재측정 및 Phase 10 도달 프로브 값 선언
-- [ ] 09-03-PLAN.md — PRB-04 재현(합성 + 실제 xhigh 트레이스) 및 reasoning-history 소스 오탐 정정 기록
-- [ ] 09-04-PLAN.md — 재현값 대 리서치값 대조, 두 게이트 판정, "Phase 10 진행"/"마일스톤 종료" 판정문 작성
+- [x] 09-01-PLAN.md — 프로브 안전 외피(PID·설정 해시·gpu-stream 플레이크 판별) 구축 후 PRB-01·PRB-02 독립 재현
+- [x] 09-02-PLAN.md — PRB-03 `prompt_tokens` 오라클 재측정 및 Phase 10 도달 프로브 값 선언
+- [x] 09-03-PLAN.md — PRB-04 재현(합성 + 실제 xhigh 트레이스) 및 reasoning-history 소스 오탐 정정 기록
+- [x] 09-04-PLAN.md — 재현값 대 리서치값 대조, 두 게이트 판정, "Phase 10 진행"/"마일스톤 종료" 판정문 작성
 
 ### Phase 10: 별칭 주입과 도달 증명
 **Goal**: `flashnext-plan`(및 PRB-02 판정에 따른 `flashnext-act`) 별칭이 litellm 에 추가되고,

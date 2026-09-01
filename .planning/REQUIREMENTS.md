@@ -9,20 +9,42 @@
 
 ### PRB — 사전 확인 (게이트, 스택 무변경)
 
-- [ ] **PRB-01**: `reasoning_effort: medium` 이 `:8011` 직결에서 실제로 응답에 `reasoning` 필드를
+- [x] **PRB-01**: `reasoning_effort: medium` 이 `:8011` 직결에서 실제로 응답에 `reasoning` 필드를
   만드는지 확인되고 결과가 기록된다
   <br>🔶 **2026-09-01 게이트에서 강등.** 별칭이 `enable_thinking: true` 를 함께 주입하도록
   바뀌었으므로(CFG-11), effort 단독으로 사고가 켜지지 않아도 마일스톤은 계속된다 — 조합이
   그 역할을 한다. 이 측정은 여전히 가치 있다: **"effort 하나로 충분한가"** 에 답하고,
   충분하다면 별칭을 단순화할 근거가 된다. 부정적이어도 **종료 사유가 아니다.**
   <br>🔴 남은 진짜 킬 컨디션은 **PRB-04** 하나다
-- [ ] **PRB-02**: `enable_thinking: false` 가 litellm 을 통과하는지 확인된다 →
+- [x] **PRB-02**: `enable_thinking: false` 가 litellm 을 통과하는지 확인된다 →
   `flashnext-act` 별칭 생성 여부가 이 결과로 결정된다
-- [ ] **PRB-03**: effort 별 `prompt_tokens` 차이(미지정 23 / medium 21 / low 51 / xhigh 63)가
+- [x] **PRB-03**: effort 별 `prompt_tokens` 차이(미지정 23 / medium 21 / low 51 / xhigh 63)가
   재확인되어 도달 증명 오라클로 쓸 수 있음이 확립된다
-- [ ] **PRB-04**: 사고 트레이스가 다음 턴 컨텍스트로 되돌아오는지 실측된다
+- [x] **PRB-04**: 사고 트레이스가 다음 턴 컨텍스트로 되돌아오는지 실측된다
   <br>🔴 **게이트.** 누적되면 v1 의 "실제 부하에서 압축이 프루닝하지 않는다"와 겹쳐
   치명적이므로 마일스톤을 폐기한다
+
+**✅ 2026-09-01 Phase 9 결과** — `phase-09/GATE-VERDICT.md`, 검증 32/32
+
+| | 측정 | 판정 |
+|---|---|---|
+| PRB-01 | `medium` 단독 → `reasoning` **179자**; 미지정 대조군 → **0자** | 양성 (진단) |
+| PRB-02 | `false` 는 거부 안 됨(200). `true` 대조군이 **실제 적용** 입증 | → CFG-12 근거 |
+| PRB-03 | 6갈래 스윕 A/B 완전 일치. 델타는 선행 두 데이터셋과 정확히 일치 | 오라클 확립 |
+| PRB-04 | 통제 리플레이 **16/16 이 `delta=0`**, `prompt_tokens=46` 고정 | **양성 — 킬 컨디션 미발동** |
+
+**PRB-03 의 위 수치(23/21/51/63)는 낡았다.** 실측 절대값은 **13/11/41/53** 으로 이동했고,
+델타(medium −2, low +28, xhigh +40)는 비트 단위로 보존됐다. 원인 미규명. **오라클은 절대값이
+아니라 델타로만 쓸 것** — `PRB-03-ORACLE.md` §5.
+
+**PRB-04 의 강도:** 실제 트레이스 2,497자를 넣어도 필드를 통째로 뺀 것과 토큰이 같다(46).
+두 엔드포인트 · 두 필드명 전부. **길이 임계 효과 없음.**
+
+**CFG-11 설계 전제가 반증됐다.** "effort 만으로는 사고가 켜진다는 보장이 없다"가 근거였으나,
+PRB-01 은 `medium` 단독으로 켜짐을 보였고 PRB-03 은 `et-medium`=`medium`(11), `et-true`=`xhigh`(53)
+로 **`reasoning_effort` 가 명시되면 `enable_thinking` 은 측정 가능한 변화를 만들지 않음**을 보였다.
+주입은 무해하고 VALIDATED §4 권장과 일치하므로 **유지하되**, 근거는 "필요"가 아니라 "이중 안전장치"다.
+CFG-16 의 질문도 이에 따라 좁아졌다 — `GATE-VERDICT.md` §3.2.
 
 ### CFG — 별칭과 주입
 
@@ -91,10 +113,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PRB-01 | Phase 9 | Pending |
-| PRB-02 | Phase 9 | Pending |
-| PRB-03 | Phase 9 | Pending |
-| PRB-04 | Phase 9 | Pending |
+| PRB-01 | Phase 9 | Complete |
+| PRB-02 | Phase 9 | Complete |
+| PRB-03 | Phase 9 | Complete |
+| PRB-04 | Phase 9 | Complete |
 | CFG-11 | Phase 10 | Pending |
 | CFG-12 | Phase 10 | Pending |
 | CFG-13 | Phase 10 | Pending |

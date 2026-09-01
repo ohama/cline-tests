@@ -6,23 +6,22 @@ See: .planning/PROJECT.md (updated 2026-09-01)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
   — v1 에서 **합성 조건에 한해** 달성. 실제 에이전트 부하에서는 미달성
-**Current focus:** v1.1 — Phase 9 (사전 확인 게이트, 스택 무변경)
+**Current focus:** v1.1 — Phase 10 (별칭 주입과 도달 증명) — **스택을 실제로 바꾸는 첫 페이즈**
 
 ## Current Position
 
 Milestone: v1.1 Plan/Act ↔ reasoning_effort
-Phase: 9 of 12 (사전 확인 게이트 — 스택 무변경) — 진행 중
-Plan: 3 of 4 (09-03 완료 — PRB-04 통제 replay 재측정 + 소스 정정 기록)
-Status: In progress
-Last activity: 2026-09-01 — 09-03-PLAN.md 실행 완료: PRB-04 (kill condition) 통제
-  replay 를 합성/실제 트레이스 양쪽, :8011/:4000 양쪽, reasoning_content/reasoning
-  양쪽 필드명으로 처음부터 재측정 (16개 판정 전부 delta=0 CONFIRMED, 실제 2,497자
-  트레이스 포함 길이 임계값 효과 없음 확인), shouldIncludeReasoningHistory/
-  agentPartToContentBlock 소스 경로를 관측 라인 번호로 재검증, 구현 문서의 오탐
-  (false negative) 을 Phase 12 편집 대상으로 기록 (Phase 9 는 문서를 수정하지 않음).
-  게이트 판정 자체는 09-04 로 이연.
+Phase: 9 of 12 — ✅ **완료** (2026-09-01). 다음은 Phase 10
+Plan: 4 of 4 완료 (09-01 ~ 09-04)
+Status: Phase 9 종료 — 게이트 판정 **Phase 10 진행**, 사람 확인 완료, 검증 32/32
+Last activity: 2026-09-01 — Phase 9 전체 완료. **스택을 하나도 바꾸지 않은 채** 두 게이트에
+  근거 있는 답을 냈다. PRB-04(유일한 킬 컨디션) 양성 — 사고 트레이스를 되먹여도 토큰이 전혀
+  들지 않는다(16/16 `delta=0`, `prompt_tokens=46` 고정, 실제 2,497자 트레이스 포함).
+  검증자가 원시 JSON 에서 독립 재계산해 32/32 통과. 부정 셀프테스트 2종으로 안전 외피가
+  실제로 FAIL 을 내는 것까지 증명됨.
 
-Progress: [████░░░░░░] v1.1 in progress (19/19 requirements mapped, 3/4 Phase 9 plans executed; Phase 10–12 plans TBD)
+Progress: [███░░░░░░░] v1.1 (19/19 requirements mapped, 4/19 complete: PRB-01..04;
+  Phase 9 완료, Phase 10–12 plans TBD)
 
 ## Performance Metrics
 
@@ -31,7 +30,8 @@ Progress: [████░░░░░░] v1.1 in progress (19/19 requirements 
 - 3,326 files changed, 171,472 insertions
 - 3일 (2026-08-29 → 08-31)
 
-**v1.1:** Phase 9 Plan 01 — 3 tasks, 3 commits, ~15min (2026-09-01)
+**v1.1:** Phase 9 — 4 플랜, 12 태스크, 14 커밋, ~70분 (2026-09-01)
+  측정 표본 37개 전부 CONFIRMED, 플레이크 0건, 스택 무변경 전 구간 유지
 **v1.1:** Phase 9 Plan 02 — 3 tasks, 3 commits, ~25min (2026-09-01)
 **v1.1:** Phase 9 Plan 03 — 3 tasks, 3 commits, ~15min (2026-09-01)
 
@@ -86,24 +86,46 @@ v1.1 설계 근거: `docs/plan-act-reasoning-{design,implementation,diagrams}.md
   여전히 선언 안 함 — 09-04 몫. 증거: `phase-09/results/CURRENT_PRB04_RUN` →
   `phase-09/PRB-04-FINDINGS.md`.
 
+- **09-02**: 별칭 설계 변경(CFG-11)에 맞춰 스윕을 4갈래 → 6갈래로 확장한 뒤 실측. **결과가
+  설계 전제를 반증했다** — `et-medium`(11) = `medium`(11), `et-true`(53) = `xhigh`(53). 즉
+  `reasoning_effort` 가 명시되면 `enable_thinking` 은 프롬프트 수준에서 아무 변화도 만들지
+  않는다. 주입은 유지하되 근거를 "필요"에서 "이중 안전장치"로 정정. 또한 `medium`/`et-medium`
+  의 −2 마진은 reach 프로브로 쓰기엔 너무 좁다 → Phase 10 은 `low`/`xhigh` 로 증명하고
+  `et-medium` 으로 배포한다(더 약한 증명임을 명시).
+- **09-03**: PRB-04 를 두 엔드포인트 × 두 필드명 × 합성/실제 트레이스로 재측정 — **16/16 이
+  `delta=0`, `prompt_tokens=46` 고정.** 2,497자 실제 트레이스도 필드를 뺀 것과 동일. 길이 임계
+  효과 없음. 소스도 태그 `cli-v3.0.53` 에서 재확인: Cline 은 사고를 컨텍스트에 **다시 붙인다**
+  (`ai-sdk.ts:284-289`, `agent-message-codec.ts:231`, `message-builder.ts:1213-1214`) — 게이트가
+  통과하는 이유는 "안 붙여서"가 아니라 **"붙여도 토큰이 0이라서"**다. 근거가 달랐다.
+- **09-04**: 게이트 판정 **Phase 10 진행**, 사람 확인 완료. 판정문은 반증 조건("무엇이 반대
+  판정을 냈을 것인가")을 결과를 보기 **전에** 명시했고, `REQUIREMENTS.md` 의 PRB-01 강등과
+  `09-04-PLAN.md` §5 문구가 정합하지 않는다는 사실도 스스로 신고했다(이번엔 발동 안 함).
+
 ### Pending Todos
 
 없음
 
-### v1.1 게이트 — 로드맵에 반영됨 (Phase 9 에서 답한다)
+### v1.1 게이트 — ✅ Phase 9 에서 답했다 (2026-09-01)
 
-- 🔶 **PRB-01 (Phase 9, 진단 — 2026-09-01 게이트에서 강등)** — `reasoning_effort: medium` 단독으로
-  사고가 켜지는가. 별칭이 `enable_thinking: true` 를 함께 주입하도록 바뀌어(CFG-11) 부정이어도
-  마일스톤은 계속된다. "effort 하나로 충분한가"에 답하는 값은 여전히 있다.
-- 🔴 **CFG-16 (Phase 10, 신설)** — 두 파라미터 조합이 실제로 `reasoning` 을 만드는가.
-  이 조합은 이 스택에서 측정된 적이 없다.
-- 🔴 **PRB-04 (Phase 9, 게이트)** — 사고 트레이스가 다음 턴 컨텍스트로 돌아오는가. 돌아오면
-  v1 의 "실제 부하에서 압축이 프루닝하지 않는다"와 겹쳐 마일스톤 폐기 조건. 09-03 이 결정적
-  통제 측정(합성+실제 트레이스, 16/16 CONFIRMED delta=0)과 소스 정정 기록을
-  `phase-09/PRB-04-FINDINGS.md` 에 남김 — 판정 자체는 09-04 몫.
-- 🟡 **Phase 10 진입 조건** — **PRB-04** 가 "진행" 판정이어야 착수. 하나라도 부정적이면
-  Phase 10–12 는 집행하지 않고 Phase 9 에서 종료 — 이 역시 유효한 출하 결과다.
+- ✅ **PRB-04 (킬 컨디션)** — **양성.** 사고 트레이스를 되먹여도 `prompt_tokens` 가 전혀 늘지
+  않는다. 16/16 `delta=0`, 46 토큰 고정 — 두 엔드포인트 · 두 필드명 · 합성 1,380자와 실제
+  2,497자 전부. 길이 임계 효과 없음. **마일스톤 폐기 조건 미발동.**
+  <br>※ 근거 주의: Cline 은 사고를 컨텍스트에 **다시 붙인다**(소스 재확인 완료). 통과 이유는
+  "안 붙여서"가 아니라 **"붙여도 0토큰이라서"** 다. 서버가 필드를 토큰화 전에 버린다.
+- ✅ **PRB-01 (진단)** — **양성.** `medium` 단독으로 사고가 켜진다(179자 vs 대조군 0자).
+- 🔴 **CFG-16 (Phase 10)** — **질문이 좁아졌다.** "조합이 사고를 켜는가"는 이미 예(effort 가
+  담당). 남은 질문은 **"litellm 이 별칭 주입으로 `enable_thinking` 을 통과시키는가"** —
+  `reasoning_effort` 는 400 으로 막으면서 `enable_thinking` 은 200 으로 통과시키는 비대칭이 근거.
+- 🔴 **VRF-04 (Phase 10)** — **실제 `cline` 은 Phase 9 에서 한 번도 실행하지 않았다.** 부품
+  단위 측정만 했다. 사람이 이 이연을 명시적으로 승인했다(`GATE-VERDICT.md` §7).
+- 🟡 **reach 프로브 제약 (Phase 10)** — `medium`·`et-medium` 의 −2 마진은 너무 좁다. `low`(+28)
+  나 `xhigh`(+40) 로 도달을 증명하고 `et-medium` 으로 배포할 것 — **증명한 것과 배포하는 것이
+  다르므로 더 약한 증명**임을 문서에 남길 것.
+- 🟡 **오라클은 델타로만 쓸 것** — 절대값은 VALIDATED 대비 이동했다(23/21/51/63 → 13/11/41/53).
+  델타는 비트 단위로 보존. 원인 미규명, 비차단.
 - 🟡 **litellm 재기동 필요 (Phase 10 이 소유)** — 핫리로드 없음. Kanban/Telegram 요청이 끊긴다.
+- 🟡 **문서 오탐 정정 (Phase 12 가 소유)** — `docs/plan-act-reasoning-implementation.md:96-100,102`
+  와 `-diagrams.md:187-191`. Phase 9 는 기록만 남겼고 편집하지 않았다.
 
 ### Blockers/Concerns (v1 에서 이월, v1.1 범위 밖)
 
@@ -118,7 +140,8 @@ v1.1 설계 근거: `docs/plan-act-reasoning-{design,implementation,diagrams}.md
 ## Session Continuity
 
 Last session: 2026-09-01
-Stopped at: 09-03-PLAN.md 실행 완료 (PRB-04 통제 replay 합성+실제 트레이스 재측정,
-  소스 경로 재검증, 구현 문서 오탐 정정 기록), 09-03-SUMMARY.md 작성. 다음: 09-04-PLAN.md
-  (PRB-01/PRB-04 게이트 판정)
+Stopped at: Phase 9 완료 및 종료 커밋. 게이트 판정 "Phase 10 진행" 사람 확인 완료.
+  다음: /gsd:plan-phase 10 — **litellm-config.yaml 을 실제로 고치고 litellm 을 재기동하는
+  첫 페이즈.** 핫리로드가 없어 재기동이 필수이고, 그 동안 Kanban(:3484)·Telegram 요청이 끊긴다.
+  착수 전 사용자에게 변경 내용과 롤백 절차를 먼저 제시할 것.
 Resume file: None
