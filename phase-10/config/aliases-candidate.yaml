@@ -1,0 +1,39 @@
+  # ── Plan/Act reasoning aliases (Phase 10, v1.1) ─────────────────────────
+  #   🔴 provider prefix is hosted_vllm/, NOT openai/. In the installed
+  #   litellm 1.86.1, OpenAIGPTConfig.get_supported_openai_params() does not
+  #   list reasoning_effort for a non-o-series model name, so an openai/-
+  #   prefixed alias carrying reasoning_effort returns HTTP 400
+  #   UnsupportedParamsError on EVERY call. HostedVLLMChatConfig whitelists it
+  #   (llms/hosted_vllm/chat/transformation.py:92). enable_thinking is not a
+  #   recognized litellm param under either prefix and rides through
+  #   extra_body, which both request paths flatten onto the top-level body.
+  #   Verified 2026-09-01 by executing the installed library — see
+  #   .planning/phases/10-alias-injection-reach-proof/10-RESEARCH.md Q1.
+  #   Silent parameter-dropping settings are deliberately NOT used anywhere
+  #   in this file (CFG-14, banned as project policy — see ALIAS-DESIGN.md).
+  - model_name: flashnext-plan
+    litellm_params:
+      model: hosted_vllm//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4
+      api_base: http://localhost:8011/v1
+      api_key: dummy
+      reasoning_effort: medium
+      enable_thinking: true
+
+  - model_name: flashnext-act
+    litellm_params:
+      model: hosted_vllm//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4
+      api_base: http://localhost:8011/v1
+      api_key: dummy
+      enable_thinking: false
+
+  # 검증 전용 별칭 — 출하 표면이 아니다. flashnext-plan 이 배포하는 조합
+  # (et-medium) 은 prompt_tokens 델타가 −2 밖에 안 돼서 도달 증명 프로브로 쓸 수
+  # 없다(phase-09/PRB-03-ORACLE.md §4). xhigh 는 +40 이라 우발적 드리프트와
+  # 구별된다. VRF-01 은 이 별칭으로 넓은 마진의 증명을 얻고, 출하 조합은
+  # 좁은 마진으로 따로 기록한다.
+  - model_name: flashnext-reach-xhigh
+    litellm_params:
+      model: hosted_vllm//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4
+      api_base: http://localhost:8011/v1
+      api_key: dummy
+      reasoning_effort: xhigh

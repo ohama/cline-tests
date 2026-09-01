@@ -1,0 +1,9 @@
+=== candidate-provenance 2026-09-01T04:54:19Z ===
+live file:        /Users/ohama/agent-stack/litellm/config.yaml
+live sha256:      12e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c
+live line count:  50
+anchor pattern:   ^  # ── 호환용 옛 별칭
+anchor line:      35
+candidate file:   /Users/ohama/projs/cline-tests/phase-10/config/config.yaml.candidate
+candidate sha256: 1aaeaa632594356f03249b5b12c2b16f70d9e5d0bcc037e7fc8151d509601da9
+candidate lines:  90
