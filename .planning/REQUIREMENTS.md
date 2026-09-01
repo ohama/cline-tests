@@ -37,6 +37,12 @@
 - [ ] **VRF-01**: 동일 사용자 메시지를 `flashnext` 와 `flashnext-plan` 으로 각각 보냈을 때
   서버 로그의 `prompt_tokens` 가 **다르다** — 주입이 실제로 도달했다는 증거
 - [ ] **VRF-02**: 판정 근거가 서버 측 증거이지 HTTP 200 응답이 아니다
+- [ ] **VRF-04**: **실제 `cline` CLI 실행**의 `--json` 스트림에 `reasoning` 이 나타나는지가
+  `flashnext-plan` 과 대조군 양쪽에서 관측·기록된다
+  <br>※ **2026-09-01 신설.** curl 은 *게이트웨이가 파라미터를 전달한다*만 증명한다.
+  *Cline 이 그 경로로 실제 사고를 한다*는 별개이며, 리서치도 이를 "deferred, not done"으로
+  명시했다(신뢰도 MEDIUM). v1 에서 설정은 기록됐는데 CLI 가 안 읽어 이틀을 쓴 전례가 있다.
+  <br>※ 관측 결과가 부정적이어도 이 요구사항은 충족된다 — 관측이 요구사항이다
 - [ ] **VRF-03**: 재실행 가능한 검증 스크립트로 남는다 (일회성 확인이 아님)
 
 ### USE — 사용 표면과 문서
@@ -85,6 +91,7 @@
 | VRF-01 | Phase 10 | Pending |
 | VRF-02 | Phase 10 | Pending |
 | VRF-03 | Phase 10 | Pending |
+| VRF-04 | Phase 10 | Pending |
 | USE-01 | Phase 11 | Pending |
 | USE-02 | Phase 11 | Pending |
 | USE-03 | Phase 11 | Pending |
@@ -92,8 +99,8 @@
 | USE-05 | Phase 12 | Pending |
 
 **Coverage:**
-- v1.1 requirements: 17 total
-- Mapped to phases: 17
+- v1.1 requirements: 18 total
+- Mapped to phases: 18
 - Unmapped: 0 ✓
 
 ---

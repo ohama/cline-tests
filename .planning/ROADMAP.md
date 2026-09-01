@@ -50,13 +50,17 @@ litellm 설정 변경(Phase 10)은 그 답이 나온 뒤에만 일어난다. 게
      (PRB-04, 게이트)
   5. PRB-01·PRB-04 두 게이트의 판정에 따라 "Phase 10 진행" 또는 "마일스톤 종료"가 문서에
      명시된다 — 어느 쪽이든 이 기준을 충족시킨다
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 09-01: TBD (plan-phase 에서 세분화)
+- [ ] 09-01-PLAN.md — 프로브 안전 외피(PID·설정 해시·gpu-stream 플레이크 판별) 구축 후 PRB-01·PRB-02 독립 재현
+- [ ] 09-02-PLAN.md — PRB-03 `prompt_tokens` 오라클 재측정 및 Phase 10 도달 프로브 값 선언
+- [ ] 09-03-PLAN.md — PRB-04 재현(합성 + 실제 xhigh 트레이스) 및 reasoning-history 소스 오탐 정정 기록
+- [ ] 09-04-PLAN.md — 재현값 대 리서치값 대조, 두 게이트 판정, "Phase 10 진행"/"마일스톤 종료" 판정문 작성
 
 ### Phase 10: 별칭 주입과 도달 증명
 **Goal**: `flashnext-plan`(및 PRB-02 판정에 따른 `flashnext-act`) 별칭이 litellm 에 추가되고,
+**그것이 실제 `cline` CLI 실행에서 작동함이 관측되며,**
 주입된 파라미터가 실제로 모델까지 도달했음이 HTTP 200 이 아니라 서버 측 증거로 증명된다.
 **Depends on**: Phase 9 (두 게이트 모두 "진행" 판정이어야 착수)
 **Requirements**: CFG-11, CFG-12, CFG-13, CFG-14, CFG-15, VRF-01, VRF-02, VRF-03
@@ -73,6 +77,14 @@ Plans:
      스크립트 출력에 명시된다 (VRF-01, VRF-02)
   5. 위 비교가 재실행 가능한 스크립트로 저장소에 남고, `~/local-llm-settings/sync.sh` 실행
      결과에 이번 변경이 반영된다 (VRF-03, CFG-15)
+  6. 🔴 **실제 `cline` CLI 로 한 번 이상 실행하여**, `CLINE_NO_AUTO_UPDATE=1 cline -m flashnext-plan
+     --json "<짧은 프롬프트>"` 의 NDJSON 스트림에 `reasoning` 이 실제로 나타나는지가 관측·기록된다.
+     같은 프롬프트를 `-m flashnext`(또는 `flashnext-act`)로 돌린 대조군과 나란히 남긴다 (VRF-02)
+     <br>※ **2026-09-01 추가.** curl 로 증명되는 것은 *게이트웨이가 파라미터를 전달한다*는 사실뿐이고,
+     *Cline 이 그 경로로 실제 사고를 한다*는 것은 별개다. v1 에서 `providers.json` 에 값이 기록돼
+     있는데도 CLI 가 그 칸을 읽지 않아 이틀을 쓴 전례가 있다 — "설정이 존재한다"와 "작동한다"를
+     같은 것으로 취급하지 않기 위한 기준이다.
+     <br>※ 관측 결과가 **부정적이어도 이 기준은 충족된다** — 관측하고 기록하는 것이 요구사항이다.
 **Plans**: TBD
 
 Plans:
@@ -122,7 +134,7 @@ Phases execute in numeric order: 9 → 10 → 11 → 12 (전 구간 순차, 병�
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|-----------------|--------|-----------|
 | 1–8 | v1 | 55/55 | Complete | 2026-08-31 |
-| 9. 사전 확인 게이트 | v1.1 | 0/TBD | Not started | - |
+| 9. 사전 확인 게이트 | v1.1 | 0/4 | Planned | - |
 | 10. 별칭 주입과 도달 증명 | v1.1 | 0/TBD | Not started | - |
 | 11. 사용 표면 — 래퍼와 A/B 게이트 | v1.1 | 0/TBD | Not started | - |
 | 12. 문서 갱신 | v1.1 | 0/TBD | Not started | - |
