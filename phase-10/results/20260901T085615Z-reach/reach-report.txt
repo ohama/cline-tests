@@ -1,0 +1,42 @@
+=== REACH PROOF REPORT (2026-09-01T08:56:52Z) ===
+Run dir: /Users/ohama/projs/cline-tests/phase-10/results/20260901T085615Z-reach
+
+--- VRF-01 (ROADMAP criterion 4): flashnext (B) vs flashnext-plan (D), same user message ---
+B (flashnext, unspecified)  prompt_tokens=13  http=200
+D (flashnext-plan, et-medium injected by the alias)  prompt_tokens=11  http=200
+delta (D - B) = -2   (oracle et-medium delta: -2)
+
+--- VRF-02: the judgement basis is the server-log prompt_tokens value, not HTTP 200 ---
+판정 근거는 서버 로그의 prompt_tokens 값이며 HTTP 200 응답이 아니다.
+Reason: a drop_params-style silent parameter drop would still return HTTP 200 while changing
+nothing server-side -- so a 200 status carries zero information about whether an injected
+parameter actually reached the model. The HTTP codes below are recorded for completeness,
+precisely so a reader can see they were available and were NOT used as the evidence:
+  A=200  B=200  C=200  D=200  E=200  F=200  G=200  (all sweep 1)
+
+--- Wide-margin reach (the strong proof) ---
+B (flashnext) vs F (flashnext-reach-xhigh, hosted_vllm/): prompt_tokens 13 vs 53, delta=40  (oracle: +40)
+D (flashnext-plan, hosted_vllm/) vs F (flashnext-reach-xhigh, hosted_vllm/): prompt_tokens 11 vs 53, delta=42  (oracle: 53-11=+42)
+The D-vs-F pairing is the confound-free one: both are hosted_vllm/, both go through the same gateway path, and only the injected reasoning_effort differs -- so this delta is attributable to the injected parameter alone.
+
+--- The hosted_vllm/ confound, resolved by measurement ---
+A (:8011 direct, unspecified) vs B (:4000 flashnext/openai/, unspecified): 13 vs 13, delta=0
+C (:8011 direct, et-medium params sent by client) vs D (:4000 flashnext-plan/hosted_vllm/, same params injected by the alias): 11 vs 11, delta=0
+E (:8011 direct, xhigh sent by client) vs F (:4000 flashnext-reach-xhigh/hosted_vllm/, xhigh injected by the alias): 53 vs 53, delta=0
+All three same-body pairings show delta=0: the provider-prefix swap (openai/ <-> hosted_vllm/) and the gateway hop (:8011 direct <-> :4000 alias) introduce NO measurable prompt_tokens confound. VRF-01's B-vs-D delta is therefore cleanly attributable to the injected parameters, not to the prefix or the extra network hop.
+
+--- CFG-12 corroboration: flashnext-act (G) vs flashnext (B) ---
+G (flashnext-act, enable_thinking:false injected) vs B (flashnext, unmodified): 13 vs 13, delta=0
+delta=0 is the EXPECTED result -- enable_thinking:false is already the model's default, so flashnext-act is behaviorally indistinguishable from flashnext by this measure. This confirms ALIAS-DESIGN.md §5's stated redundancy rather than contradicting anything.
+
+--- Delta table: every arm's delta from this run's own arm A, beside the declared oracle ---
+(delta-to-delta comparison; absolutes are NOT portable across sessions -- PRB-03-ORACLE.md §5)
+arm  model                      tokens   d(vsA) oracle-label                   oracle-d
+A    /Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4       13        0 unspecified                           0
+B    flashnext                      13        0 unspecified                           0
+C    /Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4       11       -2 et-medium                            -2
+D    flashnext-plan                 11       -2 et-medium                            -2
+E    /Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4       53       40 xhigh                               +40
+F    flashnext-reach-xhigh          53       40 xhigh                               +40
+G    flashnext-act                  13        0 unspecified (enable_thinking:false is already the model default)          0
+

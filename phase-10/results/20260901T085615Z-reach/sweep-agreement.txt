@@ -1,0 +1,8 @@
+=== sweep 1 vs sweep 2 agreement (2026-09-01T08:56:52Z) ===
+agree    arm=A sweep1=13 sweep2=13
+agree    arm=B sweep1=13 sweep2=13
+agree    arm=C sweep1=11 sweep2=11
+agree    arm=D sweep1=11 sweep2=11
+agree    arm=E sweep1=53 sweep2=53
+agree    arm=F sweep1=53 sweep2=53
+agree    arm=G sweep1=13 sweep2=13
