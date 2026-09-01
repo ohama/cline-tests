@@ -35,6 +35,7 @@ Kanban 보드, Telegram 커넥터)이 있고, 셋 다 macOS Seatbelt 샌드박�
 | `docs/headless-wrapper.md` | 헤드리스 CLI 래퍼 설계, THE CWD RULE, `--auto-approve false` 결정 |
 | `docs/infra-hardening.md` | flashnext 동시성 상한, litellm 인증/바인딩 하드닝 |
 | `docs/network-exposure.md` | Tailscale 노출 경로, 포트 3000 금지, NET 기준 검증 |
+| `docs/plan-act-reasoning-diagrams.md` | 위 둘의 **그림 요약** — 층별 차단 지점, 통과 vs 주입, 무위험 중단 경계 |
 | `docs/plan-act-reasoning-implementation.md` | **계획(미착수)** — Act=thinking off / Plan=`reasoning_effort: medium` 구현 순서. T1·T2 가 무위험 중단 지점 |
 | `docs/plan-act-reasoning-design.md` | **제안(미구현)** — Plan/Act ↔ `reasoning_effort` 연결 설계. litellm 이 `reasoning_effort` 를 400 으로 차단하는 문제 포함 |
 | `docs/sandbox-whitelist.md` | 샌드박스 화이트리스트 설계, SBPL 규칙, worktree widening 결정(§9) |
