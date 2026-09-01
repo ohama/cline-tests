@@ -22,7 +22,27 @@ Tailscale 로 iPad/iPhone 에서 닿으며, `sandbox-exec` 로 경계가 그어�
 cline-bench 과제 통과는 **0개**. `contextWindow` 는 이 결함의 지렛대가 아니다.
 상세: `docs/32k-compaction-policy.md`
 
-## Next Milestone Goals
+## Current Milestone: v1.1 Plan/Act ↔ reasoning_effort
+
+**Goal:** Cline 의 Plan/Act 모드에 따라 Qwen3.8 Flash-Next 의 사고 설정이 달라지게 한다 —
+Act 는 thinking off(현재 기본값), Plan 은 `reasoning_effort: medium`.
+
+**Target:**
+- litellm 별칭이 파라미터를 **주입**한다 (Cline 이 `--thinking` 을 보내지 않는다)
+- `cline-plan` / `cline-act` 래퍼가 모드↔별칭 짝을 강제한다
+- 파라미터 도달을 서버 측 오라클로 증명한다 (200 응답은 증거가 아니다)
+
+**설계·계획은 이미 문서로 존재한다** — 이번 세션에 소스 확인과 실측을 마쳤다:
+`docs/plan-act-reasoning-design.md` · `-implementation.md` · `-diagrams.md`
+
+**범위 밖 (사용자 결정 2026-09-01):** `--compaction basic` 검증, CFG-05 자동 업데이트 해결,
+Kanban·Telegram 표면 적용. 전부 v1 이월 부채로 남긴다.
+
+🔴 **게이트에서 멈추면 그것이 출하물이다.** T1-a(`medium` 이 실제로 사고를 켜는가)나
+T2(사고 트레이스가 컨텍스트에 누적되는가)가 부정적이면 구현 없이 종료하며,
+"재보니 안 된다, 근거는 이것"이 정당한 결과다.
+
+## Next Milestone Goals (v1.2+)
 
 - `--compaction basic` 검증 — 근인 행렬이 지목한 유일한 유망 미테스트 지렛대
 - CFG-05 — `CLINE_NO_AUTO_UPDATE=1` 이 듣지 않는 문제의 실질적 해결
@@ -82,22 +102,16 @@ Cline 의 압축이 ~26.2k 에서 실제로 도는지 — 이것만은 실측으
 
 ### Active
 
-<!-- 이번에 만드는 것. 출하 전까지는 전부 가설이다. -->
+<!-- v1.1 에서 만드는 것. 출하 전까지는 전부 가설이다. -->
 
-- [ ] Kanban 웹 UI 를 launchd 서비스로 상시 기동 (`:3484`), 부팅 시 자동 재시동
-- [ ] Telegram 커넥터를 launchd 서비스로 구성 (토큰 자리는 비워 두고 나중에 주입)
-- [ ] 헤드리스 CLI 래퍼 스크립트 (서비스화는 보류, 호출 규약만 깔끔하게)
-- [ ] Cline 이 `flashnext`(`:4000`) 를 프로바이더로 쓰도록 구성
-- [ ] **Cline 쪽 컨텍스트 창을 32768 로 못 박기** — 128k 폴백을 덮어쓴다
-- [ ] **`max_output_tokens` 상한 설정** — 서버 예산은 `prompt + max_tokens`. 크게 보내면 첫 턴부터 400
-- [x] **다중 턴 압축 회귀 테스트** — 완료. 최상위 `contextWindow` 설정 시 26,100 에서 압축 발동 확인
-- [ ] **`CLINE_NO_AUTO_UPDATE=1` 을 모든 plist 에** — Cline 이 실행 때마다 몰래 자기를 업데이트한다
-- [ ] cline-bench 공식 과제 일부를 로컬 Docker 로 실행해 동작 검증
-- [ ] 테스트의 **프롬프트와 결과를 모두** 파일로 보존
-- [ ] Tailscale 무인증 접근 + LAN 접근은 토큰 요구
-- [ ] 작업공간 샌드박스 + 허용 저장소 화이트리스트
-- [ ] 한글 사용 매뉴얼 — CLI / 웹 / iPad·iPhone
-- [ ] 새 서비스를 `~/local-llm-settings` 에 등록하고 `sync.sh` 반영
+- [ ] `medium` 이 실제로 `reasoning` 필드를 만드는지 확인 (T1-a, 게이트)
+- [ ] `enable_thinking:false` 가 litellm 을 통과하는지 확인 → act 별칭 생성 여부 결정 (T1-b)
+- [ ] 사고 트레이스가 다음 턴 컨텍스트로 돌아오지 않음을 실측 (T2, 게이트)
+- [ ] litellm 별칭 `flashnext-plan` 이 `reasoning_effort: medium` 을 주입
+- [ ] 파라미터 도달을 `prompt_tokens` 오라클로 증명
+- [ ] `cline-plan` / `cline-act` 래퍼와 짝 어서션
+- [ ] `medium` vs 기본 A/B (T6, 게이트)
+- [ ] 매뉴얼·고정값 문서 갱신, `--thinking` 이 400 이라는 사실 명시
 
 ### Out of Scope
 
@@ -241,7 +255,12 @@ prompt 13 + max_tokens  4096 → 200
 - **컨텍스트**: 상한 32,768. 64K 는 여유 0.10 GB 라 위험, 128K 는 불가능
 - **지연**: 32K prefill 64.3초. 대화형 UX 설계와 타임아웃 값이 여기 묶인다
 - **모델 API**: `reasoning_effort` 는 `low`·`medium`·`xhigh` 뿐 — `high` 는 500.
-  `thinking_budget` 은 drafter 부착 상태에서 사용 불가
+  `thinking_budget` 은 drafter 부착 상태에서 사용 불가 → **사고 길이에 상한을 걸 수 없다**
+- 🔴 **litellm 이 `reasoning_effort` 를 400 으로 차단한다** (2026-09-01 실측).
+  `allowed_openai_params` 도 `drop_params` 도 미설정. 즉 `cline --thinking <아무 값>` 이 전부 실패한다.
+  v1.1 은 이를 뚫는 대신 **별칭 주입**으로 우회한다
+- **litellm 핫리로드 없음** (`/config/reload` → 404, v1.86.1). 설정 변경에 재기동 필요 —
+  가동 중인 Kanban/Telegram 요청이 끊긴다. `flashnext` 는 건드리지 않으므로 모델 재적재는 없다
 - **경유**: `:8000` 직결 금지. `:4000` 을 거쳐야 role 제약이 흡수된다
 - **Cline 버전**: 3.0.53. 128k 폴백 버그 영향권 추정 — 우회로 해결한다
 - **보안**: Tailscale 무인증, LAN 은 토큰 요구. 이 프로젝트가 만드는 것은 인터넷에 노출하지 않는다
@@ -275,4 +294,4 @@ prompt 13 + max_tokens  4096 → 200
 | 기존 Funnel(:8443→3000) 은 그대로 둔다 | 사용자 결정. 이 프로젝트 범위 밖이고 되돌리기 어려운 변경이다. 대신 3000 바인딩을 금지해 우회한다 | ✓ Good |
 
 ---
-*Last updated: 2026-08-31 after v1 milestone*
+*Last updated: 2026-09-01 at v1.1 start*
