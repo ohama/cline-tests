@@ -79,7 +79,8 @@ Plans:
 **Depends on**: Phase 9 (두 게이트 모두 "진행" 판정이어야 착수)
 **Requirements**: CFG-11, CFG-12, CFG-13, CFG-14, CFG-15, CFG-16, VRF-01, VRF-02, VRF-03, VRF-04
 **Success Criteria** (관찰 가능·반증 가능):
-  1. `~/local-llm-settings/config/litellm-config.yaml` 에 `flashnext-plan` 별칭이 추가되어
+  1. **litellm 이 실제로 읽는 설정 파일** `/Users/ohama/agent-stack/litellm/config.yaml` 에
+     `flashnext-plan` 별칭이 추가되어
      **`enable_thinking: true` 와 `reasoning_effort: medium` 을 함께** 주입하며, `drop_params` 가
      어디에도 설정되지 않았음이 diff 로 확인된다 (CFG-11, CFG-14)
      <br>※ 2026-09-01 변경 — effort 단독 주입에서 두 파라미터 주입으로. `enable_thinking` 기본값이
@@ -95,6 +96,15 @@ Plans:
      스크립트 출력에 명시된다 (VRF-01, VRF-02)
   5. 위 비교가 재실행 가능한 스크립트로 저장소에 남고, `~/local-llm-settings/sync.sh` 실행
      결과에 이번 변경이 반영된다 (VRF-03, CFG-15)
+     <br>※ **2026-09-01 정정.** `~/local-llm-settings/config/litellm-config.yaml` 은 **생성된
+     사본**이다 — launchd plist 가 `--config /Users/ohama/agent-stack/litellm/config.yaml` 를
+     넘긴다(확인함). 사본을 고치면 litellm 에 아무 영향이 없다. 원본을 고치고 `sync.sh` 로
+     사본을 갱신하는 순서다.
+     <br>※ **별칭 정의 정정.** 새 별칭은 `openai/` 가 아니라 **`hosted_vllm/`** 접두사를 써야 한다.
+     설치된 litellm 1.86.1 에서 `openai` 는 `reasoning_effort` 를 지원 목록에 넣지 않아
+     주입해도 400 이 나고, `hosted_vllm` 은 명시적으로 허용한다
+     (`llms/hosted_vllm/chat/transformation.py:92`, 직접 확인함). 기존 `flashnext` 별칭은
+     건드리지 않으므로 회귀 기준선은 보존된다.
   6. 🔴 **실제 `cline` CLI 로 한 번 이상 실행하여**, `CLINE_NO_AUTO_UPDATE=1 cline -m flashnext-plan
      --json "<짧은 프롬프트>"` 의 NDJSON 스트림에 `reasoning` 이 실제로 나타나는지가 관측·기록된다.
      같은 프롬프트를 `-m flashnext`(또는 `flashnext-act`)로 돌린 대조군과 나란히 남긴다 (VRF-02)
