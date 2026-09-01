@@ -1,0 +1,15 @@
+[
+  {
+    "role": "user",
+    "content": "세 자리 수 중 각 자리 숫자의 합이 7인 가장 큰 수는?"
+  },
+  {
+    "role": "assistant",
+    "content": "각 자리 숫자의 합이 7인 세 자리 수 중 **가장 큰 수**는 **700**입니다.",
+    "reasoning_content": "We need answer in Korean likely. User asks: \"세 자리 수 중 각 자리 숫자의 합이 7인 가장 큰 수는?\" Translation: Among three-digit numbers whose sum of digits is 7, what is the largest number? Need solve. Need final concise maybe explanation. Let's think: three-digit number 100-999, digits a,b,c, a>=1, a+b+c=7. Want largest number, so maximize hundreds digit, then tens, then units. But if maximize a, set a=7 gives 700. Since a can be 7 (sum 7, tens/units 0), largest is 700. Need ensure no larger? Could hundreds digit max 7 due sum; if 7 then number starts with 7. Any with 6 has <=699 less. So 700. Answer."
+  },
+  {
+    "role": "user",
+    "content": "그 수에서 백의 자리와 일의 자리를 바꾸면 얼마나 줄어드나?"
+  }
+]

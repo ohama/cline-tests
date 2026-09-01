@@ -1,0 +1,7 @@
+sequence	turn	http_code	prompt_tokens	growth	content_chars	reasoning_chars	matched_line
+ON	1	200	69	NA	47	591	2026-09-01 11:01:18,801 - INFO - Prefill started: request=835b2eba10 backend=continuous_batching prompt_tokens=69 images=0 audio=0 videos=0
+ON	2	200	127	58	0	917	2026-09-01 11:01:28,480 - INFO - Prefill started: request=835b269e20 backend=continuous_batching prompt_tokens=127 images=0 audio=0 videos=0
+ON	3	200	150	23	0	989	2026-09-01 11:01:41,284 - INFO - Prefill started: request=835be1bcb0 backend=continuous_batching prompt_tokens=150 images=0 audio=0 videos=0
+OFF	1	200	29	NA	564	0	2026-09-01 11:01:54,004 - INFO - Prefill started: request=835be5c110 backend=continuous_batching prompt_tokens=29 images=0 audio=0 videos=0
+OFF	2	200	360	331	548	0	2026-09-01 11:02:04,929 - INFO - Prefill started: request=835b268320 backend=continuous_batching prompt_tokens=360 images=0 audio=0 videos=0
+OFF	3	200	681	321	66	0	2026-09-01 11:02:17,145 - INFO - Prefill started: request=835bec05f0 backend=continuous_batching prompt_tokens=681 images=0 audio=0 videos=0

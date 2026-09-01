@@ -1,0 +1,6 @@
+We need answer in Korean. User asks: "왜 그런지 한 줄로 설명해줘" meaning "Explain in one line why?" Context: Previous answer: largest three-digit number with digit sum 7 is 700. User: "그 수에서 백의 자리와 일의 자리를 바꾸면 얼마나 줄어드나?" (If you swap hundreds and ones digits of that number, how much does it decrease?) Then model answered maybe? Let's inspect conversation:
+User: 세 자리 수 중 각 자리 숫자의 합이 7인 가장 큰 수는?
+Model: 각 자리 숫자의 합이 7인 세 자리 수 중 가장 큰 수는 700입니다.
+User: 그 수에서 백의 자리와 일의 자리를 바꾸면 얼마나 줄어드나?
+Model: [empty? It says no final? Actually conversation shows Model response empty? The user then says: 왜 그런지 한 줄로 설명해줘]
+Need respond one line explaining why. Need infer previous question likely expects how much decreases when swapping hundreds and ones of 700. Swapping hundreds and ones gives 007? As three-digit? 700 digits 7,0,0 swapping hundreds and ones -> 007 which is not three-digit? If treat as number 7? Decrease = 693. But user says "왜 그런지" to maybe why? Need one-line explanation why it decreases by that
