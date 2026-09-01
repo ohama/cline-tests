@@ -1,0 +1,13 @@
+repeat	endpoint	field	trace_chars	http_code	prompt_tokens	delta
+1	8011	none	0	200	46	0
+1	8011	reasoning_content	1380	200	46	0
+1	8011	reasoning	1380	200	46	0
+1	4000	none	0	200	46	0
+1	4000	reasoning_content	1380	200	46	0
+1	4000	reasoning	1380	200	46	0
+2	8011	none	0	200	46	0
+2	8011	reasoning_content	1380	200	46	0
+2	8011	reasoning	1380	200	46	0
+2	4000	none	0	200	46	0
+2	4000	reasoning_content	1380	200	46	0
+2	4000	reasoning	1380	200	46	0
