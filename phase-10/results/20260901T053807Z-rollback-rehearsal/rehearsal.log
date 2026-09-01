@@ -1,0 +1,29 @@
+=== ROLLBACK REHEARSAL 2026-09-01T05:38:26Z ===
+run dir: phase-10/results/20260901T053807Z-rollback-rehearsal
+backup under test: phase-10/backups/config.yaml.20260901T053509Z
+rollback_config.sh under test: phase-10/rollback_config.sh (post-fix: canonical-hash integrity check)
+
+--- POSITIVE: bash phase-10/rollback_config.sh phase-10/backups/config.yaml.20260901T053509Z ---
+before: live sha256=12e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c  litellm pid=48525
+integrity OK: phase-10/backups/config.yaml.20260901T053509Z sha256 matches the sanctioned backup recorded in BASELINE.txt (12e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c)
+RESTORE OK: /Users/ohama/agent-stack/litellm/config.yaml now matches phase-10/backups/config.yaml.20260901T053509Z (sha256 12e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c)
+
+Bytes are restored. litellm has NOT been restarted -- it is still serving whatever it
+loaded at its last start. For the restore to take effect, the operator must separately run:
+
+  bash phase-02/infra/restart_service.sh com.ohama.litellm 4000 --timeout 60
+
+after:  live sha256=12e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c  litellm pid=48525
+mirror sha256 (unchanged expected): 12e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c
+CFG-13 witness hash (head -n 34): 06814402ef0b45d0dc2eaaf3db7bc80d58076de8c021d84c8caf4823ca2f35a8
+exit code: 0
+
+--- NEGATIVE CONTROL: bash phase-10/rollback_config.sh phase-10/results/20260901T053807Z-rollback-rehearsal/corrupt.bak ---
+corrupt.bak sha256: 3757f031d624f054ccd14c8f7eb5a23a6d57b20640f548a99d080687e2206db4 (deliberately differs from the sanctioned backup's recorded hash)
+before: live sha256=12e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c  litellm pid=48525
+REFUSED: integrity check failed. phase-10/results/20260901T053807Z-rollback-rehearsal/corrupt.bak's bytes do not match the sanctioned backup's recorded sha256.
+  recorded (BASELINE.txt, sanctioned backup): 12e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c
+  actual   (phase-10/results/20260901T053807Z-rollback-rehearsal/corrupt.bak, just computed):          3757f031d624f054ccd14c8f7eb5a23a6d57b20640f548a99d080687e2206db4
+  Live file NOT touched.
+after:  live sha256=12e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c  litellm pid=48525
+exit code: 1 (non-zero expected)

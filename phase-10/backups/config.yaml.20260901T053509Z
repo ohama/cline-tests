@@ -1,0 +1,50 @@
+# LiteLLM 라우팅 — Qwen3.8 Flash-Next 단독 운영 (2026-08-29)
+#
+#   litellm(:4000) → role-shim(:8011) → mlx_vlm.server(:8000, oQ4 + MTP drafter)
+#
+# 🔴 왜 shim 을 거치나 — mlx_vlm.server 의 제약 (8000 직결 실측)
+#     system 이 맨 앞   200
+#     system 이 중간    500  "System message must be at the beginning."
+#     developer role    500  "Unexpected message role."
+#     system 여러 개    500
+#   role_shim.py 가 message[0] 의 developer/system 은 system 으로, 그 뒤의 것은
+#   user 로 정규화한다. 정상 형태는 그대로 통과시키므로 직결과 동작이 같다.
+#
+# 🔴 model 값은 서버가 로드한 경로와 정확히 일치해야 한다.
+#   틀리면 mlx_vlm.server 가 다른 모델을 로드하려 든다 (개정 기록 A3).
+#
+# 🔴 fast/deep 모드는 서버 수준이지 별칭 수준이 아니다.
+#   drafter 는 기동 시점에 묶이므로 별칭으로 전환할 수 없다.
+#   현재 8000 은 drafter 를 붙인 fast mode 다.
+
+model_list:
+  # ── 표준 ────────────────────────────────────────────────────────────────
+  - model_name: flashnext
+    litellm_params:
+      model: openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4
+      api_base: http://localhost:8011/v1
+      api_key: dummy
+
+  # ── Codex(Responses API) 전용 — responses→chat 브릿지가 필요하다 ────────
+  - model_name: flashnext-codex
+    litellm_params:
+      model: openai/chat_completions//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4
+      api_base: http://localhost:8011/v1
+      api_key: dummy
+
+  # ── 호환용 옛 별칭 (deprecated, 2026-08-29) ────────────────────────────
+  #   qwen36-35b·qwen122b 는 영구 비활성화됐다. 이 이름들은 더 이상 그 모델을
+  #   가리키지 않고 전부 Flash-Next 로 간다. 미처 못 찾은 참조가 조용히 깨지지
+  #   않도록 남겨 둔 것이며, 한동안 로그를 보고 쓰이지 않으면 지운다.
+  - model_name: qwen-local
+    litellm_params: { model: openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4, api_base: http://localhost:8011/v1, api_key: dummy }
+  - model_name: qwen-35b
+    litellm_params: { model: openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4, api_base: http://localhost:8011/v1, api_key: dummy }
+  - model_name: qwen-122b
+    litellm_params: { model: openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4, api_base: http://localhost:8011/v1, api_key: dummy }
+  - model_name: qwen-122b-claude
+    litellm_params: { model: openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4, api_base: http://localhost:8011/v1, api_key: dummy }
+  - model_name: qwen-35b-claude
+    litellm_params: { model: openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4, api_base: http://localhost:8011/v1, api_key: dummy }
+  - model_name: qwen-122b-codex
+    litellm_params: { model: openai/chat_completions//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4, api_base: http://localhost:8011/v1, api_key: dummy }
