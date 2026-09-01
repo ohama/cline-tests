@@ -1,0 +1,5 @@
+label	http_code	content_len	reasoning_len	reasoning_snippet	reasoning_nonempty
+medium-1	200	14	179	The user is asking "2+2는?" which is Korean for "What is 2+2?" This is a simple arithmetic question. The answer is 4. I'l	True
+medium-2	200	14	179	The user is asking "2+2는?" which is Korean for "What is 2+2?" This is a simple arithmetic question. The answer is 4. I'l	True
+unspecified-1	200	14	0		False
+unspecified-2	200	14	0		False
