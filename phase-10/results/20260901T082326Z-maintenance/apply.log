@@ -1,0 +1,77 @@
+2026-09-01T08:29:55Z === apply_candidate.sh starting, run dir /Users/ohama/projs/cline-tests/phase-10/results/20260901T082326Z-maintenance ===
+2026-09-01T08:29:55Z BASELINE_LIVE_SHA=12e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c
+2026-09-01T08:29:55Z CANDIDATE_SHA_RECORDED=d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e
+2026-09-01T08:29:55Z BACKUP_SHA_RECORDED=12e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c
+2026-09-01T08:29:55Z --- GATE 1: preconditions ---
+2026-09-01T08:29:55Z GATE 1: health-A.tsv all PASS
+2026-09-01T08:29:55Z GATE 1: live config sha256 still equals BASELINE (12e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c)
+2026-09-01T08:29:55Z GATE 1: backup file present and sha256 matches BASELINE (12e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c)
+2026-09-01T08:29:55Z GATE 1: in_flight=0 confirmed
+2026-09-01T08:29:55Z GATE 1: ALL PRECONDITIONS PASS
+2026-09-01T08:29:55Z errlog watermark captured pre-Gate-2 (reused for Restart B / rollback health scans): 14945
+2026-09-01T08:29:55Z --- GATE 2: re-validate candidate bytes with the full ladder (now, not just at authoring time) ---
+2026-09-01T08:29:55Z GATE 2: candidate sha256 matches the approved sha256 from CHANGE-BRIEF.md Section 9 (d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e)
+=== validate_config.sh: phase-10/config/config.yaml.candidate (scratch port 4010) ===
+run dir: /Users/ohama/projs/cline-tests/phase-10/results/20260901T082955Z-validate
+--- preflight (Phase 9 safety envelope) ---
+RUNG 1: PASS -- yaml-parses (python3 yaml.safe_load succeeded)
+RUNG 2: PASS -- drop_params-ban (no drop_params (any form) found anywhere in the file)
+RUNG 3: PASS -- baseline-preserved (flashnext + flashnext-codex deep-equal live vs candidate (see rung3-compare.txt))
+scratch litellm launched: pid=68553 port=4010 config=phase-10/config/config.yaml.candidate
+RUNG 4: PASS -- real-boot (booted on 127.0.0.1:4010 after 2s, all 4 aliases served)
+--- postflight (Phase 9 safety envelope) ---
+VALIDATION LADDER: ALL 4 RUNGS PASSED
+run dir: /Users/ohama/projs/cline-tests/phase-10/results/20260901T082955Z-validate
+phase-10/validate_config.sh: line 180: 68553 Terminated: 15          "$LITELLM_BIN" --config "$CFG" --port "$PORT" --host 127.0.0.1 >> "$SCRATCH_LOG" 2>&1
+2026-09-01T08:29:59Z GATE 2: validate_config.sh PASSED (4/4 rungs) against the exact candidate bytes, run dir /Users/ohama/projs/cline-tests/phase-10/results/20260901T082955Z-validate
+2026-09-01T08:29:59Z --- STEP 3: install candidate over live path ---
+2026-09-01T08:29:59Z STEP 3: install OK -- live config sha256 now equals candidate sha256 (d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e)
+2026-09-01T08:29:59Z --- STEP 4: Restart B ---
+2026-09-01T08:29:59Z outage sampler (Restart B) pid=68618 -> /Users/ohama/projs/cline-tests/phase-10/results/20260901T082326Z-maintenance/outage-B.tsv
+2026-09-01T08:29:59Z T0_B=2026-09-01T08:29:59Z
+2026-09-01T08:30:07Z T1_B=2026-09-01T08:30:07Z restart_service.sh exit=0
+o
+teardown confirmed after 2s
+.
+RESTART OK: com.ohama.litellm pid=68670 port=4000 waited=2s
+2026-09-01T08:30:09Z STEP 4: Restart B OK
+2026-09-01T08:30:09Z --- STEP 5: health_check.sh B ---
+=== health_check.sh B === run dir: /Users/ohama/projs/cline-tests/phase-10/results/20260901T082326Z-maintenance
+launchctl sample 1: pid=68670 state=running
+waiting 10s before re-sampling for stability...
+launchctl sample 2 (+10s): pid=68670 state=running
+  /v1/models sample 1: HTTP 200, flashnext present -- PASS
+  /v1/models sample 2: HTTP 200, flashnext present -- PASS
+  /v1/models sample 3: HTTP 200, flashnext present -- PASS
+
+=== /Users/ohama/projs/cline-tests/phase-10/results/20260901T082326Z-maintenance/health-B.tsv ===
+check	result	detail
+launchctl-pid-stability	PASS	pid=68670 stable across two samples >=10s apart, both state=running
+v1-models-x3	PASS	3 samples >=5s apart, all HTTP 200 with flashnext listed
+errlog-scan	PASS	no Traceback/ValidationError/Error-loading from watermark 14945 to EOF (8 new lines scanned)
+e2e-completion	PASS	HTTP 200, parseable JSON body, via flashnext (unmodified alias), see /Users/ohama/projs/cline-tests/phase-10/results/20260901T082326Z-maintenance/health-B-completion.json
+HEALTH CHECK (B): ALL 4 CHECKS PASSED
+2026-09-01T08:30:31Z STEP 5: health_check.sh B PASSED
+2026-09-01T08:30:31Z --- STEP 5b: assert all 4 aliases served ---
+flashnext
+flashnext-act
+flashnext-codex
+flashnext-plan
+flashnext-reach-xhigh
+2026-09-01T08:30:31Z STEP 5b: all 4 aliases served (flashnext, flashnext-plan, flashnext-act, flashnext-reach-xhigh)
+2026-09-01T08:30:31Z --- STEP 6: postflight10 (expect candidate sha, restart_expected=1) ---
+=== postflight10 2026-09-01T08:30:31Z (expected_live_sha=d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e restart_expected=1) ===
+OK: com.ohama.flashnext pid unchanged (46573)
+OK: com.ohama.role-shim pid unchanged (75548)
+com.ohama.litellm pid: before=48525 after=68670
+OK: com.ohama.litellm pid changed as expected (restart_expected=1)
+OK: providers.json sha256 unchanged (5cf3800da31de8855b06e1d1cc85f415d68332dbee2625a587da2b4d8093e0a1)
+OK: live config sha256 equals expected (d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e)
+MIRROR: in-sync (unchanged: 12e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c)
+--- independent check: verify_config.sh (non-fatal, always recorded) ---
+OK: providers.json holds flashnext @ localhost:4000/v1, top-level contextWindow=29000, no models[] override, no codex alias
+trigger = maxInputTokens x 0.9 = 26100 — PROVEN to fire: phase-01/results/exp-verify29k/ (2026-08-30, 서버 400 0건)
+2026-09-01T08:30:31Z STEP 6: postflight10 PASSED
+
+WINDOW STATUS: INSTALLED
+2026-09-01T08:30:31Z === apply_candidate.sh COMPLETE -- window disposition: INSTALLED ===

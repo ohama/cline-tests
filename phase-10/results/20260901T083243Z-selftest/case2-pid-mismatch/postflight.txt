@@ -1,11 +1,12 @@
-=== postflight10 2026-09-01T08:32:37Z (expected_live_sha=d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e restart_expected=1) ===
-OK: com.ohama.flashnext pid unchanged (46573)
+=== postflight10 2026-09-01T08:32:44Z (expected_live_sha=d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e restart_expected=0) ===
+FAIL: com.ohama.flashnext pid changed (before=999999 after=46573) -- MUST NEVER restart
 OK: com.ohama.role-shim pid unchanged (75548)
-com.ohama.litellm pid: before=48525 after=68670
-OK: com.ohama.litellm pid changed as expected (restart_expected=1)
+com.ohama.litellm pid: before=68670 after=68670
+OK: com.ohama.litellm pid unchanged as expected (restart_expected=0)
 OK: providers.json sha256 unchanged (5cf3800da31de8855b06e1d1cc85f415d68332dbee2625a587da2b4d8093e0a1)
 OK: live config sha256 equals expected (d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e)
 MIRROR: diverged-as-expected (mirror=12e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c live=d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e) -- expected until plan 10-06's sync.sh runs
 --- independent check: verify_config.sh (non-fatal, always recorded) ---
 OK: providers.json holds flashnext @ localhost:4000/v1, top-level contextWindow=29000, no models[] override, no codex alias
 trigger = maxInputTokens x 0.9 = 26100 — PROVEN to fire: phase-01/results/exp-verify29k/ (2026-08-30, 서버 400 0건)
+postflight10: one or more HARD checks FAILED -- no self-repair performed. See above.

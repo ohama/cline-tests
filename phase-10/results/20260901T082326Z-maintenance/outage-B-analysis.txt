@@ -1,0 +1,73 @@
+Restart B outage measurement: NOT MEASURED (sampler failure -- root cause found)
+==================================================================================
+
+outage-B.tsv contains exactly ONE row:
+  1788251399873	200      (2026-09-01T08:29:59.873Z)
+
+Restart B's own T0/T1 window (restart-B-timestamps.txt):
+  T0_B=2026-09-01T08:29:59Z
+  T1_B=2026-09-01T08:30:07Z   -> 8s upper bound, restart_service.sh exit 0
+
+A 0.5s sampler across an 8s window should have produced roughly 16 rows,
+alternating 200 (before)/non-200 (during the outage)/200 (after), the way
+outage-A.tsv (18 rows, real 200->non-200->200 transition) actually did.
+It did not. This is a measurement failure, not a "no outage occurred"
+finding, and must not be reported as either.
+
+ROOT CAUSE (found, not assumed):
+apply_candidate.sh's background sampler runs inside a subshell that
+inherits `set -e` from the parent script -- picked up when the parent
+sources phase-10/probe_lib10.sh, which itself sources phase-09/probe_lib.sh
+(`set -euo pipefail`). The sampler's original line was:
+
+    CODE=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:4000/v1/models 2>/dev/null)
+
+`CODE=$(...)` is a simple command whose exit status equals curl's exit
+status. curl exits 7 (connection refused) for every sample taken WHILE
+litellm is down -- i.e. precisely the samples this sampler exists to
+capture. Under an inherited `set -e`, the FIRST such failing sample killed
+the subshell outright, with nothing printed anywhere to say so. The loop
+recorded its one pre-outage 200 sample, then silently died the moment the
+outage it was supposed to measure actually began.
+
+Restart A's driver script (a throwaway wrapper, not a committed artifact)
+happened to survive this because its equivalent line was written as
+`CODE=$(curl ... || echo "000")` -- the trailing `|| echo "000"` made the
+compound command always exit 0, masking the same underlying curl failure
+and incidentally keeping that loop alive (at the cost of an unrelated
+cosmetic bug: curl's own `-w '%{http_code}'` already prints "000" on
+failure, so that version double-appended "000" into "000000" -- harmless
+for PASS/FAIL classification, documented in outage-A-analysis.txt).
+
+FIX APPLIED (to phase-10/apply_candidate.sh, for any future re-run):
+both the epoch-ms capture and the curl call are now guarded with `|| true`,
+so a failing sample is recorded as "000" and the loop continues, instead of
+the whole subshell exiting. This was NOT re-run against the live stack --
+doing so would require a third, purely diagnostic restart of com.ohama.litellm,
+which is not warranted: the install itself is already verified healthy
+(health-B.tsv 4/4 PASS, postflight10 clean, all 4 aliases served), and
+forcing an extra outage just to re-measure an already-completed restart
+would violate the "polite tenant" / minimize-disruption standard this
+project holds itself to.
+
+DISPOSITION OF THIS MEASUREMENT: outage-B duration is NOT MEASURED.
+The only honest bound available is restart_service.sh's own T0/T1 window:
+8 seconds, exit 0 -- in the same ballpark as Restart A's sampler-measured
+~7s and 8s wall-clock bound, and well under the ~20s expectation and the
+60s hard timeout. This is offered as context, not as a substitute
+measurement -- it is not derived from a working sampler and must not be
+presented as one.
+
+THIS IS THE PHASE'S FOURTH INSTANCE OF THE SAME FAILURE CLASS: an
+instrument that reports (or in this case, silently produces) a clean/quiet
+result while not actually exercising -- or in this case, not continuing to
+exercise -- the thing it was built to observe. The first three (documented
+in 10-01-SUMMARY.md and this plan's own briefing): a selftest mutant whose
+anchor rotted while still reporting CAUGHT; a validation ladder that took
+90s to notice a crashed process instead of ~2s; two plans asserting "pure
+insertion" after CFG-17 made that false. This is the same defect shape --
+a check silently doing nothing useful -- occurring a fourth time, this time
+in an outage sampler rather than a validation gate. It was caught here
+because outage-A.tsv (18 rows) was available as a same-session comparison
+that made the single row in outage-B.tsv immediately suspicious, not
+because the sampler itself raised any alarm.

@@ -1,0 +1,5 @@
+case	expectation	observed_exit	verdict
+clean-control	zero	0	PASS
+seeded-pid-mismatch	nonzero	1	PASS
+seeded-hash-mismatch	nonzero	1	PASS
+seeded-restart-expect-mismatch	nonzero	1	PASS

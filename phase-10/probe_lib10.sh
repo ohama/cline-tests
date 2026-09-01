@@ -177,14 +177,20 @@ postflight10() {
   fi
 
   # ---- MIRROR_CFG: recorded, never enforced -- it legitimately diverges ----
-  # from LIVE_CFG between this plan and plan 10-06's sync.sh run.
-  local mirror_before mirror_after
-  mirror_before=$(awk -v p="$MIRROR_CFG" '$2==p{print $1}' "$run_dir/hashes-before.txt")
+  # from LIVE_CFG once this plan installs a new live config (mirror is not
+  # regenerated until plan 10-06's sync.sh runs). The useful comparison is
+  # MIRROR vs the CURRENT LIVE_CFG, not mirror-before vs mirror-after -- the
+  # latter is always trivially "unchanged" since nothing in this phase ever
+  # writes to the mirror, and would silently mislabel a real divergence (the
+  # mirror still holding the OLD bytes while live now holds the candidate)
+  # as "in-sync" -- caught during this plan's own dry run before being
+  # trusted; see 10-03-SUMMARY.md Deviations.
+  local mirror_after
   mirror_after=$(awk -v p="$MIRROR_CFG" '$2==p{print $1}' "$run_dir/hashes-after.txt")
-  if [ "$mirror_before" = "$mirror_after" ]; then
-    echo "MIRROR: in-sync (unchanged: $mirror_after)" >> "$run_dir/postflight.txt"
+  if [ "$mirror_after" = "$live_after" ]; then
+    echo "MIRROR: in-sync (mirror == live, both: $mirror_after)" >> "$run_dir/postflight.txt"
   else
-    echo "MIRROR: diverged-as-expected (before=$mirror_before after=$mirror_after) -- expected until plan 10-06's sync.sh runs" >> "$run_dir/postflight.txt"
+    echo "MIRROR: diverged-as-expected (mirror=$mirror_after live=$live_after) -- expected until plan 10-06's sync.sh runs" >> "$run_dir/postflight.txt"
   fi
 
   # ---- independent, non-fatal check ----
