@@ -434,6 +434,50 @@ from the first probe to this verdict.
 
 ---
 
+## §7 Human confirmation (Task 3)
+
+**Confirmed by:** ohama100@gmail.com
+**Confirmed on:** 2026-09-01
+
+**What they were shown:** this document (`phase-09/GATE-VERDICT.md`) end to end, per the Task 3
+`<how-to-verify>` steps — §2's comparison table and `agree?` column, §3's disagreement write-ups,
+§4's gate adjudications and their cited `phase-09/results/...` evidence paths (not the research),
+§5's `Phase 10 진행` verdict and its falsifiability section, §6's deferral register, and the
+end-to-end stack-unchanged proof above. The presentation additionally surfaced, and asked for
+explicit judgement on, two items:
+
+1. The `n/a` rows in §2 — the rows with no research counterpart because they are new evidence this
+   phase produced (the PRB-01 unspecified-effort negative control; PRB-02's `:8011`-direct row and
+   its `enable_thinking: true` positive control; PRB-04's real-`xhigh`-trace replay delta; PRB-04's
+   multi-turn growth row) — asking the reviewer to confirm comfort with treating these as evidence
+   despite having no prior research value to agree or disagree with.
+2. The VRF-04 deferral in §6 item 2 — that real-Cline-on-the-wire confirmation (observing
+   `reasoning` in an actual `cline --json` stream) was **not** attempted in Phase 9 (`cline` was
+   never invoked, per the hard constraints binding every plan in this phase) and is being carried
+   into Phase 10 as `VRF-04`, with Phase 9's "Cline attaches reasoning history" claim resting on
+   source-verification (MEDIUM confidence) rather than a live wire capture.
+
+Before presenting, the orchestrator independently spot-checked (and the reviewer was told these had
+already been verified at approval time, not merely asserted):
+- `raw-prb01-medium-{1,2}.json` → `reasoning` 179 chars each; `raw-prb01-unspecified-{1,2}.json` →
+  0 chars each (`phase-09/results/20260901T014027Z-prb01-02/`).
+- The three live `com.ohama.*` PIDs (46573 / 48525 / 75548) match
+  `phase-09/results/20260901T014027Z-prb01-02/pids-before.txt`.
+- `bash phase-01/config/verify_config.sh` → `OK: providers.json holds flashnext @
+  localhost:4000/v1, top-level contextWindow=29000, no models[] override, no codex alias`.
+
+**Response:** approved. The reviewer approved the verdict **as written** in §5 — `Phase 10 진행` —
+on the basis of the evidence and reasoning presented above. This is recorded as approval of the
+document's own claims and scope; it is not to be read as agreement with, or a ruling on, any claim
+beyond what this document states (in particular, it does not itself constitute the VRF-04
+observation that remains deferred to Phase 10, nor a broader endorsement of Phase 10's design
+beyond what §5's "What Phase 10 inherits" lists).
+
+Per ROADMAP Phase 9 success criterion 5 and this plan's must-have "A human has reviewed and
+confirmed the verdict before Phase 10 is unlocked," Phase 10 is unlocked as of this confirmation.
+
+---
+
 *Phase: 09-preflight-gates*
 *Plan: 09-04*
 *Verdict document written: 2026-09-01*
