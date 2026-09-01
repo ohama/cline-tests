@@ -12,13 +12,14 @@ See: .planning/PROJECT.md (updated 2026-09-01)
 
 Milestone: v1.1 Plan/Act ↔ reasoning_effort
 Phase: 9 of 12 (사전 확인 게이트 — 스택 무변경) — 진행 중
-Plan: 1 of 4 (09-01 완료 — probe_lib.sh + PRB-01/PRB-02 fresh 재측정)
+Plan: 2 of 4 (09-02 완료 — PRB-03 오라클 재측정 + 멀티턴 성장 비교)
 Status: In progress
-Last activity: 2026-09-01 — 09-01-PLAN.md 실행 완료: preflight/postflight 안전망 +
-  gpu-stream flake 판별기 + 4상태 verdict 머신 구축, PRB-01·PRB-02 를 이 페이즈
-  자체 결과로 독립 재측정 (게이트 판정 자체는 09-04 로 이연)
+Last activity: 2026-09-01 — 09-02-PLAN.md 실행 완료: 6-arm effort/enable_thinking
+  스윕(unspecified/medium/low/xhigh/et-true/et-medium) watermark 귀속으로 재측정,
+  xhigh thinking-on/off 3턴 시퀀스 실행 및 실제 reasoning 트레이스 2,497자 확보
+  (게이트 판정 자체는 09-04 로 이연)
 
-Progress: [██░░░░░░░░] v1.1 in progress (19/19 requirements mapped, 1/4 Phase 9 plans executed; Phase 10–12 plans TBD)
+Progress: [███░░░░░░░] v1.1 in progress (19/19 requirements mapped, 2/4 Phase 9 plans executed; Phase 10–12 plans TBD)
 
 ## Performance Metrics
 
@@ -28,6 +29,7 @@ Progress: [██░░░░░░░░] v1.1 in progress (19/19 requirements 
 - 3일 (2026-08-29 → 08-31)
 
 **v1.1:** Phase 9 Plan 01 — 3 tasks, 3 commits, ~15min (2026-09-01)
+**v1.1:** Phase 9 Plan 02 — 3 tasks, 3 commits, ~25min (2026-09-01)
 
 ## Accumulated Context
 
@@ -44,6 +46,22 @@ v1.1 설계 근거: `docs/plan-act-reasoning-{design,implementation,diagrams}.md
   적용됨"을 구분했고, 적용됨 쪽 증거를 얻었다(reasoning_content 30자). 두 게이트 모두
   verdict 를 선언하지 않음 — research 값과의 대조 및 실제 게이트 판정은 09-04 의 몫.
   증거: `phase-09/results/CURRENT_PRB01_02_RUN` → `RESULT.md`.
+- **09-02**: PRB-03 오라클을 처음부터 다시 측정 — 4-arm 이 아니라 6-arm(unspecified/medium/
+  low/xhigh/et-true/et-medium), 매 요청을 log watermark 로 귀속(tail -N 아님), 스윕을
+  두 번(A/B) 돌려 일치 확인(불일치 시 3차 스윕 로직도 구현했으나 이번엔 불일치 없어 미실행).
+  결과: fresh 절대값(13/11/41/53)과 delta(medium −2/low +28/xhigh +40) 모두 09-RESEARCH.md·
+  VALIDATED.md 와 완전히 일치. 새 발견: `et-true`(enable_thinking:true 단독)는 `xhigh` 와
+  절대값까지 동일(VALIDATED.md §4 검증됨) — 그러나 `et-medium`(출하되는 조합)은 `medium` 과
+  절대값까지 동일(11), 즉 **`enable_thinking:true` 를 얹어도 `medium` 의 −2 마진이 전혀
+  넓어지지 않음** — Phase 10 은 `et-medium` 자체를 도달 증명 오라클로 쓸 수 없고 `low`/`xhigh`
+  로 도달을 증명한 뒤 별칭은 `medium`/`et-medium` 으로 배포해야 한다. 이어서 xhigh thinking
+  on/off 3턴 시퀀스 각 1회씩 실행 — ON 은 매 턴 reasoning_content 를 다음 턴에 되먹임,
+  prompt_tokens 69→127→150(+58,+23); OFF 는 되먹임 없이 29→360→681(+331,+321). ON 이 훨씬
+  느리게 자란 것은 09-RESEARCH.md 의 "재생된 reasoning 은 토큰 비용이 0" 결과와 방향은
+  일치하지만, ON 턴2·3 은 max_tokens=300 을 xhigh reasoning 이 전부 써버려 content 가 완전히
+  비어 나온 confound 가 있어 결정적 증거로 쓰지 않음(09-03 의 통제된 replay 프로브가 결정적).
+  실제 xhigh reasoning 트레이스 2,497자를 디스크에 확보(09-03 재사용용). 게이트 판정은 여전히
+  선언 안 함 — 09-04 몫. 증거: `phase-09/results/CURRENT_PRB03_RUN` → `PRB-03-ORACLE.md`.
 
 ### Pending Todos
 
@@ -75,6 +93,6 @@ v1.1 설계 근거: `docs/plan-act-reasoning-{design,implementation,diagrams}.md
 ## Session Continuity
 
 Last session: 2026-09-01
-Stopped at: 09-01-PLAN.md 실행 완료 (probe_lib.sh + PRB-01/PRB-02 fresh 재측정),
-  09-01-SUMMARY.md 작성. 다음: 09-02-PLAN.md
+Stopped at: 09-02-PLAN.md 실행 완료 (PRB-03 오라클 6-arm 재측정 + xhigh 멀티턴
+  성장 비교 + 실제 트레이스 확보), 09-02-SUMMARY.md 작성. 다음: 09-03-PLAN.md
 Resume file: None
