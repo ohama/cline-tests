@@ -11,17 +11,23 @@ See: .planning/PROJECT.md (updated 2026-09-01)
 ## Current Position
 
 Milestone: v1.1 Plan/Act ↔ reasoning_effort
-Phase: 9 of 12 — ✅ **완료** (2026-09-01). 다음은 Phase 10
-Plan: 4 of 4 완료 (09-01 ~ 09-04)
-Status: Phase 9 종료 — 게이트 판정 **Phase 10 진행**, 사람 확인 완료, 검증 32/32
-Last activity: 2026-09-01 — Phase 9 전체 완료. **스택을 하나도 바꾸지 않은 채** 두 게이트에
-  근거 있는 답을 냈다. PRB-04(유일한 킬 컨디션) 양성 — 사고 트레이스를 되먹여도 토큰이 전혀
-  들지 않는다(16/16 `delta=0`, `prompt_tokens=46` 고정, 실제 2,497자 트레이스 포함).
-  검증자가 원시 JSON 에서 독립 재계산해 32/32 통과. 부정 셀프테스트 2종으로 안전 외피가
-  실제로 FAIL 을 내는 것까지 증명됨.
+Phase: 10 of 12 — 진행 중 (1/6 plans 완료, 2026-09-01)
+Plan: 1 of 6 완료 (10-01)
+Status: 10-01 완료 — 후보 설정 작성 + 4단 검증 사다리 구축·자체 증명. **스택은 여전히
+  하나도 바뀌지 않았다** — 후보는 `phase-10/config/`에만 존재, 설치는 10-03 몫.
+Last activity: 2026-09-01 — 10-01 완료. `hosted_vllm/` 접두사 3별칭(flashnext-plan/-act/
+  -reach-xhigh)을 순수 삽입으로 후보 생성(기계적 3중 증명: diff 0줄 삭제·앵커 이전 구간
+  바이트 동일·flashnext/-codex deep-equal). 4단 사다리(YAML 파싱→drop_params 금지→CFG-13
+  기준선→스크래치 4010 실부팅)를 만들고 실제로 후보에 통과시킨 뒤, 4개 뮤턴트를 심어 사다리가
+  실제로 거부하는지 증명(3/3 결정론적 뮤턴트 CAUGHT, 1개는 측정치로 기록). 실행 중 발견한
+  실제 버그 3건 자동 수정(계획 자체의 검증 문구 2건, 사다리의 90초 지연 감지 1건 — 자세한
+  내용은 10-01-SUMMARY.md 참조). **미해결 항목**: 실행 중 `.planning/REQUIREMENTS.md`·
+  `ROADMAP.md`에 커밋되지 않은 외부 편집(CFG-17, deprecated qwen-* 별칭 6개 삭제를 10-01
+  범위에 편입)을 발견했으나, 현재의 권위 있는 `10-01-PLAN.md`와 충돌(순수 삽입 불변식)하여
+  실행하지 않고 그대로 남겨둠 — 오케스트레이터가 정리해야 함.
 
 Progress: [███░░░░░░░] v1.1 (19/19 requirements mapped, 4/19 complete: PRB-01..04;
-  Phase 9 완료, Phase 10–12 plans TBD)
+  Phase 9 완료, Phase 10 1/6 plans 완료, Phase 11–12 plans TBD)
 
 ## Performance Metrics
 
@@ -34,6 +40,8 @@ Progress: [███░░░░░░░] v1.1 (19/19 requirements mapped, 4/19
   측정 표본 37개 전부 CONFIRMED, 플레이크 0건, 스택 무변경 전 구간 유지
 **v1.1:** Phase 9 Plan 02 — 3 tasks, 3 commits, ~25min (2026-09-01)
 **v1.1:** Phase 9 Plan 03 — 3 tasks, 3 commits, ~15min (2026-09-01)
+**v1.1:** Phase 10 Plan 01 — 3 tasks, 3 commits, ~25min (2026-09-01), 스택 무변경 유지,
+  뮤턴트 4개 심어 사다리 검증(3/3 결정론적 CAUGHT)
 
 ## Accumulated Context
 
@@ -100,6 +108,18 @@ v1.1 설계 근거: `docs/plan-act-reasoning-{design,implementation,diagrams}.md
 - **09-04**: 게이트 판정 **Phase 10 진행**, 사람 확인 완료. 판정문은 반증 조건("무엇이 반대
   판정을 냈을 것인가")을 결과를 보기 **전에** 명시했고, `REQUIREMENTS.md` 의 PRB-01 강등과
   `09-04-PLAN.md` §5 문구가 정합하지 않는다는 사실도 스스로 신고했다(이번엔 발동 안 함).
+- **10-01**: 후보 설정(`hosted_vllm/` 3별칭)을 순수 삽입으로 생성하고 4단 검증 사다리를 구축한
+  뒤, phase-09 의 전례("실제로 뮤턴트를 심어 비영(non-zero) 종료를 관측해야 믿는다")를 그대로
+  적용해 4개 뮤턴트로 사다리 자체를 검증했다. 3/3 결정론적 뮤턴트(YAML 파손·drop_params·기준선
+  변조) CAUGHT, 1개(litellm_params: null)는 측정치로 기록 — 실제로는 litellm 자신의 미처리
+  예외(`AttributeError`)로 죽는 것이었고, 사다리가 처음엔 이를 90초 타임아웃으로만 감지해
+  프로세스 생존 확인을 추가해 2초로 단축했다(실행 중 자체 발견·수정). 계획 문서 자체의 검증
+  문구 버그 2건도 실행 중 발견해 고쳤다(drop_params 문구 자기충돌, hosted_vllm/ grep 과다 매칭).
+  스택은 전 구간 무변경 — 후보는 `phase-10/config/`에만 존재. **미해결**: 실행 중
+  `.planning/REQUIREMENTS.md`·`ROADMAP.md`에서 커밋 안 된 CFG-17(deprecated qwen-* 별칭 6개
+  삭제, 10-01 범위 편입) 편집을 발견했으나 현재 권위 있는 `10-01-PLAN.md`의 순수 삽입
+  불변식과 충돌해 실행하지 않음 — 아키텍처 변경급 판단이라 임의로 흡수하지 않고 그대로 남김.
+  증거: `phase-10/results/CURRENT_VALIDATE_RUN` → `10-01-SUMMARY.md`.
 
 ### Pending Todos
 
@@ -126,6 +146,15 @@ v1.1 설계 근거: `docs/plan-act-reasoning-{design,implementation,diagrams}.md
 - 🟡 **litellm 재기동 필요 (Phase 10 이 소유)** — 핫리로드 없음. Kanban/Telegram 요청이 끊긴다.
 - 🟡 **문서 오탐 정정 (Phase 12 가 소유)** — `docs/plan-act-reasoning-implementation.md:96-100,102`
   와 `-diagrams.md:187-191`. Phase 9 는 기록만 남겼고 편집하지 않았다.
+- 🔴 **미해결: CFG-17 vs 10-01-PLAN.md 불일치 (오케스트레이터 조정 필요)** — 10-01 실행 중
+  `.planning/REQUIREMENTS.md`·`ROADMAP.md`에서 커밋되지 않은 편집을 발견함: 새 요구사항
+  CFG-17(deprecated `qwen-*` 별칭 6개 삭제, 라이브 설정 34–50행)을 10-01 범위에 편입한다는
+  내용. 그러나 실행에 사용한 권위 있는 `10-01-PLAN.md`에는 이 태스크가 없고, 그 문서 자신의
+  `must_haves.truths`("라이브 파일의 모든 줄이 후보에 그대로 남는다")와 정면으로 충돌한다
+  (삭제는 순수 삽입이 아니다). 10-01 은 이 편집을 실행하지 않고 두 파일을 편집된 그대로
+  남겨두었다(커밋 안 함, 되돌리지도 않음). ROADMAP 편집 자체는 "10-03 유지보수 창에 합류"를
+  제안하고 있음 — 다음 단계 전에 반드시 정리할 것. 상세: `10-01-SUMMARY.md`의
+  "Issues Encountered" 절.
 
 ### Blockers/Concerns (v1 에서 이월, v1.1 범위 밖)
 
@@ -140,8 +169,9 @@ v1.1 설계 근거: `docs/plan-act-reasoning-{design,implementation,diagrams}.md
 ## Session Continuity
 
 Last session: 2026-09-01
-Stopped at: Phase 9 완료 및 종료 커밋. 게이트 판정 "Phase 10 진행" 사람 확인 완료.
-  다음: /gsd:plan-phase 10 — **litellm-config.yaml 을 실제로 고치고 litellm 을 재기동하는
-  첫 페이즈.** 핫리로드가 없어 재기동이 필수이고, 그 동안 Kanban(:3484)·Telegram 요청이 끊긴다.
-  착수 전 사용자에게 변경 내용과 롤백 절차를 먼저 제시할 것.
+Stopped at: 10-01-PLAN.md 완료 (wave 1/6). 후보 설정·검증 사다리·자체 뮤턴트 테스트·
+  ALIAS-DESIGN.md 전부 완료, 스택 무변경 확인됨.
+  다음: wave 2 — 10-02-PLAN.md (백업·기준선·롤백 리허설 + 변경 브리핑 + 🔴 사람 체크포인트).
+  **착수 전 반드시 정리:** 위 "미해결: CFG-17 vs 10-01-PLAN.md 불일치" 항목 — CFG-17 을
+  이 마일스톤에 어떻게 편입할지(10-03 유지보수 창 합류 여부 포함) 결정한 뒤 진행할 것.
 Resume file: None
