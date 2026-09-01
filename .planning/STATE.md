@@ -12,14 +12,17 @@ See: .planning/PROJECT.md (updated 2026-09-01)
 
 Milestone: v1.1 Plan/Act ↔ reasoning_effort
 Phase: 9 of 12 (사전 확인 게이트 — 스택 무변경) — 진행 중
-Plan: 2 of 4 (09-02 완료 — PRB-03 오라클 재측정 + 멀티턴 성장 비교)
+Plan: 3 of 4 (09-03 완료 — PRB-04 통제 replay 재측정 + 소스 정정 기록)
 Status: In progress
-Last activity: 2026-09-01 — 09-02-PLAN.md 실행 완료: 6-arm effort/enable_thinking
-  스윕(unspecified/medium/low/xhigh/et-true/et-medium) watermark 귀속으로 재측정,
-  xhigh thinking-on/off 3턴 시퀀스 실행 및 실제 reasoning 트레이스 2,497자 확보
-  (게이트 판정 자체는 09-04 로 이연)
+Last activity: 2026-09-01 — 09-03-PLAN.md 실행 완료: PRB-04 (kill condition) 통제
+  replay 를 합성/실제 트레이스 양쪽, :8011/:4000 양쪽, reasoning_content/reasoning
+  양쪽 필드명으로 처음부터 재측정 (16개 판정 전부 delta=0 CONFIRMED, 실제 2,497자
+  트레이스 포함 길이 임계값 효과 없음 확인), shouldIncludeReasoningHistory/
+  agentPartToContentBlock 소스 경로를 관측 라인 번호로 재검증, 구현 문서의 오탐
+  (false negative) 을 Phase 12 편집 대상으로 기록 (Phase 9 는 문서를 수정하지 않음).
+  게이트 판정 자체는 09-04 로 이연.
 
-Progress: [███░░░░░░░] v1.1 in progress (19/19 requirements mapped, 2/4 Phase 9 plans executed; Phase 10–12 plans TBD)
+Progress: [████░░░░░░] v1.1 in progress (19/19 requirements mapped, 3/4 Phase 9 plans executed; Phase 10–12 plans TBD)
 
 ## Performance Metrics
 
@@ -30,6 +33,7 @@ Progress: [███░░░░░░░] v1.1 in progress (19/19 requirements 
 
 **v1.1:** Phase 9 Plan 01 — 3 tasks, 3 commits, ~15min (2026-09-01)
 **v1.1:** Phase 9 Plan 02 — 3 tasks, 3 commits, ~25min (2026-09-01)
+**v1.1:** Phase 9 Plan 03 — 3 tasks, 3 commits, ~15min (2026-09-01)
 
 ## Accumulated Context
 
@@ -62,6 +66,25 @@ v1.1 설계 근거: `docs/plan-act-reasoning-{design,implementation,diagrams}.md
   비어 나온 confound 가 있어 결정적 증거로 쓰지 않음(09-03 의 통제된 replay 프로브가 결정적).
   실제 xhigh reasoning 트레이스 2,497자를 디스크에 확보(09-03 재사용용). 게이트 판정은 여전히
   선언 안 함 — 09-04 몫. 증거: `phase-09/results/CURRENT_PRB03_RUN` → `PRB-03-ORACLE.md`.
+- **09-03**: PRB-04(🔴 kill condition)의 통제된 replay 를 처음부터 재측정 — research 의
+  1,380자 합성 트레이스뿐 아니라 09-02 가 확보한 실제 xhigh 트레이스(최장 989자, 3턴 연결
+  2,497자)까지, `:8011`/`:4000`(무수정 `flashnext` 별칭) 양쪽, `reasoning_content`/`reasoning`
+  양쪽 필드명으로, 총 16개 delta 판정 전부 CONFIRMED(delta=0, CLEAN flake window). 2,497자
+  실제 트레이스에서도 길이 임계값 효과 없음 확인 — research 의 미해결 위험(합성 트레이스만
+  썼다는 점)을 실측으로 닫음. 09-02 의 confounded 멀티턴 성장(ON +58/+23)과의 정합성도
+  검증 — 소규모 보강 프로브(turn3 사용자 메시지 단독 21 vs baseline 13)로 +23 의 잔차가
+  트레이스 길이가 아니라 턴 경계/서식 오버헤드로 설명됨을 확인, 모순 없음(모순이었다면 이
+  문서에 그렇게 기록했을 것). 소스 재검증: `shouldIncludeReasoningHistory`(ai-sdk.ts:284-289)
+  와 `agentPartToContentBlock`(agent-message-codec.ts:231, `case "reasoning"` at :237)을
+  cli-v3.0.53 에서 관측 라인 번호로 재확인(cline-src 무수정, `git status --porcelain` 공백).
+  구현 문서(`docs/plan-act-reasoning-implementation.md:96-100,102`,
+  `docs/plan-act-reasoning-diagrams.md:187-191`)의 "누적 안 됨" 결론이 **오탐**이라고
+  `PRB-04-FINDINGS.md` 에 기록 — Cline 은 non-Cerebras 프로바이더에 기본적으로 reasoning
+  history 를 재첨부하지만(구조적으로는 누적), 이 스택에서 토큰 비용은 0(측정으로 확정)이라
+  게이트는 무사함. 문서 편집은 Phase 12(USE-05) 소유, Phase 9 는 기록만 함. 실제 `cline`
+  프로세스 확인은 Phase 10 의 `VRF-04` 로 명시 이연(REQUIREMENTS.md 기존 항목). 게이트 판정은
+  여전히 선언 안 함 — 09-04 몫. 증거: `phase-09/results/CURRENT_PRB04_RUN` →
+  `phase-09/PRB-04-FINDINGS.md`.
 
 ### Pending Todos
 
@@ -75,7 +98,9 @@ v1.1 설계 근거: `docs/plan-act-reasoning-{design,implementation,diagrams}.md
 - 🔴 **CFG-16 (Phase 10, 신설)** — 두 파라미터 조합이 실제로 `reasoning` 을 만드는가.
   이 조합은 이 스택에서 측정된 적이 없다.
 - 🔴 **PRB-04 (Phase 9, 게이트)** — 사고 트레이스가 다음 턴 컨텍스트로 돌아오는가. 돌아오면
-  v1 의 "실제 부하에서 압축이 프루닝하지 않는다"와 겹쳐 마일스톤 폐기 조건.
+  v1 의 "실제 부하에서 압축이 프루닝하지 않는다"와 겹쳐 마일스톤 폐기 조건. 09-03 이 결정적
+  통제 측정(합성+실제 트레이스, 16/16 CONFIRMED delta=0)과 소스 정정 기록을
+  `phase-09/PRB-04-FINDINGS.md` 에 남김 — 판정 자체는 09-04 몫.
 - 🟡 **Phase 10 진입 조건** — **PRB-04** 가 "진행" 판정이어야 착수. 하나라도 부정적이면
   Phase 10–12 는 집행하지 않고 Phase 9 에서 종료 — 이 역시 유효한 출하 결과다.
 - 🟡 **litellm 재기동 필요 (Phase 10 이 소유)** — 핫리로드 없음. Kanban/Telegram 요청이 끊긴다.
@@ -93,6 +118,7 @@ v1.1 설계 근거: `docs/plan-act-reasoning-{design,implementation,diagrams}.md
 ## Session Continuity
 
 Last session: 2026-09-01
-Stopped at: 09-02-PLAN.md 실행 완료 (PRB-03 오라클 6-arm 재측정 + xhigh 멀티턴
-  성장 비교 + 실제 트레이스 확보), 09-02-SUMMARY.md 작성. 다음: 09-03-PLAN.md
+Stopped at: 09-03-PLAN.md 실행 완료 (PRB-04 통제 replay 합성+실제 트레이스 재측정,
+  소스 경로 재검증, 구현 문서 오탐 정정 기록), 09-03-SUMMARY.md 작성. 다음: 09-04-PLAN.md
+  (PRB-01/PRB-04 게이트 판정)
 Resume file: None
