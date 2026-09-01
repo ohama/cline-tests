@@ -1,0 +1,3 @@
+1	yaml-parses	PASS	python3 yaml.safe_load succeeded
+2	drop_params-ban	PASS	no drop_params (any form) found anywhere in the file
+3	baseline-preserved	FAIL	see /Users/ohama/projs/cline-tests/phase-10/results/20260901T052650Z-validate/rung3-compare.txt

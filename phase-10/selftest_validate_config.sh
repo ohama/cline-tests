@@ -3,21 +3,30 @@
 #
 # Phase 9's precedent governs how a safety envelope is accepted: it is
 # believed only after it has been seeded with a real mutation and observed
-# to exit non-zero -- never merely asserted to work. This script seeds four
+# to exit non-zero -- never merely asserted to work. This script seeds five
 # MUTANT configs (copied into a throwaway tempdir, never near the live path)
 # and runs the full 4-rung ladder against each, recording what actually
 # happened. It also re-runs the clean, unmutated candidate in the same
 # session, so a ladder that fails everything cannot masquerade as strict.
+#
+# 🔴 2026-09-01, CFG-17 fold-in: MUTANT-5 is new. The candidate now performs
+# a real deletion (the deprecated qwen-* block), not just an insertion --
+# so this self-test needs a negative control for the DELETION mechanism
+# itself: a config that correctly drops the deprecated block but ALSO
+# damages flashnext along the way. Without this mutant, nothing here proves
+# that a deletion mechanism can't overreach into the aliases CFG-13 requires
+# to survive untouched. Rung 3 (the CFG-13 baseline check) must catch it,
+# exactly like MUTANT-3.
 #
 # Outcome neutrality: MUTANT-4 (a schema-invalid litellm_params: null) is a
 # MEASUREMENT, not an assertion. If the real litellm binary boots it anyway,
 # that is a real, useful finding about rung 4's limits -- recorded, not
 # hidden, not retried away.
 #
-# This script's own exit code is non-zero ONLY if MUTANT-1, MUTANT-2 or
-# MUTANT-3 was NOT caught, or if the clean candidate failed -- those three
-# are mechanical/deterministic. MUTANT-4's outcome never affects this exit
-# code.
+# This script's own exit code is non-zero ONLY if MUTANT-1, MUTANT-2,
+# MUTANT-3 or MUTANT-5 was NOT caught, or if the clean candidate failed --
+# those four are mechanical/deterministic. MUTANT-4's outcome never affects
+# this exit code.
 #
 # bash 3.2 compatible (no declare -A) -- this machine's default /bin/bash.
 set -uo pipefail
@@ -44,7 +53,7 @@ trap cleanup_workdir EXIT
 
 # validate_config.sh creates a brand-new run dir on EVERY invocation and
 # overwrites CURRENT_VALIDATE_RUN each time -- this self-test calls it 5
-# times (clean + 4 mutants), so by the time the last mutant runs,
+# times (clean + 5 mutants), so by the time the last mutant runs,
 # CURRENT_VALIDATE_RUN would otherwise point at MUTANT-4's directory, not a
 # directory holding both a 4-row ladder.tsv and a 5-row selftest.tsv. Fix:
 # anchor this self-test's own evidence (selftest.tsv, per-mutant ladder.tsv
@@ -96,23 +105,31 @@ MUTANT1="$WORKDIR/mutant1-yaml-broken.yaml"
 MUTANT2="$WORKDIR/mutant2-drop-params.yaml"
 MUTANT3="$WORKDIR/mutant3-baseline-touched.yaml"
 MUTANT4="$WORKDIR/mutant4-schema-invalid.yaml"
+MUTANT5="$WORKDIR/mutant5-deletion-overreach.yaml"
 
 SRC="$CANDIDATE" DST="$MUTANT1" python3 - <<'PY'
 import os
+import re
 src = os.environ["SRC"]
 dst = os.environ["DST"]
 with open(src) as f:
     text = f.read()
-old = "litellm_params: { model: openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4, api_base: http://localhost:8011/v1, api_key: dummy }"
-count = text.count(old)
-if count < 1:
-    raise SystemExit(f"MUTANT-1 anchor line not found in {src} (expected the qwen-local deprecated inline entry)")
-# Drop the trailing " }" to leave an unclosed flow mapping -- invalid YAML.
-new = old[: -len(" }")]
-text = text.replace(old, new, 1)
+# 🔴 2026-09-01, CFG-17 fold-in: the original anchor here was the deprecated
+# qwen-local inline flow-mapping entry ("litellm_params: { ... }"). CFG-17
+# deletes that entry (and its five siblings) from the candidate entirely --
+# none of the surviving aliases use flow-mapping style, so that anchor no
+# longer exists post-deletion. Retargeted at flashnext's own block-style
+# "litellm_params:" line instead: opening an unclosed "{" there is just as
+# invalid YAML, and flashnext is guaranteed to survive every future
+# candidate (CFG-13), so this mutant's anchor won't rot again the way the
+# old one just did.
+pattern = re.compile(r"(- model_name: flashnext\n    litellm_params:)\n")
+new_text, n = pattern.subn(r"\1 {\n", text, count=1)
+if n != 1:
+    raise SystemExit(f"MUTANT-1 anchor (flashnext's litellm_params: line) not found or matched more than once in {src}")
 with open(dst, "w") as f:
-    f.write(text)
-print(f"MUTANT-1 written: {dst} (unclosed '{{' seeded, {count} candidate anchor(s) found, 1 mutated)")
+    f.write(new_text)
+print(f"MUTANT-1 written: {dst} (unclosed '{{' seeded onto flashnext's litellm_params: line, {n} substitution)")
 PY
 
 SRC="$CANDIDATE" DST="$MUTANT2" python3 - <<'PY'
@@ -169,6 +186,32 @@ text = text.replace(old, new, 1)
 with open(dst, "w") as f:
     f.write(text)
 print(f"MUTANT-4 written: {dst} (flashnext-act's litellm_params replaced with null)")
+PY
+
+SRC="$CANDIDATE" DST="$MUTANT5" python3 - <<'PY'
+import os
+import re
+src = os.environ["SRC"]
+dst = os.environ["DST"]
+with open(src) as f:
+    text = f.read()
+# The candidate is already CFG-17-compliant (deprecated qwen-* block already
+# dropped by build_candidate.sh). MUTANT-5 simulates a deletion mechanism
+# that overreached: it takes that already-deleted candidate and ALSO damages
+# flashnext's api_base -- the negative control for the deletion itself,
+# proving rung 3 (CFG-13) would catch a build_candidate.sh regression that
+# corrupts flashnext while removing the deprecated block.
+pattern = re.compile(
+    r"(- model_name: flashnext\n    litellm_params:\n      model: openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3\.8-Flash-Next-MLX-oQ4\n      api_base: )http://localhost:8011/v1"
+)
+new_text, n = pattern.subn(r"\g<1>http://localhost:8013/v1", text, count=1)
+if n != 1:
+    raise SystemExit("MUTANT-5 anchor (flashnext's api_base line) not found or matched more than once")
+if "qwen-local" in new_text or "qwen-122b" in new_text:
+    raise SystemExit("MUTANT-5 precondition failed: candidate still contains deprecated qwen-* aliases -- CFG-17 deletion did not happen upstream")
+with open(dst, "w") as f:
+    f.write(new_text)
+print(f"MUTANT-5 written: {dst} (deprecated block already absent + flashnext api_base changed 8011 -> 8013, {n} substitution)")
 PY
 
 echo ""
@@ -250,6 +293,14 @@ fi
 log_row "MUTANT-4-schema-invalid" "4" "${LAST_FAILED_RUNG:-none}" "$LAST_EXIT" "$V4"
 archive_mutant_run "mutant4"
 
+echo ""
+echo "=== MUTANT-5 deletion-overreach (expected: rung 3 FAILs -- negative control for the CFG-17 deletion mechanism itself) ==="
+run_ladder "$MUTANT5" "mutant5"
+V5=$(classify 3 "$LAST_FAILED_RUNG" "$LAST_EXIT")
+echo "MUTANT-5: exit=$LAST_EXIT failed_rung=${LAST_FAILED_RUNG:-none} -> $V5"
+log_row "MUTANT-5-deletion-overreach" "3" "${LAST_FAILED_RUNG:-none}" "$LAST_EXIT" "$V5"
+archive_mutant_run "mutant5"
+
 # Restore CURRENT_VALIDATE_RUN to the canonical clean-candidate run dir --
 # without this, it would be left pointing at MUTANT-4's directory, which
 # holds a deliberately-broken ladder.tsv, not the 4-PASS positive control.
@@ -266,7 +317,7 @@ if ! port_is_free; then
 fi
 
 # ---- self-test's own exit code ----
-# Non-zero ONLY if a mechanical/deterministic mutant (1, 2, 3) was not
+# Non-zero ONLY if a mechanical/deterministic mutant (1, 2, 3, 5) was not
 # CAUGHT (in either sense -- exact rung or a different rung), or if the
 # clean candidate itself failed. MUTANT-4's outcome never affects this.
 FAILURES=0
@@ -274,7 +325,7 @@ if [ "$CLEAN_OK" -ne 1 ]; then
   echo "SELFTEST FAILURE: the clean, unmutated candidate did not pass cleanly." >&2
   FAILURES=$((FAILURES + 1))
 fi
-for pair in "MUTANT-1:$V1" "MUTANT-2:$V2" "MUTANT-3:$V3"; do
+for pair in "MUTANT-1:$V1" "MUTANT-2:$V2" "MUTANT-3:$V3" "MUTANT-5:$V5"; do
   name="${pair%%:*}"
   verdict="${pair#*:}"
   case "$verdict" in
@@ -291,6 +342,6 @@ if [ "$FAILURES" -gt 0 ]; then
   exit 1
 fi
 
-echo "SELFTEST: all deterministic checks passed (clean candidate PASS; MUTANT-1/2/3 all caught)."
+echo "SELFTEST: all deterministic checks passed (clean candidate PASS; MUTANT-1/2/3/5 all caught)."
 echo "MUTANT-4 (non-enforced measurement) verdict: $V4"
 exit 0

@@ -4,26 +4,64 @@ Companion to `phase-10/config/config.yaml.candidate` and the plan 10-02 human ch
 the short document a human is shown before any restart happens. Nothing here has been installed —
 the candidate lives entirely under `phase-10/config/`, never under `/Users/ohama/agent-stack/`.
 
+🔴 **2026-09-01 update.** The candidate is no longer a pure insertion. Alongside the three new
+aliases below (§1), it also **removes** the six deprecated `qwen-*` aliases per **CFG-17** — a
+scope change added at the user's explicit instruction and committed as `dbe79bc`, folded into this
+already-executed plan's artifacts by orchestrator-directed corrective work rather than by a new
+plan. See §2 for the removal itself. The regression baseline that actually matters, CFG-13, is
+unaffected by either change: `flashnext` and `flashnext-codex` are proven byte-identical between
+the live file and the candidate both before and after this update (`build_candidate.sh` Proof 2/3,
+`validate_config.sh` rung 3).
+
 ---
 
 ## 1. What is being added, and why each entry exists
 
-Three new `model_list` entries, inserted after the existing `flashnext-codex` block and before the
-deprecated-aliases block in `/Users/ohama/agent-stack/litellm/config.yaml`. All three route to the
-same upstream (`api_base: http://localhost:8011/v1`, the same `role-shim` → `mlx_vlm.server` chain
-`flashnext` already uses) — they are three named front doors onto one backend queue, not new
-backend capacity (`10-RESEARCH.md` Q7).
+Three new `model_list` entries, inserted after the existing `flashnext-codex` block and — as of
+CFG-17 — immediately before the end of the file, where the deprecated-aliases block used to be
+(see §2). All three route to the same upstream (`api_base: http://localhost:8011/v1`, the same
+`role-shim` → `mlx_vlm.server` chain `flashnext` already uses) — they are three named front doors
+onto one backend queue, not new backend capacity (`10-RESEARCH.md` Q7).
 
 - **`flashnext-plan`** — the shipped Plan-mode alias (CFG-11). Injects
   `reasoning_effort: medium` **and** `enable_thinking: true` together. `enable_thinking`'s default
   is `false`, so effort alone is not guaranteed to turn thinking on; VALIDATED.md's own
   recommendation is to set both.
-- **`flashnext-act`** — the shipped Act-mode alias (CFG-12, see §4 below). Injects
+- **`flashnext-act`** — the shipped Act-mode alias (CFG-12, see §5 below). Injects
   `enable_thinking: false` explicitly.
 - **`flashnext-reach-xhigh`** — a verification-only alias, not a shipped surface. Exists solely so
-  VRF-01 has a reach probe with a margin wide enough to be believed (see §5).
+  VRF-01 has a reach probe with a margin wide enough to be believed (see §6).
 
-## 2. Why `hosted_vllm/` and not `openai/` (CFG-11)
+## 2. What is being removed, and why (CFG-17)
+
+Six deprecated aliases are deleted from the live config's tail (originally lines 34–50: a blank
+separator, a four-line comment header, and twelve lines of six two-line flow-mapping entries):
+`qwen-local`, `qwen-35b`, `qwen-122b`, `qwen-122b-claude`, `qwen-35b-claude`, `qwen-122b-codex`.
+`flashnext` and `flashnext-codex` are preserved untouched (CFG-13) — the deletion targets only the
+block below the anchor comment `  # ── 호환용 옛 별칭`, verified structurally by
+`build_candidate.sh` before a single byte is cut (exact alias-name match, no mention of
+`flashnext` anywhere in the block staged for deletion, the block runs to EOF with nothing after it).
+
+**Why now.** The config file's own comment set the deletion condition when these aliases were
+redirected to Flash-Next on 2026-08-29: "한동안 로그를 보고 쓰이지 않으면 지운다" ("watch the logs
+for a while, and if unused, delete them"). That condition is now met: since the current `litellm`
+instance started, server logs show **zero** `qwen-*` requests against **163** `flashnext` requests.
+The handful of historical `qwen-*` log entries all predate the last restart and are mostly 404s /
+`No deployments available` — leftover probes from before the redirect, not live traffic.
+
+**Why folded into this plan's maintenance window rather than a separate change.** Deleting these
+lines requires the same `litellm` restart the three new aliases already require. Doing it as a
+second, separate change would mean a second, separate restart — a second unnecessary interruption
+to Kanban (`:3484`) and the Telegram connector for a change that could ride the same window. Same
+backup, same rollback script, same validation ladder (`validate_config.sh`), same human checkpoint
+(plan 10-02) — see ROADMAP.md's Phase 10 criterion 7 note.
+
+**What this does NOT change.** The insertion mechanism, the three new aliases' definitions, and the
+CFG-13 regression baseline are all identical to what plan 10-01 originally built. The only change to
+`build_candidate.sh` is that the deprecated tail it used to carry forward unmodified is now
+verified and dropped instead.
+
+## 3. Why `hosted_vllm/` and not `openai/` (CFG-11)
 
 This is a mechanism, not just an observed asymmetry, verified by executing the actual installed
 `litellm==1.86.1` package (`10-RESEARCH.md` Q1, no stack mutation, isolated Python process).
@@ -84,9 +122,10 @@ falls into the catch-all in `add_provider_specific_params_to_optional_params()`
 is exactly why Phase 9 saw `reasoning_effort` → 400 and `enable_thinking` → 200 through the
 unmodified `flashnext` alias: one is a recognized, provider-whitelisted param; the other rides
 through as an unrecognized pass-through. The existing `flashnext` and `flashnext-codex` entries are
-untouched — the regression baseline is preserved by construction (CFG-13, §3 below).
+untouched — the regression baseline is preserved by construction (CFG-13; verified mechanically
+by `build_candidate.sh`'s Proof 2/3 and `validate_config.sh`'s rung 3).
 
-## 3. Why no `drop_params` (CFG-14)
+## 4. Why no `drop_params` (CFG-14)
 
 `litellm.drop_params` / `drop_params: true` / `additional_drop_params` are never set anywhere in
 this candidate, checked mechanically by `validate_config.sh`'s rung 2. Two independent reasons:
@@ -104,7 +143,7 @@ block's own comment happened to contain the literal substring "drop_params" whil
 very policy — which would have failed this rung's own grep check against the clean candidate.
 Reworded before shipping; see `phase-10/config/aliases-candidate.yaml`'s history.)
 
-## 4. CFG-12: the `flashnext-act` decision
+## 5. CFG-12: the `flashnext-act` decision
 
 PRB-02 passed in Phase 9: a client-sent `enable_thinking: false` returns HTTP 200, not rejected,
 and 09-01's `enable_thinking: true` positive control showed the parameter is genuinely *applied* by
@@ -125,7 +164,7 @@ difference the A/B is actually trying to measure).
 Plan 10-04 measures whether `flashnext-act` is in fact indistinguishable from `flashnext`. **A
 "no measurable difference" result there is the expected outcome, not a failure of this alias.**
 
-## 5. The weaker-proof disclosure
+## 6. The weaker-proof disclosure
 
 `flashnext-plan` deploys the combination Phase 9 calls `et-medium`
 (`enable_thinking:true` + `reasoning_effort:medium`). `phase-09/PRB-03-ORACLE.md` §2b measured its
@@ -147,7 +186,7 @@ Reach is instead proven with:
 (plan 10-04's VRF-01/02 scripts, plan 10-06's requirement mapping) must say so explicitly rather
 than presenting `et-medium`'s own −2 margin as if it were the reach evidence.
 
-## 6. The oracle is a delta, never an absolute
+## 7. The oracle is a delta, never an absolute
 
 `phase-09/PRB-03-ORACLE.md` §5 records an unexplained, deliberately-not-chased baseline shift: the
 absolute `prompt_tokens` values moved from `VALIDATED.md`'s 23/21/51/63 (unspecified/medium/low/
@@ -158,7 +197,7 @@ documents in this project must read them as deltas from that document's own `uns
 never as portable constants. This is what makes the oracle usable at all across sessions where the
 absolute baseline is not stable.
 
-## 7. Residual risks handed to plan 10-03
+## 8. Residual risks handed to plan 10-03
 
 - **The scratch boot (rung 4) proves startup validity, not runtime behavior.** A config that boots
   cleanly on 127.0.0.1:4010 has been shown to pass litellm's own pydantic `LiteLLM_Params`
@@ -185,3 +224,15 @@ absolute baseline is not stable.
   an unconditional guarantee against every possible pydantic/config-loading misconfiguration, only
   against the ones actually exercised by this self-test (unclosed YAML flow mapping, `drop_params`
   family, baseline drift, and this one null-params shape).
+- **MUTANT-5 finding (deletion overreach into `flashnext`) — CFG-17 fold-in, 2026-09-01:** once the
+  candidate started performing a real deletion (the deprecated `qwen-*` block) rather than pure
+  insertion, a new failure mode became possible that the original four mutants never exercised: a
+  `build_candidate.sh` regression that deletes the right block but *also* corrupts `flashnext` or
+  `flashnext-codex` along the way. MUTANT-5 seeds exactly that — the CFG-17-compliant candidate
+  (deprecated block already absent) with `flashnext`'s `api_base` additionally changed
+  `8011 → 8013` — and asserts rung 3 (the CFG-13 baseline check) catches it, mechanical and
+  enforced like MUTANT-1/2/3, not a measurement like MUTANT-4. Observed: **CAUGHT** at rung 3 (see
+  `phase-10/results/20260901T052644Z-validate/mutant5-ladder.tsv` and `selftest.tsv`). This is the
+  negative control proving the deletion mechanism itself is bounded — without it, nothing would
+  have demonstrated that a deletion bug couldn't silently reach into the aliases CFG-13 requires to
+  survive.

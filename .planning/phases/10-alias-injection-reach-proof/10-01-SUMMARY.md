@@ -254,5 +254,77 @@ recorded). `ALIAS-DESIGN.md` is ready to show the human at that checkpoint.
   never bound; port 4010 released after every ladder run; `verify_config.sh` exits 0.
 
 ---
+
+## Addendum (2026-09-01, post-execution): CFG-17 reconciliation resolved
+
+The "CFG-17 reconciliation is unresolved" blocker recorded above, in the original execution's
+"Issues Encountered" and "Blockers/concerns to carry forward" sections, has been resolved. This
+addendum records how, by whom, and when — the original text above is left exactly as this plan's
+execution wrote it, per this project's standard of not rewriting history.
+
+**Resolved by:** orchestrator-directed corrective work against this plan's already-committed
+artifacts (not a new plan, not a re-execution of 10-01). Requested directly by the user.
+
+**When:** 2026-09-01, after this plan's own execution (commits `b577c6d`/`d9e1a26`/`cc5407c`/
+`95bffd3`) and after CFG-17 itself was added to `REQUIREMENTS.md`/`ROADMAP.md` and committed as
+`dbe79bc`.
+
+**What changed:**
+- `phase-10/build_candidate.sh` now also deletes the six deprecated `qwen-*` aliases (previously a
+  pure insertion; now insertion + one verified deletion). The deletion is anchor-driven, not a
+  hardcoded line range, and aborts loudly if the block found doesn't structurally match CFG-17's
+  six named aliases exactly, or if it mentions `flashnext` anywhere.
+- `phase-10/config/config.yaml.candidate` was regenerated: 73 lines (was 90), containing
+  `flashnext`, `flashnext-codex`, `flashnext-plan`, `flashnext-act`, `flashnext-reach-xhigh` — the
+  six `qwen-*` aliases are gone. Rebuild is idempotent (verified: two consecutive runs produce
+  byte-identical sha256 `d7278a9f...`).
+- `phase-10/config/insertion-proof.txt` was deleted and replaced by
+  `phase-10/config/candidate-proof.txt`. Proof 1 is now a **stronger** claim than before: not "zero
+  lines removed" but "every removed line is individually classified as the deprecated comment
+  header or one of the 6 named `qwen-*` aliases, and nothing else" (16 lines, enumerated one by
+  one). Proofs 2 and 3 are mechanically unchanged; Proof 3 additionally asserts the six deprecated
+  names are absent from the candidate.
+- `phase-10/validate_config.sh` required **no changes** — confirmed rather than assumed. Rung 3
+  (CFG-13) only ever compared `flashnext`/`flashnext-codex`, both unaffected by the deletion. Rung
+  4's alias checklist (`flashnext`, `flashnext-plan`, `flashnext-act`, `flashnext-reach-xhigh`)
+  contains no `qwen-*` name either. Re-ran the full ladder against the regenerated candidate anyway,
+  including the real scratch boot on 127.0.0.1:4010: all 4 rungs PASS (run dir
+  `phase-10/results/20260901T052358Z-validate`).
+- `phase-10/selftest_validate_config.sh` gained **MUTANT-5** (`deletion-overreach`): the
+  CFG-17-compliant candidate with `flashnext`'s `api_base` additionally corrupted — the negative
+  control for the deletion mechanism itself, proving it can't silently reach into the aliases
+  CFG-13 protects. Rung 3 catches it, enforced (not a measurement) like MUTANT-1/2/3. Also, while
+  re-running the self-test, found and fixed a real bug (Rule 1): MUTANT-1's original anchor was the
+  deprecated `qwen-local` inline flow-mapping entry, which CFG-17's deletion removes — the mutant
+  generator would raise `SystemExit` and silently produce no mutant file at all, and the ladder
+  would then run against a stale leftover config, giving a false `CAUGHT` reading for the wrong
+  reason. Retargeted MUTANT-1 at `flashnext`'s own block-style `litellm_params:` line (guaranteed to
+  survive every future candidate under CFG-13); re-verified it independently raises a real
+  `yaml.parser.ParserError` before wiring it back into the self-test. Full re-run: clean candidate
+  PASS, MUTANT-1/2/3/4/5 all `CAUGHT` at their expected rung (MUTANT-4 remains a recorded
+  measurement, not an enforced check) — run dir `phase-10/results/20260901T052644Z-validate`.
+- `ALIAS-DESIGN.md` gained a new §2 ("What is being removed, and why (CFG-17)") covering the
+  justification (the config's own stated deletion condition, met per server logs: 0 `qwen-*`
+  requests vs. 163 `flashnext` requests since the current `litellm` instance started) and why it
+  rides this plan's maintenance window rather than a separate restart. Sections were renumbered
+  1→1, 2→3, 3→4, 4→5, 5→6, 6→7, 7→8 to make room; internal cross-references were updated to match.
+  **The "`ALIAS-DESIGN.md` §7" reference in this SUMMARY's "Blockers/concerns" section above (for
+  the MUTANT-4 finding) is now stale — that content lives at §8 as of this addendum.** §9 gained a
+  parallel MUTANT-5 finding.
+- `10-01-PLAN.md`'s `must_haves`, Task 1's `<action>`/`<verify>`/`<done>`, and the plan-level
+  `<verification>`/`<success_criteria>` were annotated in place (dated 🔴 notes, not rewrites) to
+  state that the pure-insertion invariant is superseded by "insertion + the CFG-17 deletion," with
+  CFG-13's byte-identical guarantee on `flashnext`/`flashnext-codex` named as the invariant that
+  still holds.
+
+**Stack safety throughout this corrective work:** the live config's sha256
+(`12e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c`) and the three tracked pids
+(46573/75548/48525) were reconfirmed identical before this work started and after it finished.
+Nothing under `/Users/ohama/agent-stack/` or `~/local-llm-settings/` was written; no service was
+restarted; port 3000 was never bound; port 4010 was released after every ladder/self-test run
+(confirmed via `lsof`); `providers.json` was not touched. This corrective work produced a candidate
+only — installation remains plan 10-03's job.
+
+---
 *Phase: 10-alias-injection-reach-proof*
 *Completed: 2026-09-01*

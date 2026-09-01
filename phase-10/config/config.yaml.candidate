@@ -71,20 +71,3 @@ model_list:
       api_base: http://localhost:8011/v1
       api_key: dummy
       reasoning_effort: xhigh
-
-  # ── 호환용 옛 별칭 (deprecated, 2026-08-29) ────────────────────────────
-  #   qwen36-35b·qwen122b 는 영구 비활성화됐다. 이 이름들은 더 이상 그 모델을
-  #   가리키지 않고 전부 Flash-Next 로 간다. 미처 못 찾은 참조가 조용히 깨지지
-  #   않도록 남겨 둔 것이며, 한동안 로그를 보고 쓰이지 않으면 지운다.
-  - model_name: qwen-local
-    litellm_params: { model: openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4, api_base: http://localhost:8011/v1, api_key: dummy }
-  - model_name: qwen-35b
-    litellm_params: { model: openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4, api_base: http://localhost:8011/v1, api_key: dummy }
-  - model_name: qwen-122b
-    litellm_params: { model: openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4, api_base: http://localhost:8011/v1, api_key: dummy }
-  - model_name: qwen-122b-claude
-    litellm_params: { model: openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4, api_base: http://localhost:8011/v1, api_key: dummy }
-  - model_name: qwen-35b-claude
-    litellm_params: { model: openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4, api_base: http://localhost:8011/v1, api_key: dummy }
-  - model_name: qwen-122b-codex
-    litellm_params: { model: openai/chat_completions//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4, api_base: http://localhost:8011/v1, api_key: dummy }

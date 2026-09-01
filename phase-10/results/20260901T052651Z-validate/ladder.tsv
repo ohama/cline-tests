@@ -1,0 +1,4 @@
+1	yaml-parses	PASS	python3 yaml.safe_load succeeded
+2	drop_params-ban	PASS	no drop_params (any form) found anywhere in the file
+3	baseline-preserved	PASS	flashnext + flashnext-codex deep-equal live vs candidate (see rung3-compare.txt)
+4	real-boot	FAIL	scratch litellm process (pid 52524) exited after 2s before ever serving /v1/models -- see scratch-boot.log for the crash

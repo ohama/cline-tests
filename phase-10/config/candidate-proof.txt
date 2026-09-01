@@ -1,0 +1,41 @@
+=== candidate-proof 2026-09-01T05:23:39Z ===
+(renamed from insertion-proof.txt: since CFG-17, this is insertion + one deletion, not a pure
+ insertion. Proof 1 below asserts something STRONGER than 'nothing removed' — that every
+ removed line is individually accounted for as either the deprecated comment header or one
+ of the 6 named qwen-* aliases, and nothing else.)
+
+--- Proof 1: every removed line is the CFG-17 comment header or one of the 6 named qwen-* aliases, and NOTHING else ---
+diff "/Users/ohama/agent-stack/litellm/config.yaml" "/Users/ohama/projs/cline-tests/phase-10/config/config.yaml.candidate" | grep -c '^<' = 16 (expect exactly 16 -- NOT 0: CFG-17 is a deliberate deletion)
+line 1: COMMENT-HEADER  | '  # ── 호환용 옛 별칭 (deprecated, 2026-08-29) ────────────────────────────'
+line 2: COMMENT-HEADER  | '  #   qwen36-35b·qwen122b 는 영구 비활성화됐다. 이 이름들은 더 이상 그 모델을'
+line 3: COMMENT-HEADER  | '  #   가리키지 않고 전부 Flash-Next 로 간다. 미처 못 찾은 참조가 조용히 깨지지'
+line 4: COMMENT-HEADER  | '  #   않도록 남겨 둔 것이며, 한동안 로그를 보고 쓰이지 않으면 지운다.'
+line 5: QWEN-ALIAS-NAME (qwen-local) | '  - model_name: qwen-local'
+line 6: QWEN-ALIAS-PARAMS (qwen-local) | '    litellm_params: { model: openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4, api_base: http://localhost:8011/v1, api_key: dummy }'
+line 7: QWEN-ALIAS-NAME (qwen-35b) | '  - model_name: qwen-35b'
+line 8: QWEN-ALIAS-PARAMS (qwen-35b) | '    litellm_params: { model: openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4, api_base: http://localhost:8011/v1, api_key: dummy }'
+line 9: QWEN-ALIAS-NAME (qwen-122b) | '  - model_name: qwen-122b'
+line 10: QWEN-ALIAS-PARAMS (qwen-122b) | '    litellm_params: { model: openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4, api_base: http://localhost:8011/v1, api_key: dummy }'
+line 11: QWEN-ALIAS-NAME (qwen-122b-claude) | '  - model_name: qwen-122b-claude'
+line 12: QWEN-ALIAS-PARAMS (qwen-122b-claude) | '    litellm_params: { model: openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4, api_base: http://localhost:8011/v1, api_key: dummy }'
+line 13: QWEN-ALIAS-NAME (qwen-35b-claude) | '  - model_name: qwen-35b-claude'
+line 14: QWEN-ALIAS-PARAMS (qwen-35b-claude) | '    litellm_params: { model: openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4, api_base: http://localhost:8011/v1, api_key: dummy }'
+line 15: QWEN-ALIAS-NAME (qwen-122b-codex) | '  - model_name: qwen-122b-codex'
+line 16: QWEN-ALIAS-PARAMS (qwen-122b-codex) | '    litellm_params: { model: openai/chat_completions//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4, api_base: http://localhost:8011/v1, api_key: dummy }'
+TOTAL removed lines classified: 16
+PASS: every removed line is exactly the CFG-17 comment header or one of the 6 named qwen-* aliases -- nothing else was removed
+
+--- Proof 2: head range [1, anchor-1] is byte-identical between live and candidate ---
+(everything before the deleted block -- flashnext, flashnext-codex, and their comments -- is untouched by construction)
+diff of head -n 34 (both files): empty -- PASS
+
+--- Proof 3: semantic deep-equal of flashnext and flashnext-codex entries (yaml.safe_load) -- CFG-13 ---
+PASS: 'flashnext' deep-equal between live and candidate
+PASS: 'flashnext-codex' deep-equal between live and candidate
+PASS: deprecated alias 'qwen-local' absent from the candidate
+PASS: deprecated alias 'qwen-35b' absent from the candidate
+PASS: deprecated alias 'qwen-122b' absent from the candidate
+PASS: deprecated alias 'qwen-122b-claude' absent from the candidate
+PASS: deprecated alias 'qwen-35b-claude' absent from the candidate
+PASS: deprecated alias 'qwen-122b-codex' absent from the candidate
+(python3 exit code: 0)
