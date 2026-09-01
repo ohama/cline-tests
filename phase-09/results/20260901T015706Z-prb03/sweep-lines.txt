@@ -1,0 +1,12 @@
+2026-09-01 10:57:06,185 - INFO - Prefill started: request=835be1b8f0 backend=continuous_batching prompt_tokens=13 images=0 audio=0 videos=0
+2026-09-01 10:57:09,057 - INFO - Prefill started: request=835bec0bc0 backend=continuous_batching prompt_tokens=11 images=0 audio=0 videos=0
+2026-09-01 10:57:11,812 - INFO - Prefill started: request=835be1b140 backend=continuous_batching prompt_tokens=41 images=0 audio=0 videos=0
+2026-09-01 10:57:14,553 - INFO - Prefill started: request=835b2baab0 backend=continuous_batching prompt_tokens=53 images=0 audio=0 videos=0
+2026-09-01 10:57:17,040 - INFO - Prefill started: request=835be18800 backend=continuous_batching prompt_tokens=53 images=0 audio=0 videos=0
+2026-09-01 10:57:19,561 - INFO - Prefill started: request=835bec1670 backend=continuous_batching prompt_tokens=11 images=0 audio=0 videos=0
+2026-09-01 10:57:22,108 - INFO - Prefill started: request=835b268fb0 backend=continuous_batching prompt_tokens=13 images=0 audio=0 videos=0
+2026-09-01 10:57:24,666 - INFO - Prefill started: request=835bec20c0 backend=continuous_batching prompt_tokens=11 images=0 audio=0 videos=0
+2026-09-01 10:57:27,324 - INFO - Prefill started: request=835b2d8dd0 backend=continuous_batching prompt_tokens=41 images=0 audio=0 videos=0
+2026-09-01 10:57:29,947 - INFO - Prefill started: request=835bec0da0 backend=continuous_batching prompt_tokens=53 images=0 audio=0 videos=0
+2026-09-01 10:57:32,377 - INFO - Prefill started: request=835b2db020 backend=continuous_batching prompt_tokens=53 images=0 audio=0 videos=0
+2026-09-01 10:57:34,957 - INFO - Prefill started: request=835bec2600 backend=continuous_batching prompt_tokens=11 images=0 audio=0 videos=0

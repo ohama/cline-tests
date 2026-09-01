@@ -1,0 +1,7 @@
+=== sweep A vs sweep B agreement (2026-09-01T01:57:37Z) ===
+agree    arm=unspecified A=13 B=13
+agree    arm=medium A=11 B=11
+agree    arm=low A=41 B=41
+agree    arm=xhigh A=53 B=53
+agree    arm=et-true A=53 B=53
+agree    arm=et-medium A=11 B=11
