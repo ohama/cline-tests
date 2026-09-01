@@ -66,6 +66,18 @@ CFG-16 의 질문도 이에 따라 좁아졌다 — `GATE-VERDICT.md` §3.2.
   <br>※ **2026-09-01 신설.** 이 조합은 이 스택에서 측정된 적이 없다. VALIDATED.md 의 권장은
   `:8000` 직결 시절 기록이다. 조합이 안 되면 별칭 정의를 고쳐야 하므로 Phase 10 안에서 답이 나야 한다
 
+- [ ] **CFG-17**: deprecated `qwen-*` 별칭 6개(`qwen-local`, `qwen-35b`, `qwen-122b`,
+  `qwen-122b-claude`, `qwen-35b-claude`, `qwen-122b-codex`)가 라이브 설정에서 제거된다.
+  `flashnext` 와 `flashnext-codex` 는 보존한다
+  <br>※ **2026-09-01 사용자 지시.** 설정 파일 주석이 스스로 정한 삭제 조건("한동안 로그를 보고
+  쓰이지 않으면 지운다")을 로그로 확인함 — **현 litellm 인스턴스 기동 이후 `qwen-*` 요청 0건,
+  `flashnext` 163건.** 과거 기록의 요청은 전부 마지막 재기동 이전이며 대부분 404·
+  `No deployments available` 로 실패한 것(별칭이 Flash-Next 로 재지정되기 전 흔적).
+  <br>※ **Phase 10 유지보수 창에 합류.** 삭제도 재기동이 있어야 반영되므로 별도 실행하면
+  Kanban·Telegram 이 두 번 끊긴다. 같은 백업·같은 롤백·같은 검증 사다리를 쓴다.
+  <br>※ 삭제 범위는 라이브 설정 **34–50행**(빈 줄 + 주석 4줄 + 별칭 12줄). 남는 1–33행은
+  `flashnext`(22행)와 `flashnext-codex`(29–33행)이며 **바이트 단위로 보존**된다(CFG-13).
+
 ### VRF — 도달 증명
 
 - [ ] **VRF-01**: 동일 사용자 메시지를 `flashnext` 와 `flashnext-plan` 으로 각각 보냈을 때
