@@ -157,7 +157,7 @@ else
     -H 'Content-Type: application/json' \
     -d '{"model":"flashnext","messages":[{"role":"user","content":"hi"}],"max_tokens":4}')
   if [ "$HTTP_CODE" = "200" ] && python3 -c "import json,sys; json.load(open('$COMPLETION_BODY'))" 2>/dev/null; then
-    printf 'e2e-completion\tPASS\tHTTP 200, parseable JSON body, via flashnext (unmodified alias), see %s\n' "$COMPLETION_BODY" >> "$TSV"
+    printf 'e2e-completion\tPASS\tHTTP 200, parseable JSON body, one POST /v1/chat/completions via flashnext (unmodified alias), see %s\n' "$COMPLETION_BODY" >> "$TSV"
   else
     printf 'e2e-completion\tFAIL\tHTTP %s or unparseable body, see %s\n' "$HTTP_CODE" "$COMPLETION_BODY" >> "$TSV"
     OK=0
