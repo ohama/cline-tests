@@ -1,0 +1,17 @@
+=== postflight 2026-09-01T01:36:46Z ===
+OK: service PIDs unchanged (no restart)
+FAIL: config file hash changed -- something wrote litellm-config.yaml or providers.json.
+Stack-unchanged constraint VIOLATED.
+--- before ---
+X2e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c  /Users/ohama/local-llm-settings/config/litellm-config.yaml
+5cf3800da31de8855b06e1d1cc85f415d68332dbee2625a587da2b4d8093e0a1  /Users/ohama/.cline/data/settings/providers.json
+--- after ---
+12e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c  /Users/ohama/local-llm-settings/config/litellm-config.yaml
+5cf3800da31de8855b06e1d1cc85f415d68332dbee2625a587da2b4d8093e0a1  /Users/ohama/.cline/data/settings/providers.json
+복구 절차 없음(의도적): Phase 9 는 어떤 설정도 쓰지 않으므로 이 분기는 발동해서는 안 된다.
+발동했다면 이 페이즈 밖의 무언가가 설정을 바꾼 것이므로, postflight 는 불일치를 기록하고
+non-zero 로 종료한다. Phase 9 가 스스로 복구를 시도하지 않는다 -- 무엇이 썼는지 모르는 채
+되돌리면 그 사실 자체가 사라진다.
+--- independent check: verify_config.sh (non-fatal, always recorded) ---
+OK: providers.json holds flashnext @ localhost:4000/v1, top-level contextWindow=29000, no models[] override, no codex alias
+trigger = maxInputTokens x 0.9 = 26100 — PROVEN to fire: phase-01/results/exp-verify29k/ (2026-08-30, 서버 400 0건)
