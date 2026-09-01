@@ -8,6 +8,7 @@
 | 문서 | 답하는 질문 | 실행 |
 |---|---|---|
 | [thinking-and-reasoning-effort.md](thinking-and-reasoning-effort.md) | `enable_thinking` / `reasoning_effort` 가 지금 어떻게 설정돼 있고 실제로 먹히나? | [`check-thinking.sh`](check-thinking.sh) |
+| [fast-and-deep-mode.md](fast-and-deep-mode.md) | 사고 끔/켬 모드를 어떻게 만드나? 지금 되는 건 어디까지인가? | [`ask.sh`](ask.sh) |
 
 ## 이 문서들이 지키는 원칙
 
