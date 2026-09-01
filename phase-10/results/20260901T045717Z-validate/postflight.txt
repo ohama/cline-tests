@@ -1,0 +1,6 @@
+=== postflight 2026-09-01T04:57:19Z ===
+OK: service PIDs unchanged (no restart)
+OK: config file hashes unchanged (litellm-config.yaml, providers.json)
+--- independent check: verify_config.sh (non-fatal, always recorded) ---
+OK: providers.json holds flashnext @ localhost:4000/v1, top-level contextWindow=29000, no models[] override, no codex alias
+trigger = maxInputTokens x 0.9 = 26100 — PROVEN to fire: phase-01/results/exp-verify29k/ (2026-08-30, 서버 400 0건)
