@@ -1,0 +1,4 @@
+o
+teardown confirmed after 2s
+.
+RESTART OK: com.ohama.litellm pid=67640 port=4000 waited=2s

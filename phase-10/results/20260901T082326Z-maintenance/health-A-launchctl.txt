@@ -1,0 +1,10 @@
+--- launchctl sample 1 ---
+	state = running
+	pid = 67640
+		state = active
+		state = active
+--- launchctl sample 2 (+10s) ---
+	state = running
+	pid = 67640
+		state = active
+		state = active

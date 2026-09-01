@@ -1,0 +1,46 @@
+Restart A outage measurement (from outage-A.tsv, 0.5s sampler)
+================================================================
+
+KNOWN LIMITATION (discovered during this task, fixed before Restart B):
+the ad hoc sampler used `$(( $(date +%s) * 1000 ))` for epoch_ms -- macOS's
+BSD `date` has no sub-second format specifier, so this is actually 1-second
+resolution masquerading as milliseconds, not true millisecond resolution.
+Two samples 0.5s apart can and did land in the same integer second. This
+does not change PASS/FAIL classification (still correctly distinguishes 200
+from non-200), only the precision of the outage duration figure below.
+Restart B's sampler uses python3's time.time() for genuine millisecond
+resolution.
+
+Raw samples (epoch_s   http_code):
+1788251006  200          <- last known-good sample before the gap
+1788251007  non-200
+1788251007  non-200
+1788251008  non-200
+1788251009  non-200
+1788251009  non-200
+1788251010  non-200
+1788251010  non-200
+1788251011  non-200
+1788251011  non-200
+1788251012  non-200
+1788251012  non-200
+1788251013  non-200
+1788251013  200          <- first recovered sample
+1788251014  200
+1788251015  200
+1788251015  200
+1788251016  200
+
+Last good-before -> first good-after: 2026-09-01T08:23:26Z -> 2026-09-01T08:23:33Z
+MEASURED OUTAGE (sampler): ~7 seconds (+/- 1s, due to the resolution limitation above)
+
+restart_service.sh's own reported wall-clock (T0/T1, second-resolution):
+  T0=2026-09-01T08:23:26Z  T1=2026-09-01T08:23:34Z  -> 8s upper bound
+  (this bound includes teardown-wait polling and bootstrap+health-poll
+  overhead outside the sampler's own loop granularity)
+restart_service.sh's own internal timers: teardown confirmed after 2s,
+health poll (state=running + port 4000 listening) waited=2s.
+
+Both figures are well under the ~20s expectation from CHANGE-BRIEF.md Section 5
+and far under the --timeout 60 hard bound. Not a case of measured downtime
+materially exceeding expectations.

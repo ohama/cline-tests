@@ -1,0 +1,5 @@
+check	result	detail
+launchctl-pid-stability	PASS	pid=67640 stable across two samples >=10s apart, both state=running
+v1-models-x3	PASS	3 samples >=5s apart, all HTTP 200 with flashnext listed
+errlog-scan	PASS	no Traceback/ValidationError/Error-loading from watermark 14937 to EOF (8 new lines scanned)
+e2e-completion	PASS	HTTP 200, parseable JSON body, via flashnext (unmodified alias), see /Users/ohama/projs/cline-tests/phase-10/results/20260901T082326Z-maintenance/health-A-completion.json

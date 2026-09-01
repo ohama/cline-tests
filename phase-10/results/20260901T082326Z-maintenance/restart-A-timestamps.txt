@@ -1,0 +1,3 @@
+T0=2026-09-01T08:23:26Z
+T1=2026-09-01T08:23:34Z
+restart_service.sh exit code: 0
