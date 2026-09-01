@@ -204,15 +204,33 @@ SCRATCH_PID=$!
 echo "scratch litellm launched: pid=$SCRATCH_PID port=$PORT config=$CFG" | tee -a "$SCRATCH_LOG"
 
 BOOTED=0
+PROCESS_DIED=0
 elapsed=0
 while [ "$elapsed" -lt 90 ]; do
   if curl -sf "http://127.0.0.1:${PORT}/v1/models" -o "$SCRATCH_MODELS" 2>/dev/null; then
     BOOTED=1
     break
   fi
+  # Fail fast on a real startup crash (e.g. an unhandled pydantic/config
+  # AttributeError during load_config()) instead of waiting out the full
+  # 90s timeout for a process that has already exited -- observed live
+  # against a seeded null litellm_params mutant: uvicorn's lifespan raises,
+  # prints "Application startup failed. Exiting.", and the process is gone
+  # well under 90s, yet /v1/models never binds even briefly.
+  if ! kill -0 "$SCRATCH_PID" 2>/dev/null; then
+    PROCESS_DIED=1
+    break
+  fi
   sleep 2
   elapsed=$((elapsed + 2))
 done
+
+if [ "$PROCESS_DIED" -eq 1 ]; then
+  log_rung 4 real-boot FAIL "scratch litellm process (pid $SCRATCH_PID) exited after ${elapsed}s before ever serving /v1/models -- see scratch-boot.log for the crash"
+  echo "--- last 40 lines of $SCRATCH_LOG ---" >&2
+  tail -40 "$SCRATCH_LOG" >&2
+  fail_out
+fi
 
 if [ "$BOOTED" -ne 1 ]; then
   log_rung 4 real-boot FAIL "timed out after ${elapsed}s waiting for GET /v1/models on 127.0.0.1:${PORT}"

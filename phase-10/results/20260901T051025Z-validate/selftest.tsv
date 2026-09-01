@@ -1,0 +1,5 @@
+clean-candidate	none	none	0	PASS
+MUTANT-1-yaml-broken	1	1	1	CAUGHT
+MUTANT-2-drop-params	2	2	1	CAUGHT
+MUTANT-3-baseline-touched	3	3	1	CAUGHT
+MUTANT-4-schema-invalid	4	4	1	CAUGHT

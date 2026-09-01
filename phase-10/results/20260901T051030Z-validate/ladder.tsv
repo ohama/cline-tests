@@ -1,0 +1,2 @@
+1	yaml-parses	PASS	python3 yaml.safe_load succeeded
+2	drop_params-ban	FAIL	found: 93:  drop_params: true;
