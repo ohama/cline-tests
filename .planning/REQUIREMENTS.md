@@ -71,16 +71,30 @@
 
 ## Traceability
 
-로드맵 생성 시 채워진다.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (pending roadmap) | | |
+| PRB-01 | Phase 9 | Pending |
+| PRB-02 | Phase 9 | Pending |
+| PRB-03 | Phase 9 | Pending |
+| PRB-04 | Phase 9 | Pending |
+| CFG-11 | Phase 10 | Pending |
+| CFG-12 | Phase 10 | Pending |
+| CFG-13 | Phase 10 | Pending |
+| CFG-14 | Phase 10 | Pending |
+| CFG-15 | Phase 10 | Pending |
+| VRF-01 | Phase 10 | Pending |
+| VRF-02 | Phase 10 | Pending |
+| VRF-03 | Phase 10 | Pending |
+| USE-01 | Phase 11 | Pending |
+| USE-02 | Phase 11 | Pending |
+| USE-03 | Phase 11 | Pending |
+| USE-04 | Phase 12 | Pending |
+| USE-05 | Phase 12 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 17 total
-- Mapped to phases: 0
-- Unmapped: 17 ⚠️
+- Mapped to phases: 17
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-09-01*
