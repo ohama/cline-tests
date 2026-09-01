@@ -209,3 +209,88 @@ this brief, re-run again right before the real cutover.
 - No `flashnext` or `flashnext-codex` edit — both deep-equal between live and candidate
   (`phase-10/config/candidate-proof.txt` Proof 3; `validate_config.sh` rung 3, CFG-13).
 - Nothing binds port 3000. `flashnext-codex` is never called by anything in this plan.
+
+## §9 Human confirmation (Task 3)
+
+**Confirmed by:** ohama100@gmail.com
+**Confirmed on:** 2026-09-01
+
+**What they were shown:** this document (`phase-10/CHANGE-BRIEF.md`) end to end, per the Task 3
+`<how-to-verify>` steps —
+
+- §1's diff, exactly as it now reads: **39 lines added** (`flashnext-plan`, `flashnext-act`,
+  `flashnext-reach-xhigh` and their comment header), **16 lines removed** (the 4-line deprecated
+  comment header and the six named `qwen-*` aliases, CFG-17), **0 lines altered** — with
+  `flashnext` and `flashnext-codex` byte-identical before/after (the `head -n 34` witness and the
+  `yaml.safe_load` deep-equal check, both cited in §1/§3/§8).
+- §5's downtime shape: two restarts, not one — Restart A on the unmodified config, Restart B on
+  the change — each bounded hard at `--timeout 60`, with the measured 2-second cold boot (ladder
+  rung 4, this same brief's freshness re-run) cited as the basis for expecting each restart well
+  under 20s. The reviewer was told plainly that Kanban (`:3484`) and the Telegram connector will
+  each see connection-refused twice, once per restart, each expected well under the 20s figure.
+- §7's rollback: the literal two-command procedure, the rehearsal run directory
+  (`phase-10/results/20260901T053807Z-rollback-rehearsal`) and both its outcomes — the positive
+  restore (exit 0, live sha256 and `com.ohama.litellm` pid unchanged before/after) and the negative
+  control (exit 1, refused, live file confirmed not written) — as evidence that step 1 of the
+  rollback has actually been run, not merely written.
+- That `flashnext-reach-xhigh` (§2) is verification-only and will nonetheless persist in the
+  installed config going forward; the reviewer was explicitly offered the option of having it
+  removed in a later phase and did not ask for that change.
+
+**The idleness precondition (§6) required a second look before presenting.** As authored, §6
+reported the model idle (`in_flight=0`) but flagged three `cline`-matching processes as running,
+stating plainly that the precondition "as literally stated, is not met." Before presenting this
+brief for approval, that flag was investigated rather than waved through or left for the reviewer
+to resolve unaided:
+
+- `lsof`/connection check against `:4000` showed **no active TCP connections**, only the listening
+  socket — nothing is mid-request against litellm.
+- The three `cline` processes' CPU shares were read fresh: `43410` (the long-running hub daemon,
+  ~1d elapsed) at **0.0%**, and `4672`/`4673` (the other session pair) at **0.2%** / **0.2%** —
+  consistent with idle processes holding a connection open, not active work.
+- `~/llm-system/services/logs/flashnext.err`'s last prefill timestamp was **11:19 local**, against
+  **14:43 local** at the time of this check — **3h24m with no model traffic** — and `in_flight=0`
+  was reconfirmed at check time.
+- **Conclusion recorded here, not assumed at authoring time:** the stack was idle, and this was a
+  good window rather than a merely acceptable one. This finding is the orchestrator's own
+  independent investigation, offered to the reviewer as already-resolved context alongside the
+  brief — not something the reviewer was asked to adjudicate blind, and not something this plan's
+  execution resolved unilaterally on the reviewer's behalf without disclosure.
+
+Before presenting, the orchestrator additionally spot-checked (and the reviewer was told these had
+already been verified at approval time, not merely asserted):
+
+- Backup sha256 `12e102cf66e50f5abc19f6d2dd1f322d548cee25549d65ddb9adbbcd2aaf599c` (§7,
+  `phase-10/backups/config.yaml.20260901T053509Z`) equals the live config's own sha256 at check
+  time — the backup on disk is a backup of the file currently live, not a stale one.
+- The three live `com.ohama.*` pids (`46573` flashnext / `48525` litellm / `75548` role-shim)
+  match `phase-10/BASELINE.txt`'s launchctl block, line for line.
+- `phase-10/results/20260901T053807Z-rollback-rehearsal/rehearsal.tsv` read directly: the
+  `positive-restore` row shows exit `0` with sha256 and pid unchanged; the
+  `negative-corrupted-backup` row shows exit `1`, refused, live file not written.
+
+**Response:** approved. The reviewer replied "approve" on 2026-09-01, having been shown the diff
+exactly as it now stands (insertion **and** deletion, not the pure-insertion shape this plan's own
+Task 2 text was originally drafted against — see the dated corrections in `10-02-PLAN.md`), the
+two-restart downtime structure and its hard bound, the rollback evidence for both its success and
+refusal paths, and the resolved idleness finding above.
+
+**Scope of this approval — read narrowly, not as blanket permission:**
+
+- This is approval of **this specific diff** (the byte-for-byte candidate at
+  `phase-10/config/config.yaml.candidate`, sha256
+  `d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e` as recorded in
+  `phase-10/BASELINE.txt`) and **this specific maintenance window's conditions** (the idleness
+  finding above, captured 2026-09-01 ~14:43 local) — not a standing authorization to modify the
+  litellm stack at any future time.
+- **If the candidate changes before plan 10-03 installs it, this approval does not carry over.**
+  Any edit to `phase-10/config/config.yaml.candidate` after this record was written — including a
+  re-run of `build_candidate.sh` against a live file that has since drifted — invalidates this
+  approval and requires the checkpoint to be re-run against the new diff before 10-03 may proceed.
+- This does not itself constitute a restart, a rollback execution, or a `providers.json` write —
+  none of those has happened; 10-03 is the only plan in this phase permitted to perform them, and
+  it does so under this approval only insofar as its own inputs match what was approved here.
+
+Per this plan's must-have "A human has seen the diff and the rollback and approved before any plan
+is allowed to write the live config," plan 10-03 is unlocked as of this confirmation, subject to
+the scope limits stated immediately above.
