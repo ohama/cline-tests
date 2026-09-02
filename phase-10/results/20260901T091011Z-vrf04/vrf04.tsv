@@ -1,0 +1,4 @@
+run	http_or_exit	duration_s	line_count	doc_event_count	doc_reasoning_chars	textscan_hits	grep_reasoning	grep_reasoning_content	event_types	note
+plan	0	18	277	72	198	50	73	0	 2 content_end; 268 content_start; 1 done; 1 iteration_end; 1 iteration_start; 3 NO_EVENT_TYPE; 1 usage	retried=0;ndjson_valid=OK (total=277)
+control	0	14	137	0	0	0	0	0	 1 content_end; 129 content_start; 1 done; 1 iteration_end; 1 iteration_start; 3 NO_EVENT_TYPE; 1 usage	retried=0;ndjson_valid=OK (total=137)
+act	SKIPPED	0	0	0	0	0	0	0	NO_EVENT_TYPE	skipped-by-design;see-script-comment
