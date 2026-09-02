@@ -1,0 +1,20 @@
+=== postflight11 2026-09-02T05:03:15Z ===
+OK: com.ohama.flashnext pid unchanged (46573)
+OK: com.ohama.role-shim pid unchanged (75548)
+OK: com.ohama.litellm pid unchanged (68670)
+--- providers-after.txt (OBSERVATIONS ONLY -- sha256/updatedAt are never judged, model/contextWindow are) ---
+model=flashnext
+contextWindow=29000
+updatedAt=2026-09-02T05:03:04.939Z
+sha256=86796bbd8951d7b0db5540507dca9e3a195a57bb1dfa83538874db684628e01a
+OK: providers.json model unchanged ('flashnext') -- JUDGED field
+OK: providers.json contextWindow unchanged ('29000') -- JUDGED field
+OBSERVATION (not judged): updatedAt moved (2026-09-01T09:10:32.448Z -> 2026-09-02T05:03:04.939Z) -- EXPECTED, cline -m rewrites it every call (.planning/STATE.md 2026-09-01 correction)
+OBSERVATION (not judged): providers.json sha256 moved (da53de13abdac56b283a8a834a0199760e359fff47a753113552ad368b3cf104 -> 86796bbd8951d7b0db5540507dca9e3a195a57bb1dfa83538874db684628e01a) -- expected side effect of the updatedAt rewrite above, never itself a failure condition in this file
+--- delegated invariant: VERIFY_CONFIG_NO_WRAPPER_CHECK=1 bash /Users/ohama/projs/cline-tests/phase-09/../phase-01/config/verify_config.sh ---
+OK: providers.json holds flashnext @ localhost:4000/v1, top-level contextWindow=29000, no models[] override, no codex alias
+trigger = maxInputTokens x 0.9 = 26100 — PROVEN to fire: phase-01/results/exp-verify29k/ (2026-08-30, 서버 400 0건)
+SKIP[WRAPPER]: wrapper check suppressed by VERIFY_CONFIG_NO_WRAPPER_CHECK=1
+verify_config.sh exit status: 0
+cline --version (after): 3.0.61
+LOUD: cline --version DRIFTED during this script's run (before=3.0.60 after=3.0.61) -- the comparison this run made spans two binaries

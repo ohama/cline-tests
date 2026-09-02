@@ -1,0 +1,2 @@
+case	endpoint	model	reasoning_effort	http_status	body_excerpt	note
+1c	cline-cli(raw)	flashnext-plan	high(--thinking)	exit=1	(empty stdout)	raw cline --thinking high, NOT the phase-11 wrapper (which refuses --thinking by design); stderr_excerpt=[phase-11/probe_open_items.sh: line 112: /opt/homebrew/bin/cline: No such file or directory ]
