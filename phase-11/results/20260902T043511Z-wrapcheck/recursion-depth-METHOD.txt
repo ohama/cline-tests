@@ -1,0 +1,34 @@
+Method (plan 11-03 Task 2 Part B): a temporary instrumentation block was added directly under
+`set -euo pipefail` in phase-01/config/verify_config.sh:
+
+    if [ -n "${VERIFY_DEPTH_COUNTER_FILE:-}" ]; then
+      echo "entry pid=$$ $(date -u +%Y%m%dT%H%M%SZ)" >> "$VERIFY_DEPTH_COUNTER_FILE"
+    fi
+
+Run once as:
+    export VERIFY_DEPTH_COUNTER_FILE=<path to recursion-depth-counter.txt>
+    bash phase-01/config/verify_config.sh
+
+VERIFY_DEPTH_COUNTER_FILE is exported, so any child process spawned by this invocation that also
+sources/executes verify_config.sh would inherit it and append its own line to the same file --
+this is what would reveal a recursion, not reasoning about the two brake flags in isolation.
+
+Observed: exactly ONE line was appended (recursion-depth-counter.txt), for one top-level
+`bash phase-01/config/verify_config.sh` invocation. This is consistent with the call graph as
+built: verify_config.sh's wrapper section runs phase-11/verify_wrappers.sh, whose Group B
+behavioural cases invoke cline-plan/cline-act with CLINE_WRAPPER_TEST=1 -- and
+phase-11/wrapper_common.sh skips its ENTIRE config-guard cycle (both pre- and post-run) whenever
+CLINE_WRAPPER_TEST=1 is set, regardless of VERIFY_CONFIG_NO_WRAPPER_CHECK. So in this design,
+Group B's stub-backed calls never re-enter verify_config.sh at all -- the depth-1 result is not a
+coincidence of the VERIFY_CONFIG_NO_WRAPPER_CHECK brake catching a real recursion attempt; it is
+the CLINE_WRAPPER_TEST=1 test-mode branch never attempting one in the first place. The
+VERIFY_CONFIG_NO_WRAPPER_CHECK=1 brake is the one that would matter if verify_wrappers.sh's
+Group B ever ran the wrappers WITHOUT CLINE_WRAPPER_TEST=1 (it does not, by design) -- see
+wrapper-selftest evidence (Task 3) for M-level seeding around this boundary if that assumption is
+ever revisited.
+
+Runtime: 0s (date +%s before/after; the run completed sub-second).
+
+The instrumentation block was removed from phase-01/config/verify_config.sh immediately after
+this measurement -- git diff on that file shows only the plan's intended wrapper-section
+addition, zero temporary/leftover lines.

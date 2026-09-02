@@ -1,0 +1,2 @@
+entry pid=62970 20260902T043503Z
+duration_seconds=0 (bash date +%s before/after, delta rounds to 0)

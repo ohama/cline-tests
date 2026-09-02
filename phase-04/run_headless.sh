@@ -145,6 +145,10 @@ bash "$PROJECT_ROOT/phase-01/config/verify_config.sh" \
   2>&1 | tee "$RESULTS_DIR/config_pre.txt" >&2
 A_STATUS="${PIPESTATUS[0]}"
 if [ "$A_STATUS" -ne 0 ]; then
+  if [ "$A_STATUS" -eq 3 ]; then
+    echo "ABORT: wrapper mode/alias check failed (verify_config.sh exit 3) — this is NOT a providers.json drift; healing would not help. See FAIL[WRAPPER] above." >&2
+    exit 1
+  fi
   echo "NOTICE: verify_config.sh failed (exit $A_STATUS) — healing via apply_provider_config.sh (Pitfall 5, expected)." >&2
   bash "$PROJECT_ROOT/phase-01/config/apply_provider_config.sh" >&2
   bash "$PROJECT_ROOT/phase-01/config/verify_config.sh" \
@@ -258,6 +262,10 @@ bash "$PROJECT_ROOT/phase-01/config/verify_config.sh" \
 POST_STATUS="${PIPESTATUS[0]}"
 HEALED="no"
 if [ "$POST_STATUS" -ne 0 ]; then
+  if [ "$POST_STATUS" -eq 3 ]; then
+    echo "ABORT: wrapper mode/alias check failed (verify_config.sh exit 3) — this is NOT a providers.json drift; healing would not help. See FAIL[WRAPPER] above." >&2
+    exit 1
+  fi
   HEALED="yes"
   echo "NOTICE: verify_config.sh failed post-run (exit $POST_STATUS) — healing via apply_provider_config.sh (expected, not a failure)." >&2
   bash "$PROJECT_ROOT/phase-01/config/apply_provider_config.sh" >&2

@@ -136,6 +136,16 @@ fi
 if [ "$DRY_RUN" -eq 0 ]; then
   VERIFY_CONFIG="$PROJECT_ROOT/phase-01/config/verify_config.sh"
   APPLY_CONFIG="$PROJECT_ROOT/phase-01/config/apply_provider_config.sh"
+  # plan 11-03: a wrapper fault (exit 3) is NOT a providers.json drift; healing would not help
+  # and would misreport the cause. Checked here, before the existing heal branch, via its own
+  # invocation because the `if !` form below inverts $? and cannot recover the original exit code.
+  "$VERIFY_CONFIG" > "$OUT_DIR/config_pre_wrapcheck.txt" 2>&1
+  PRECHECK_STATUS=$?
+  if [ "$PRECHECK_STATUS" -eq 3 ]; then
+    cat "$OUT_DIR/config_pre_wrapcheck.txt" >&2
+    echo "ABORT: wrapper mode/alias check failed (verify_config.sh exit 3) — this is NOT a providers.json drift; healing would not help. See FAIL[WRAPPER] above." >&2
+    exit 1
+  fi
   if ! "$VERIFY_CONFIG" > "$OUT_DIR/config_pre.txt" 2>&1; then
     echo "verify_sandbox_via_cline.sh: Preflight A config guard failed, healing..." | tee -a "$OUT_DIR/config_pre.txt"
     "$APPLY_CONFIG" >> "$OUT_DIR/config_pre.txt" 2>&1 || true
@@ -275,6 +285,16 @@ else
   # -------------------------------------------------------------------
   VERIFY_CONFIG="$PROJECT_ROOT/phase-01/config/verify_config.sh"
   APPLY_CONFIG="$PROJECT_ROOT/phase-01/config/apply_provider_config.sh"
+  # plan 11-03: a wrapper fault (exit 3) is NOT a providers.json drift; healing would not help
+  # and would misreport the cause. Checked via its own invocation, before the existing heal
+  # block, because `if ! cmd; then` below inverts $? and cannot recover the original exit code.
+  "$VERIFY_CONFIG" > "$OUT_DIR/config_post_wrapcheck.txt" 2>&1
+  POSTCHECK_STATUS=$?
+  if [ "$POSTCHECK_STATUS" -eq 3 ]; then
+    cat "$OUT_DIR/config_post_wrapcheck.txt" >&2
+    echo "ABORT: wrapper mode/alias check failed (verify_config.sh exit 3) — this is NOT a providers.json drift; healing would not help. See FAIL[WRAPPER] above." >&2
+    exit 1
+  fi
   {
     echo "=== post-run verify (1st) ==="
     if ! "$VERIFY_CONFIG"; then

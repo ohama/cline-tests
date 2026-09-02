@@ -13,6 +13,31 @@
 #
 # Exit 0 + "OK: ..." on success.
 # Exit 1 + "FAIL: <which assertion> ... <observed value>" on any failure.
+#
+# --- 2026-09-02 addition (plan 11-03, USE-02, ROADMAP Phase 11 criterion 2) ---
+# This script now also asserts the cline-plan/cline-act wrapper pairing (mode flag vs. alias)
+# and the absence of --thinking passthrough, via phase-11/verify_wrappers.sh, in a section
+# appended near the end of this file. That check cannot live in the providers.json assertions
+# above: providers.json records neither the mode flag nor which alias a given invocation used
+# (phase-10/VRF-04-OBSERVATION.md §1) — there is nothing left in it to inspect after the fact.
+#
+# Exit 3 (not 1) means the WRAPPER check failed, not a providers.json assertion above — a caller
+# can tell the two apart by exit code alone and must not "heal" a wrapper fault by re-applying
+# provider config (phase-04/run_headless.sh and phase-04/verify_sandbox_via_cline.sh both guard
+# on this distinction).
+#
+# Two additional env knobs control the wrapper section only (the providers.json assertions above
+# are unaffected by both):
+#   VERIFY_CONFIG_NO_WRAPPER_CHECK=1  - skip the wrapper section entirely. This is the recursion
+#                                       brake: phase-11/wrapper_common.sh's own pre-run/post-run
+#                                       calls back into this script export this on every call, so
+#                                       this script never re-enters phase-11/verify_wrappers.sh
+#                                       (which would otherwise call the wrappers, which call this
+#                                       script, forever).
+#   PROVIDERS_JSON=<non-default path> - also skips the wrapper section. A scratch-providers test
+#                                       has no business also gating on the live wrapper set.
+# Both skips print a line beginning "SKIP[WRAPPER]:" — visibly, never silently.
+# See phase-11/WRAPPER-DESIGN.md §8 and phase-11/verify_wrappers.sh for the full rationale.
 
 set -euo pipefail
 
@@ -100,6 +125,44 @@ if [ "$PROVIDERS_JSON" = "$DEFAULT_PROVIDERS_JSON" ]; then
     echo "FAIL: literal string 'flashnext-codex' found somewhere under $HOME/.cline"
     grep -rl 'flashnext-codex' "$HOME/.cline" 2>/dev/null
     exit 1
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+# Wrapper section (USE-02, ROADMAP Phase 11 criterion 2, plan 11-03).
+#
+# A mode/alias mismatch or a leaked --thinking flag is a property of an INVOCATION, not of
+# providers.json — providers.json records neither the mode flag nor which alias a given call
+# used (phase-10/VRF-04-OBSERVATION.md §1: `cline -m` leaves `model` at "flashnext" regardless
+# of which alias actually ran). So this section delegates to phase-11/verify_wrappers.sh, which
+# inspects the wrapper SCRIPTS themselves (static content) and the argv they actually construct
+# (behavioural, against a stub binary) instead of anything in this file.
+#
+# RECURSION BRAKE: phase-11/wrapper_common.sh's own pre-run/post-run config-guard calls to THIS
+# script export VERIFY_CONFIG_NO_WRAPPER_CHECK=1 on every internal call, specifically so this
+# section does not re-enter phase-11/verify_wrappers.sh (which in turn runs the wrappers, which
+# would otherwise call this script again, forever). When that variable is set, this section is
+# skipped, visibly, on stdout — never silently.
+#
+# PROVIDERS_JSON OVERRIDE BRAKE: a caller pointing PROVIDERS_JSON at a scratch copy (testing
+# against a fixture, not the live wrapper set) has no business also gating on the live wrappers,
+# so this section is skipped there too, for the same reason.
+# ---------------------------------------------------------------------------
+if [ "${VERIFY_CONFIG_NO_WRAPPER_CHECK:-0}" = "1" ]; then
+  echo "SKIP[WRAPPER]: wrapper check suppressed by VERIFY_CONFIG_NO_WRAPPER_CHECK=1"
+elif [ "$PROVIDERS_JSON" != "$DEFAULT_PROVIDERS_JSON" ]; then
+  echo "SKIP[WRAPPER]: wrapper check suppressed — PROVIDERS_JSON is set to a non-default path ($PROVIDERS_JSON)"
+else
+  ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+  VERIFY_WRAPPERS_SH="$ROOT/phase-11/verify_wrappers.sh"
+  set +e
+  WRAPPER_OUT="$(bash "$VERIFY_WRAPPERS_SH" 2>&1)"
+  WRAPPER_STATUS=$?
+  set -e
+  echo "$WRAPPER_OUT"
+  if [ "$WRAPPER_STATUS" -ne 0 ]; then
+    echo "FAIL[WRAPPER]: mode/alias pairing check failed — see above"
+    exit 3
   fi
 fi
 
