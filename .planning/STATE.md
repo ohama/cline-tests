@@ -156,6 +156,26 @@ v1.1 설계 근거: `docs/plan-act-reasoning-{design,implementation,diagrams}.md
   제안하고 있음 — 다음 단계 전에 반드시 정리할 것. 상세: `10-01-SUMMARY.md`의
   "Issues Encountered" 절.
 
+### 🔴 신규 발견 — `cline -m` 이 providers.json 을 건드린다 (2026-09-01, VRF-04 중)
+
+`cline` **3.0.60** 이 `-m flashnext-plan` 호출 중 `providers.json` 의
+`openai-compatible.updatedAt` 을 다시 썼다. `cli-v3.0.53` 소스 판독으로는 `-m` 이
+호출 단위 오버라이드일 뿐 영속화하지 않는다고 봤는데, **3.0.60 에서는 아니다.**
+
+- **중요한 값은 지켜졌다** — `settings.model` 은 여전히 `flashnext`,
+  `contextWindow` 는 여전히 29000, `verify_config.sh` 는 OK.
+- **바뀐 것은 타임스탬프뿐**이다. 그래서 파일 해시는 달라졌다:
+  `5cf3800da31de885` → `da53de13abdac56b` (2026-09-01 09:10:32Z).
+- **제약을 정정한다.** "providers.json sha256 불변"은 과도하게 엄격했다 —
+  타임스탬프 한 줄을 설정 변경과 같이 취급했다. 실제로 지켜야 하는 것은
+  **`model` 과 `contextWindow` 불변**이고, 그건 `verify_config.sh` 가 이미 검사한다.
+  이후 페이즈는 해시가 아니라 이 두 값으로 판정할 것.
+- **Phase 11 에 직접 영향** — 래퍼가 `-m` 을 반복 호출하므로 매번 이 쓰기가 일어난다.
+- 복구 시도는 이 환경의 권한 시스템이 두 번 막았고, 실행자는 **우회하지 않았다**(옳다).
+- 근거: `phase-10/results/20260901T091011Z-vrf04/PROVIDERS-JSON-FINDING.md`
+- CFG-05(자동 업데이트 미차단)의 2차 피해다 — 3.0.53 에서 검증한 소스가 3.0.60 에는
+  적용되지 않는다. 이 드리프트가 검증을 계속 무효화한다.
+
 ### Blockers/Concerns (v1 에서 이월, v1.1 범위 밖)
 
 - 🔴 **CFG-05** — `CLINE_NO_AUTO_UPDATE=1` 이 cline 자동 업데이트를 막지 못한다. v1.2+ 로 이월.
