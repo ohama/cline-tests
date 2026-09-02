@@ -142,15 +142,9 @@ v1.1 설계 근거: `docs/plan-act-reasoning-{design,implementation,diagrams}.md
 - 🟡 **litellm 재기동 필요 (Phase 10 이 소유)** — 핫리로드 없음. Kanban/Telegram 요청이 끊긴다.
 - 🟡 **문서 오탐 정정 (Phase 12 가 소유)** — `docs/plan-act-reasoning-implementation.md:96-100,102`
   와 `-diagrams.md:187-191`. Phase 9 는 기록만 남겼고 편집하지 않았다.
-- 🔴 **미해결: CFG-17 vs 10-01-PLAN.md 불일치 (오케스트레이터 조정 필요)** — 10-01 실행 중
-  `.planning/REQUIREMENTS.md`·`ROADMAP.md`에서 커밋되지 않은 편집을 발견함: 새 요구사항
-  CFG-17(deprecated `qwen-*` 별칭 6개 삭제, 라이브 설정 34–50행)을 10-01 범위에 편입한다는
-  내용. 그러나 실행에 사용한 권위 있는 `10-01-PLAN.md`에는 이 태스크가 없고, 그 문서 자신의
-  `must_haves.truths`("라이브 파일의 모든 줄이 후보에 그대로 남는다")와 정면으로 충돌한다
-  (삭제는 순수 삽입이 아니다). 10-01 은 이 편집을 실행하지 않고 두 파일을 편집된 그대로
-  남겨두었다(커밋 안 함, 되돌리지도 않음). ROADMAP 편집 자체는 "10-03 유지보수 창에 합류"를
-  제안하고 있음 — 다음 단계 전에 반드시 정리할 것. 상세: `10-01-SUMMARY.md`의
-  "Issues Encountered" 절.
+- ✅ **해결됨: CFG-17 vs 10-01 불일치** (2026-09-01) — 10-01 이 아키텍처급 범위 충돌로 옳게
+  신고했고, 오케스트레이터가 후보에 삭제를 편입하고 "제거된 줄 0" 검사를 "제거된 줄이 전부
+  설명된다"로 **강화**해서 화해했다. 10-03 유지보수 창에서 함께 설치 완료.
 
 ### 🔴 신규 발견 — `cline -m` 이 providers.json 을 건드린다 (2026-09-01, VRF-04 중)
 

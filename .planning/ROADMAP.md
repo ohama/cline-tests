@@ -237,9 +237,9 @@ Phases execute in numeric order: 9 → 10 → 11 → 12 (전 구간 순차, 병�
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|-----------------|--------|-----------|
 | 1–8 | v1 | 55/55 | Complete | 2026-08-31 |
-| 9. 사전 확인 게이트 | v1.1 | 0/4 | Planned | - |
-| 10. 별칭 주입과 도달 증명 | v1.1 | 0/TBD | Not started | - |
-| 11. 사용 표면 — 래퍼와 A/B 게이트 | v1.1 | 0/7 | Planned | - |
+| 9. 사전 확인 게이트 | v1.1 | 4/4 | Complete | 2026-09-01 |
+| 10. 별칭 주입과 도달 증명 | v1.1 | 6/6 | Complete | 2026-09-02 |
+| 11. 사용 표면 — 래퍼와 A/B 게이트 | v1.1 | 0/7 | In progress | - |
 | 12. 문서 갱신 | v1.1 | 0/TBD | Not started | - |
 
 ---
