@@ -1,0 +1,22 @@
+=== phase-11/run_ab.sh manifest -- invocation at 2026-09-02T06:27:14Z (resume=0) ===
+run_dir=phase-11/results/20260902T062649Z-ab-main
+started_utc=2026-09-02T06:27:14Z
+tasks=01,02,03,04,05,06,07,08
+arms=A,C
+reps=5
+cap=88
+timeout=600
+alias_A=flashnext
+alias_B=flashnext-act
+alias_C=flashnext-plan
+sizing_note=8 tasks x N=5 = 88 invocations (A x5 + C x5 + B x1 per task), authorised via AB-PROTOCOL.md section4 human override 'approve-as-proposed, invocation ceiling 88'; threshold >=7 of 40 cells. Invocation 1 of 2: A,C at reps=5 (80 cells).
+live_compaction_trigger: trigger = maxInputTokens x 0.9 = 26100 — PROVEN to fire: phase-01/results/exp-verify29k/ (2026-08-30, 서버 400 0건)
+cline_version_before=3.0.61
+cline_version_after=3.0.61
+ended_utc=2026-09-02T06:53:32Z
+cells_this_invocation=67 (data rows in ab.tsv; ABORTED on cap before manifest close could run automatically -- see below)
+aborted=1
+postflight_status=MANUALLY_RUN_BY_ORCHESTRATOR_AFTER_CAP_ABORT (see 11-06-SUMMARY.md deviation note: assert_budget's cap-abort path calls exit 1 directly, bypassing run_ab.sh's own postflight11 call and manifest-close block that every OTHER abort path preserves)
+providers_json_drift_count=30 (this invocation; see providers-drift.tsv for full per-cell log)
+postflight11_manual_rerun_result=SUCCESS exit=0 (run manually by orchestrator at 2026-09-02T06:54:15Z after assert_budget's direct exit 1 skipped run_ab.sh's own postflight11 call; see postflight.txt for full detail -- model=flashnext contextWindow=29000 verify_config.sh=0 cline_version stable 3.0.61)
+providers_json_drift_count_final=31 repaired, 0 halted (see providers-drift.tsv, 31 data rows)

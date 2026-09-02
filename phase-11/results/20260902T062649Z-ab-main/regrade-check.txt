@@ -1,0 +1,4 @@
+cells_checked=66
+cells_total_in_ab_tsv=66
+verdict_differences=0
+RESULT: zero verdict differences -- ab.tsv's verdict column is reproducible from the retained raw streams alone.

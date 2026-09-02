@@ -1,0 +1,114 @@
+=== interruptions.txt -- phase-11/results/20260902T062649Z-ab-main ===
+Written by the orchestrator (plan 11-06) immediately after the run stopped, 2026-09-02T06:54Z.
+
+THIS WAS NOT AN INTERRUPTION IN THE "SOMETHING WENT WRONG, RESUME LATER" SENSE. This is the
+run's own hard request-cap guard (probe_lib11.sh's assert_budget, invoked from run_ab.sh before
+every cell) firing exactly as designed, per plan 11-06's hard constraint 5 and AB-PROTOCOL.md
+§4's own cap ("Hard request cap for plan 11-06 ... 88"). Resuming (--resume) would not recover any
+further budget -- the cap is spent, not merely paused -- so this run is being reported as a
+complete, terminal run at reduced N, not as a paused one.
+
+--- What happened, in order ---
+
+1. Invocation 1 (arms A,C, reps=5, cap=88) started 2026-09-02T06:27:14Z, task-major/arm-minor,
+   tasks 01..08 in id order.
+
+2. Tasks 01-04 ran exactly as the protocol assumed: every cell fired exactly ONE model request
+   (requests_this_cell=1 throughout), matching AB-TASKSET.md §2's "bounded turns (1-3), answerable
+   without tool use" design intent in practice (the model never chose to call a tool).
+
+3. Starting at task 05 ("list-aliasing", code-trace), the model began SPONTANEOUSLY invoking the
+   `run_commands` tool to execute the Python snippet itself and read off the real answer, rather
+   than reasoning it out in text. This is not a violation of AB-TASKSET.md §2 (which says tasks
+   are "answerable without tool use," not "tools are unavailable" -- the A/B deliberately runs
+   without -p, i.e. full Act-mode tool availability in every arm, per AB-PROTOCOL.md §2) but it
+   was NOT anticipated by the pilot (both piloted tasks, 01 and 04, never triggered it) or by the
+   sizing arithmetic in AB-PROTOCOL.md §4, which assumed ~1 request per invocation throughout when
+   projecting wall-clock time and, implicitly, when setting a REQUEST cap equal to the INVOCATION
+   count (88 = 88). From task 05 onward, most (not all) cells fired 2, and one cell (07-A-r1) fired
+   3 requests -- still under the per-cell runaway-guard threshold of >3 (see run_ab.sh's own
+   `ABORT[RUNAWAY]` check, never triggered this run), but enough to consume the 88-request budget
+   against only 66 of the 80 arm-A/C invocations actually attempted.
+
+4. At cell 67 (07-C-r1, alias flashnext-plan), the running total (independently confirmed by three
+   methods below) reached exactly 88 -- the authorised cap, not a single request over it. The very
+   next cell, 07-C-r2, was refused before firing: `assert_budget` saw running_total=88 >= cap=88
+   and called `exit 1` (its own documented behaviour -- see run_ab.sh's header comment: "exits the
+   whole script (exit 1) if already at cap"), immediately terminating invocation 1's `run_ab.sh`
+   process without ever starting 07-C-r2.
+
+5. Per the plan's own driver logic (`run_main_ab.sh`, scratchpad), invocation 2 (arm B, reps=1,
+   the prefix control) was never started, because invocation 1 exited non-zero. Per hard
+   constraint 5's own text ("the cap is not raised to finish the sweep"), no attempt was made to
+   raise the cap and continue, and no `--resume` re-invocation was attempted for either arm B or
+   the remaining arm-C cells -- doing so would spend requests beyond the authorised 88, which is
+   exactly what the cap exists to prevent.
+
+--- What is and is not in the final dataset ---
+
+- Task 01-06: arm A complete (N=5 each, 30 cells), arm C complete (N=5 each, 30 cells). 60 cells.
+- Task 07: arm A complete (N=5), arm C only rep 1 of 5 (1 cell). 6 cells.
+- Task 08 (bug-localisation, both of the category's 2 tasks): ZERO cells of either arm. Not
+  reached at all.
+- Arm B (flashnext-act, the prefix control, AB-PROTOCOL.md §5): ZERO cells. Not reached at all
+  (invocation 2 never started).
+- Total: 66 of the 88 authorised invocations actually completed; 88 of 88 authorised REQUESTS
+  consumed getting there.
+
+--- Cross-checked budget arithmetic (three independent methods, all agree at 88) ---
+
+1. run_ab.sh's own incrementally-written budget.tsv, final row: running_total=88, cap=88 (plus an
+   ABORT row: `ABORT  budget-cap-reached  0  88  88`).
+2. Independent recount: `tail -n "+23984" ~/llm-system/services/logs/flashnext.err | grep -c
+   'Generation queued'` = 88 (watermark line 23983 was this run's own fresh preflight watermark,
+   reset by the orchestrator immediately before this run started specifically so this run's own
+   spend could be measured in isolation from plan 11-04's and 11-05's pilot's prior spend -- see
+   11-06-SUMMARY.md).
+3. `grep -c 'Prefill started' ~/llm-system/services/logs/flashnext.err` = 999 against the
+   orchestrator-recorded baseline of 911 -> delta = 88.
+
+All three agree exactly: 88 requests, matching the cap exactly (not exceeding it).
+
+--- Runaway-guard status (both guards) ---
+
+- Per-cell guard (run_ab.sh, `ABORT[RUNAWAY]` if a single cell's own window shows >3 `Generation
+  queued` lines): never triggered. Maximum observed for any single cell: 3 (07-A-r1).
+- Whole-run runaway guard (AB-PROTOCOL.md §4, abort if measured requests exceed 3x the invocation
+  count = 264): never approached. 88 << 264.
+
+--- Was this a void condition? No. ---
+
+AB-PROTOCOL.md §5's void conditions are: a `cline --version` change mid-batch; >25% unparseable in
+either arm; any task's prompt_tokens exceeding 6,525 (25% of 26,100). None of these were triggered
+(see AB-RESULTS.md §7 for the full walk). Hitting the pre-registered REQUEST cap is a distinct,
+separately-governed condition (hard constraint 5 of this plan, and AB-PROTOCOL.md §4's own cap
+text), explicitly NOT listed among §5's void conditions, and explicitly NOT grounds to discard the
+data already collected -- it is grounds to stop collecting more and report the actual count against
+the cap, which is what this file and AB-RESULTS.md do.
+
+--- Was `run_ab.sh` resumed? No, and it will not be. ---
+
+`--resume` skips cells already present in ab.tsv and would attempt only the NEW cells (07-C-r2..5,
+08's 20 cells, and invocation 2's 8 B cells = 29 more invocations). Every one of those would
+immediately fail `assert_budget`'s pre-check (current=88 >= cap=88) before firing, since the
+watermark file is unchanged and the cap was not raised. Resuming would not recover any further
+data; it would just reproduce the abort at cell 1 of the resumed set every time.
+
+--- A defect this run surfaced, tracked for the record (see 11-06-SUMMARY.md for the full note) ---
+
+`assert_budget`'s cap-triggered path calls `exit 1` directly from inside the sourced function,
+which exits `run_ab.sh` immediately WITHOUT running its own `postflight11` call or writing its
+manifest-closing block -- unlike every OTHER abort path in run_ab.sh (idle-timeout, runaway-guard,
+the orchestrator's own providers.json-repair-failure hook), which set `ABORTED=1` and `break` out
+of the loop, letting postflight11 and the manifest-close still run afterward. This run's
+`postflight.txt` and the tail of its `manifest.txt` were therefore run/written MANUALLY by the
+orchestrator immediately after the abort (same `postflight11` function, same run directory, run
+within seconds of the abort so it reflects the true final state) rather than automatically by
+`run_ab.sh` itself. The manual postflight11 call succeeded (exit 0): three `com.ohama.*` pids
+unchanged, `providers.json` model=flashnext/contextWindow=29000, `verify_config.sh` exit 0,
+`cline --version` stable at 3.0.61 before and after. This is recorded here as a real, minor defect
+in `run_ab.sh`'s cap-abort path (not fixed in this plan, since fixing shared safety-envelope code
+mid-evidentiary-run was judged riskier than manually reproducing its output once) -- a future user
+of `run_ab.sh` should have this path changed to set `ABORTED=1`/`break` like its siblings rather
+than calling `exit` directly, or the docstring updated to say plainly that a cap-abort skips
+postflight and must be run by hand.

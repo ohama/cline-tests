@@ -163,6 +163,57 @@ ARM_LIST="$(printf '%s' "$ARMS_ARG" | tr ',' '\n')"
 mkdir -p "$OUT_DIR/streams"
 AB_TSV="$OUT_DIR/ab.tsv"
 
+# ---- ORCHESTRATOR-DIRECTED DEVIATION (plan 11-06, not part of the original plan text) -------
+# `cline -m flashnext-plan` has been reproduced TWICE (11-04 Open Item 3, 11-05's own pilot,
+# both cline 3.0.61) persistently rewriting providers.json's `model` field. probe_lib11.sh's
+# postflight11 treats this as a hard-fail-no-self-repair condition -- correct for a probe, but
+# this run makes 40 flashnext-plan (arm C) invocations, so as written it would halt at the very
+# first C-arm cell, leaving the file drifted AND producing no A/B. Per explicit orchestrator
+# instruction for this run only: repair immediately after every invocation instead of halting on
+# `model` drift, and log every occurrence (cell, arm, alias, observed value, restore outcome) to
+# providers-drift.tsv -- this count is evidence for plan 11-07, not noise to suppress.
+# contextWindow drift is NOT auto-repaired -- it has never been observed; treat it as a hard stop.
+DRIFT_TSV="$OUT_DIR/providers-drift.tsv"
+if [ ! -s "$DRIFT_TSV" ]; then
+  # append-only across invocations of the same --out directory, same rationale as manifest.txt
+  # above (a --resume re-invocation must never destroy a prior invocation's real drift record).
+  printf 'cell\tarm\talias\tobserved_model\trestore_outcome\tobserved_contextWindow\n' > "$DRIFT_TSV"
+fi
+DRIFT_COUNT=0
+
+check_and_repair_providers() {
+  # check_and_repair_providers <cell_label> <arm> <alias>
+  # Returns 0 if compliant (no drift, or drift repaired). Returns 2 on a condition that must
+  # HALT the whole run (contextWindow drift, or a failed repair) -- caller must abort on non-zero.
+  local cell="$1" arm="$2" alias="$3"
+  providers_fields "$OUT_DIR/.providers-check-tmp.txt"
+  local observed_model="$PROV_MODEL" observed_ctxwin="$PROV_CTXWIN"
+
+  if [ "$observed_ctxwin" != "29000" ]; then
+    echo "HALT[CONTEXTWINDOW]: providers.json contextWindow drifted to '$observed_ctxwin' after $cell -- this has never been observed before and is NOT auto-repaired (orchestrator instruction: halt and report, do not guess at a fix for something new)" >&2
+    printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$cell" "$arm" "$alias" "$observed_model" "HALT-CONTEXTWINDOW" "$observed_ctxwin" >> "$DRIFT_TSV"
+    return 2
+  fi
+
+  if [ "$observed_model" != "flashnext" ]; then
+    DRIFT_COUNT=$((DRIFT_COUNT + 1))
+    echo "  [providers-drift #$DRIFT_COUNT] $cell: providers.json model drifted to '$observed_model' -- repairing via phase-01/config/apply_provider_config.sh" >&2
+    local repair_status=0
+    bash "$REPO_ROOT/phase-01/config/apply_provider_config.sh" > "$OUT_DIR/providers-repair-${cell//\//_}.log" 2>&1 || repair_status=$?
+    providers_fields "$OUT_DIR/.providers-check-tmp.txt"
+    if [ "$PROV_MODEL" = "flashnext" ] && [ "$PROV_CTXWIN" = "29000" ]; then
+      printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$cell" "$arm" "$alias" "$observed_model" "repaired" "$PROV_CTXWIN" >> "$DRIFT_TSV"
+      echo "  [providers-drift #$DRIFT_COUNT] repair OK: model restored to flashnext (contextWindow=$PROV_CTXWIN)" >&2
+      return 0
+    else
+      printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$cell" "$arm" "$alias" "$observed_model" "REPAIR-FAILED(model=$PROV_MODEL,ctxwin=$PROV_CTXWIN,apply_exit=$repair_status)" "$PROV_CTXWIN" >> "$DRIFT_TSV"
+      echo "HALT[REPAIR-FAILED]: apply_provider_config.sh (exit=$repair_status) did not restore providers.json after $cell -- observed model='$PROV_MODEL' contextWindow='$PROV_CTXWIN'" >&2
+      return 2
+    fi
+  fi
+  return 0
+}
+
 if [ ! -f "$AB_TSV" ]; then
   printf 'task_id\tarm\talias\trep\texit_code\tduration_s\tprompt_tokens\tcompletion_tokens\tfinish_reason\tverdict\tqualifier\textracted_answer\texpected\tstream_path\trequests_this_cell\trunning_total\tmax_tokens\tretried\n' > "$AB_TSV"
 elif [ "$RESUME" -ne 1 ]; then
@@ -274,6 +325,16 @@ for TASK_ID in $TASK_ID_LIST; do
         STREAM_BYTES=0
         [ -f "$STREAM_PATH" ] && STREAM_BYTES=$(wc -c < "$STREAM_PATH" | tr -d ' ')
 
+        # ---- ORCHESTRATOR-DIRECTED DEVIATION: check+repair providers.json after THIS
+        # invocation, regardless of whether it was operationally successful -- see the
+        # check_and_repair_providers() definition above for the full reasoning. This must run
+        # after every real cline call, including a retry attempt, per the orchestrator's
+        # instruction ("after each cline invocation").
+        if ! check_and_repair_providers "${CELL_LABEL}-attempt${ATTEMPT}" "$ARM" "$ALIAS"; then
+          ABORTED=1
+          break 4
+        fi
+
         OPERATIONAL_FAIL=0
         if [ "$EXIT_CODE" -ne 0 ] || [ "$STREAM_BYTES" -eq 0 ]; then
           OPERATIONAL_FAIL=1
@@ -369,6 +430,7 @@ postflight11 "$OUT_DIR" || POSTFLIGHT_STATUS=$?
   echo "cells_this_invocation=$CELL_COUNT"
   echo "aborted=$ABORTED"
   echo "postflight_status=$POSTFLIGHT_STATUS"
+  echo "providers_json_drift_count=${DRIFT_COUNT:-0} (orchestrator-directed per-cell check+repair; see $OUT_DIR/providers-drift.tsv)"
 } >> "$OUT_DIR/manifest.txt"
 
 if [ "$ABORTED" -eq 1 ]; then
@@ -380,5 +442,5 @@ if [ "$POSTFLIGHT_STATUS" -ne 0 ]; then
   exit "$POSTFLIGHT_STATUS"
 fi
 
-echo "=== run_ab.sh complete: $CELL_COUNT cell(s) run this invocation, $(wc -l < "$AB_TSV" | tr -d ' ') total data+header line(s) in $AB_TSV ==="
+echo "=== run_ab.sh complete: $CELL_COUNT cell(s) run this invocation, $(wc -l < "$AB_TSV" | tr -d ' ') total data+header line(s) in $AB_TSV, providers.json drift repaired ${DRIFT_COUNT:-0}x this invocation ==="
 exit 0
