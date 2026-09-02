@@ -1,0 +1,2 @@
+FAIL: model expected 'flashnext', observed 'flashnext-plan'
+WARNING[CONFIG]: cline exited 0, but the post-run config guard failed

@@ -1,0 +1,4 @@
+seq	wrapper	exit_code	duration_s	model	contextWindow	updatedAt	providers_sha256	verify_config_exit	requests_this_call	running_total
+1	cline-plan	4	11	flashnext-plan	29000	2026-09-02T05:07:29.335Z	7f5a6e50a4e9857f162d94610c4075fb09147c899cffa21937f17452f5557418	1	1	3
+🔴 STOP: a judged field OR the live verify_config.sh check failed at call 1 (model=flashnext-plan contextWindow=29000 verify_config_live_exit=1) -- this is a significant finding, NOT attempting to restore providers.json, recording the exact call number and observed values as-is
+INVESTIGATE: fewer than 2 distinct updatedAt values observed -- contradicts the Phase 10 observation that cline -m rewrites updatedAt on every call

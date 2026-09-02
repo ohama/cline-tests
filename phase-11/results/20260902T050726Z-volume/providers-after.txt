@@ -1,0 +1,4 @@
+model=flashnext-plan
+contextWindow=29000
+updatedAt=2026-09-02T05:07:29.335Z
+sha256=7f5a6e50a4e9857f162d94610c4075fb09147c899cffa21937f17452f5557418
