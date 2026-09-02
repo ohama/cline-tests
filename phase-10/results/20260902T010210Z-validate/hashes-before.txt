@@ -1,0 +1,2 @@
+d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e  /Users/ohama/local-llm-settings/config/litellm-config.yaml
+da53de13abdac56b283a8a834a0199760e359fff47a753113552ad368b3cf104  /Users/ohama/.cline/data/settings/providers.json

@@ -22,8 +22,8 @@ Last activity: 2026-09-02 — Phase 10 전체 완료. 사람 승인을 받고 �
   **실제 `cline` 실행에서 `flashnext-plan` 스트림에만 사고가 나타났다**(대조군 0건) —
   v1.1 이 겨냥한 "설정이 존재한다 ≠ 작동한다"의 간극이 처음으로 닫혔다.
 
-Progress: [███░░░░░░░] v1.1 (19/19 requirements mapped, 4/19 complete: PRB-01..04;
-  Phase 9 완료, Phase 10 1/6 plans 완료, Phase 11–12 plans TBD)
+Progress: [██████░░░░] v1.1 (20/20 requirements mapped, 15/20 complete: PRB-01..04,
+  CFG-11..17, VRF-01..04; Phase 9–10 완료, Phase 11–12 plans TBD)
 
 ## Performance Metrics
 
@@ -184,10 +184,15 @@ v1.1 설계 근거: `docs/plan-act-reasoning-{design,implementation,diagrams}.md
 
 ## Session Continuity
 
-Last session: 2026-09-01
-Stopped at: 10-01-PLAN.md 완료 (wave 1/6). 후보 설정·검증 사다리·자체 뮤턴트 테스트·
-  ALIAS-DESIGN.md 전부 완료, 스택 무변경 확인됨.
-  다음: wave 2 — 10-02-PLAN.md (백업·기준선·롤백 리허설 + 변경 브리핑 + 🔴 사람 체크포인트).
-  **착수 전 반드시 정리:** 위 "미해결: CFG-17 vs 10-01-PLAN.md 불일치" 항목 — CFG-17 을
-  이 마일스톤에 어떻게 편입할지(10-03 유지보수 창 합류 여부 포함) 결정한 뒤 진행할 것.
+Last session: 2026-09-02
+Stopped at: Phase 10 완료 및 종료 커밋(검증 7/7). 별칭 5개가 라이브이고, 실제 `cline`
+  실행에서 사고가 관측됐다.
+  다음: /gsd:plan-phase 11 — `cline-plan`/`cline-act` 래퍼로 모드와 별칭의 짝을 강제하고,
+  `medium` 이 실제로 결과를 개선하는지 A/B 로 판정한다. **개선이 없다는 결과도 유효한 통과다.**
+  ※ Phase 11 이 물려받는 것:
+    - `cline -m` 이 매 호출마다 `providers.json` 의 `updatedAt` 을 쓴다(위 🔴 절).
+      판정은 파일 해시가 아니라 `model`·`contextWindow` 로 할 것.
+    - `cline` 이 3.0.60 으로 드리프트했다(CFG-05 미해결). 3.0.53 기준 소스 인용은
+      재검증 없이 신뢰하지 말 것.
+    - 배포 팔(`flashnext-plan`, −2 마진)은 도달을 증명한 팔이 아니다.
 Resume file: None

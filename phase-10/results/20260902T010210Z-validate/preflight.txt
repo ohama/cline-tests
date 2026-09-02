@@ -1,0 +1,15 @@
+=== preflight 2026-09-02T01:02:10Z ===
+--- pids-before.txt ---
+com.ohama.flashnext 46573
+com.ohama.litellm 68670
+com.ohama.role-shim 75548
+--- hashes-before.txt ---
+d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e  /Users/ohama/local-llm-settings/config/litellm-config.yaml
+da53de13abdac56b283a8a834a0199760e359fff47a753113552ad368b3cf104  /Users/ohama/.cline/data/settings/providers.json
+LOG_WATERMARK=23359
+--- tail -2 /Users/ohama/llm-system/services/logs/flashnext.err ---
+2026-09-01 18:10:45,579 - INFO - Decode completed: request=835b2a3740 generated_tokens=130 elapsed=3.628s rate=35.6 tok/s finish_reason=stop
+2026-09-01 18:10:45,579 - INFO - Request completed: endpoint=/chat/completions model=/Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4 stream=True backend=continuous_batching prompt_tokens=5515 generated_tokens=130 elapsed=12.957s prefill=596.1 tok/s decode=35.8 tok/s finish_reason=stop in_flight=0
+idle check: OK -- 2026-09-01 18:10:45,579 - INFO - Request completed: endpoint=/chat/completions model=/Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4 stream=True backend=continuous_batching prompt_tokens=5515 generated_tokens=130 elapsed=12.957s prefill=596.1 tok/s decode=35.8 tok/s finish_reason=stop in_flight=0
+--- advisory (hint only, NOT a hard gate): running cline processes ---
+43410 /opt/homebrew/lib/node_modules/cline/bin/.cline --cline-hub-daemon --cwd /Users/ohama/tmp/toy-lang --host 127.0.0.1 --port 25463 --pathname /hub

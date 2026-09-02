@@ -1,0 +1,8 @@
+--- flashnext ---
+live:       {'model_name': 'flashnext', 'litellm_params': {'model': 'openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4', 'api_base': 'http://localhost:8011/v1', 'api_key': 'dummy'}}
+candidate:  {'model_name': 'flashnext', 'litellm_params': {'model': 'openai//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4', 'api_base': 'http://localhost:8012/v1', 'api_key': 'dummy'}}
+MISMATCH: flashnext
+--- flashnext-codex ---
+live:       {'model_name': 'flashnext-codex', 'litellm_params': {'model': 'openai/chat_completions//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4', 'api_base': 'http://localhost:8011/v1', 'api_key': 'dummy'}}
+candidate:  {'model_name': 'flashnext-codex', 'litellm_params': {'model': 'openai/chat_completions//Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4', 'api_base': 'http://localhost:8011/v1', 'api_key': 'dummy'}}
+MATCH: flashnext-codex

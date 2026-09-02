@@ -1,0 +1,11 @@
+=== postflight10 2026-09-02T01:04:07Z (expected_live_sha=d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e restart_expected=0) ===
+OK: com.ohama.flashnext pid unchanged (46573)
+OK: com.ohama.role-shim pid unchanged (75548)
+com.ohama.litellm pid: before=68670 after=68670
+OK: com.ohama.litellm pid unchanged as expected (restart_expected=0)
+OK: providers.json sha256 unchanged (da53de13abdac56b283a8a834a0199760e359fff47a753113552ad368b3cf104)
+OK: live config sha256 equals expected (d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e)
+MIRROR: in-sync (mirror == live, both: d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e)
+--- independent check: verify_config.sh (non-fatal, always recorded) ---
+OK: providers.json holds flashnext @ localhost:4000/v1, top-level contextWindow=29000, no models[] override, no codex alias
+trigger = maxInputTokens x 0.9 = 26100 — PROVEN to fire: phase-01/results/exp-verify29k/ (2026-08-30, 서버 400 0건)
