@@ -1,0 +1,37 @@
+=== phase-11/run_ab.sh manifest ===
+run_dir=phase-11/results/20260902T054619Z-ab-pilot
+started_utc=2026-09-02T05:48:44Z
+tasks=01,04
+arms=A,B,C
+reps=1
+cap=10
+timeout=600
+alias_A=flashnext
+alias_B=flashnext-act
+alias_C=flashnext-plan
+sizing_note=pilot run -- sizing decision not yet made, see pilot-notes.md
+live_compaction_trigger: 
+cline_version_before=3.0.61
+cline_version_after=(see postflight.txt)
+ended_utc=2026-09-02T05:48:44Z
+cells_this_invocation=0
+aborted=0
+=== phase-11/run_ab.sh manifest -- invocation at 2026-09-02T05:50:32Z (resume=1) ===
+run_dir=phase-11/results/20260902T054619Z-ab-pilot
+started_utc=2026-09-02T05:50:32Z
+tasks=01,04
+arms=A,B,C
+reps=1
+cap=10
+timeout=600
+alias_A=flashnext
+alias_B=flashnext-act
+alias_C=flashnext-plan
+sizing_note=pilot run -- sizing decision not yet made, see pilot-notes.md
+live_compaction_trigger: 
+cline_version_before=3.0.61
+cline_version_after=3.0.61
+ended_utc=2026-09-02T05:50:33Z
+cells_this_invocation=0
+aborted=0
+postflight_status=1

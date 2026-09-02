@@ -1,0 +1,16 @@
+=== preflight11 2026-09-02T05:50:31Z ===
+--- pids-before.txt ---
+com.ohama.flashnext 46573
+com.ohama.litellm 68670
+com.ohama.role-shim 75548
+--- providers-before.txt (OBSERVATIONS ONLY -- sha256/updatedAt are never judged, model/contextWindow are) ---
+model=flashnext-plan
+contextWindow=29000
+updatedAt=2026-09-02T05:47:42.963Z
+sha256=ee9bcffc9bdb69344a9d30778def94dc55e491b76692ed11fee08be68ae58c20
+LOG_WATERMARK=23983 (this script's own flake-window anchor, per phase-09/probe_lib.sh's flake_window)
+BUDGET_STATE_FILE=/Users/ohama/projs/cline-tests/phase-11/results/.budget-watermark-11-04 watermark=23798 cap=10 (persistent across every probe script this plan runs)
+idle check: OK -- 2026-09-02 14:47:59,856 - INFO - Request completed: endpoint=/chat/completions model=/Users/ohama/projs/qwen38-flash-next-tests/models/Qwen3.8-Flash-Next-MLX-oQ4 stream=True backend=continuous_batching prompt_tokens=5498 generated_tokens=236 elapsed=16.757s prefill=563.8 tok/s decode=34.0 tok/s finish_reason=stop in_flight=0
+--- advisory (hint only, NOT a hard gate): running cline processes ---
+72574 /opt/homebrew/lib/node_modules/cline/bin/.cline --cline-hub-daemon --cwd /Users/ohama/projs/cline-tests --host 127.0.0.1 --port 25463 --pathname /hub
+cline --version (before): 3.0.61

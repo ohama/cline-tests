@@ -1,0 +1,20 @@
+=== postflight11 2026-09-02T05:50:32Z ===
+OK: com.ohama.flashnext pid unchanged (46573)
+OK: com.ohama.role-shim pid unchanged (75548)
+OK: com.ohama.litellm pid unchanged (68670)
+--- providers-after.txt (OBSERVATIONS ONLY -- sha256/updatedAt are never judged, model/contextWindow are) ---
+model=flashnext-plan
+contextWindow=29000
+updatedAt=2026-09-02T05:47:42.963Z
+sha256=ee9bcffc9bdb69344a9d30778def94dc55e491b76692ed11fee08be68ae58c20
+FAIL: providers.json model drifted (before='flashnext-plan' after='flashnext-plan') -- JUDGED field
+OK: providers.json contextWindow unchanged ('29000') -- JUDGED field
+OBSERVATION (not judged): updatedAt unchanged (2026-09-02T05:47:42.963Z)
+OBSERVATION (not judged): providers.json sha256 unchanged (ee9bcffc9bdb69344a9d30778def94dc55e491b76692ed11fee08be68ae58c20)
+--- delegated invariant: VERIFY_CONFIG_NO_WRAPPER_CHECK=1 bash /Users/ohama/projs/cline-tests/phase-09/../phase-01/config/verify_config.sh ---
+FAIL: model expected 'flashnext', observed 'flashnext-plan'
+verify_config.sh exit status: 1
+FAIL: verify_config.sh (providers.json section) exited non-zero -- this is the delegated invariant this file relies on instead of a hash comparison
+cline --version (after): 3.0.61
+OK: cline --version stable across this script's run
+postflight11: one or more HARD checks FAILED -- no self-repair performed. See above.
