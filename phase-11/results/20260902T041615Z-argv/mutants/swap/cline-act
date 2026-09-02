@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# phase-11/cline-act — Act-mode wrapper. No mode flag (Act is the CLI's own default), always
+# the act alias.
+#
+# Exit-code contract: 0..N = real cline's own exit code; 2 = refused argument, nothing
+# invoked; 3 = pre-run config guard failed, nothing invoked; 4 = post-run config guard failed.
+#
+# See phase-11/WRAPPER-DESIGN.md for the full contract, the deny-by-default rationale, and
+# why this is a script and not the shell function docs/plan-act-reasoning-design.md sketches.
+set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. "$HERE/wrapper.env"
+WRAPPER_SELF="cline-act"
+WRAPPER_MODE_FLAG=""            # empty: Act mode is the CLI's default; no mode flag is passed
+WRAPPER_ALIAS="$WRAPPER_ACT_ALIAS"
+. "$HERE/wrapper_common.sh"

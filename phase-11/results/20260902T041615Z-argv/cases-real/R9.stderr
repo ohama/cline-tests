@@ -1,0 +1,2 @@
+REFUSED: unrecognised argument '--auto-approve' — cline-plan only accepts -t/--timeout, -c/--cwd, --json and --
+usage: cline-plan [-t|--timeout <secs>] [-c|--cwd <path>] [--json] [--] <prompt...>

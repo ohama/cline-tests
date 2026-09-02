@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# phase-11/testing/stub-cline — test-only fake `cline`. Appends the argv it actually received to
+# $STUB_ARGV_FILE and exits, so wrapper behaviour is observable with zero model cost. Issues no
+# network traffic of any kind.
+#
+# Aborts loudly if STUB_ARGV_FILE is unset rather than silently discarding its evidence — a stub
+# that observes nothing while reporting clean is exactly the class of instrument
+# phase-10/PHASE-10-FINDINGS.md §4.6 catalogues five of.
+set -euo pipefail
+
+: "${STUB_ARGV_FILE:?stub-cline requires STUB_ARGV_FILE to be set — refusing to run silently}"
+
+{
+  echo "---RUN---"
+  for a in "$@"; do
+    echo "$a"
+  done
+  echo "---ENV---"
+  echo "CLINE_NO_AUTO_UPDATE=${CLINE_NO_AUTO_UPDATE:-<unset>}"
+} >> "$STUB_ARGV_FILE"
+
+exit "${STUB_EXIT:-0}"
