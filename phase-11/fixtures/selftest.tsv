@@ -1,0 +1,10 @@
+fixture	required_verdict	observed_verdict	observed_qualifier	PASS|FAIL
+f1-correct	correct	correct	-	PASS
+f2-wrong	incorrect	incorrect	-	PASS
+f3-noanswer	no-answer	no-answer	-	PASS
+f4-truncated	no-output	no-output	-	PASS
+f5-reasoning-only	no-answer	no-answer	answer-seen-in-reasoning-only	PASS
+f6-malformed	correct	correct	-	PASS
+f7-empty	unparseable	unparseable	-	PASS
+f8-numeric	correct	correct	-	PASS
+f8-exact-normalized	incorrect	incorrect	-	PASS

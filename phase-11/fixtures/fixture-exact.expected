@@ -1,0 +1,7 @@
+task_id: FX-EXACT
+match: exact_normalized
+expected: 84
+tolerance: 0
+derivation: hand-authored fixture, pairs with fixture-numeric.expected to demonstrate the
+  numeric-vs-exact_normalized formatting pitfall recorded in AB-TASKSET.md Section 2
+notes: used by selftest_grade_ab.sh

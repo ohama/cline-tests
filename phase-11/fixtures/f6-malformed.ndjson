@@ -1,0 +1,2 @@
+{"ts":"2026-09-02T00:05:00.000Z","type":"agent_event","event":{"type":"content_start","contentType":"text","text":"ANSWER: 90"}}
+this line is not json at all {{{ garbage %%%

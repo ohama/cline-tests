@@ -1,0 +1,6 @@
+task_id: FX
+match: numeric
+expected: 90
+tolerance: 0
+derivation: hand-authored fixture task, not one of the 8 real tasks
+notes: used by selftest_grade_ab.sh to exercise the grader's verdict states

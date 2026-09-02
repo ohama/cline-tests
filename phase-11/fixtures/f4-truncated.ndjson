@@ -1,0 +1,8 @@
+{"ts":"2026-09-02T00:03:00.000Z","type":"hook_event","hookEventName":"agent_start","agentId":"agent_test4","taskId":"conv_test4","parentAgentId":null}
+{"ts":"2026-09-02T00:03:00.100Z","type":"agent_event","event":{"type":"iteration_start","iteration":1}}
+{"ts":"2026-09-02T00:03:00.200Z","type":"agent_event","event":{"type":"content_start","contentType":"reasoning","text":"Let me think step by step about the loop bounds "}}
+{"ts":"2026-09-02T00:03:00.300Z","type":"agent_event","event":{"type":"content_start","contentType":"reasoning","text":"and the interior elements this touches before I say anything out loud."}}
+{"ts":"2026-09-02T00:03:00.400Z","type":"agent_event","event":{"type":"content_end"}}
+{"ts":"2026-09-02T00:03:00.500Z","type":"agent_event","event":{"type":"iteration_end","iteration":1,"finish_reason":"length"}}
+{"ts":"2026-09-02T00:03:00.600Z","type":"agent_event","event":{"type":"usage","prompt_tokens":50,"completion_tokens":300}}
+{"ts":"2026-09-02T00:03:00.700Z","type":"agent_event","event":{"type":"done"}}
