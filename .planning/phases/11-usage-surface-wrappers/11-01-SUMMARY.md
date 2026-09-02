@@ -156,7 +156,25 @@ None — plan executed as written. All `must_haves`, all 13 argv-test cases, bot
 
 ## Issues Encountered
 
-None. The design's `set -u` requirement (bash 3.2, no `declare -A`) surfaced one real gotcha worth recording for future scripts in this repo: bare `"${empty_array[@]}"` under `set -u` in bash 3.2.57 raises "unbound variable" (confirmed empirically on this machine), whereas `"${empty_array[@]:-}"` and `${#empty_array[@]}` do not. `wrapper_argv_test.sh`'s `argv_has_exact`/`argv_count` helpers use the `:-` form for exactly this reason.
+The design's `set -u` requirement (bash 3.2, no `declare -A`) surfaced one real gotcha worth
+recording for future scripts in this repo: bare `"${empty_array[@]}"` under `set -u` in bash
+3.2.57 raises "unbound variable" (confirmed empirically on this machine), whereas
+`"${empty_array[@]:-}"` and `${#empty_array[@]}` do not. `wrapper_argv_test.sh`'s
+`argv_has_exact`/`argv_count` helpers use the `:-` form for exactly this reason.
+
+**Shared-index race with the concurrent 11-02 agent.** This plan runs as wave 1 alongside plan
+11-02 in the same working tree. `git add .planning/phases/11-usage-surface-wrappers/{11-01-PLAN,11-01-SUMMARY}.md`
+was run to prepare this closing commit, but before `git commit` executed, the 11-02 agent's own
+commit (`b4eec84`, `feat(11-02): four-state NDJSON grader...`) landed and its git operation swept
+up this file (already sitting in the shared index) alongside its own five `phase-11/fixtures/*`
+and `phase-11/grade_ab.py`/`selftest_grade_ab.sh` files. The content is unaffected — `git diff
+HEAD -- .planning/phases/11-usage-surface-wrappers/11-01-SUMMARY.md` is empty, confirming the
+working-tree file matches exactly what got committed — but the provenance is wrong: this file's
+history now attributes to a commit message about the A/B grader, not this plan's own work. No
+destructive history rewrite was attempted (per this project's own git safety protocol, amending a
+commit a concurrent agent may already be building on top of is exactly the kind of operation to
+avoid). Recorded here rather than silently left for a future reader to be confused by `git log
+--follow` on this file.
 
 ## User Setup Required
 
