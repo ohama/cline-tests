@@ -1,0 +1,6 @@
+mutant	description	expected	observed_exit	verdict
+MUTANT-A	updatedAt-only-change	PASS	0	OK
+MUTANT-B	model-changed-to-flashnext-plan	FAIL	1	OK
+MUTANT-C	contextWindow-changed-to-128000	FAIL	1	OK
+MUTANT-D	models[]-added	FAIL	1	OK
+CLEAN	unmodified-copy-same-session	PASS	0	OK

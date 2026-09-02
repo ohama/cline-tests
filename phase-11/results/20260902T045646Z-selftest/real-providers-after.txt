@@ -1,0 +1,4 @@
+model=flashnext
+contextWindow=29000
+updatedAt=2026-09-01T09:10:32.448Z
+sha256=da53de13abdac56b283a8a834a0199760e359fff47a753113552ad368b3cf104
