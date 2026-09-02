@@ -1,0 +1,17 @@
+What does the following Python function return when called as f([1, 2, 3, 4, 5])?
+
+```python
+def f(items):
+    original = items
+    modified = items
+    threshold = 2
+    kept = []
+    for x in modified:
+        if x > threshold:
+            kept.append(x)
+    modified.append(100)
+    modified.append(200)
+    return len(original)
+```
+
+Respond with exactly one line at the end of your reply, in exactly this form and nothing else on that line: ANSWER: <value>

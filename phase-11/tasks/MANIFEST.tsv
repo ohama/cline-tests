@@ -1,0 +1,9 @@
+id	slug	category	prompt_file	expected_file	prompt_bytes	match_mode	derivation
+01	pipe-rate	word-problem	phase-11/tasks/01-pipe-rate.prompt	phase-11/tasks/01-pipe-rate.expected	427	numeric	python3 -c arithmetic expression -> 8.0
+02	salt-mixture	word-problem	phase-11/tasks/02-salt-mixture.prompt	phase-11/tasks/02-salt-mixture.expected	361	numeric	python3 -c arithmetic expression -> 60.0
+03	reinvested-interest	word-problem	phase-11/tasks/03-reinvested-interest.prompt	phase-11/tasks/03-reinvested-interest.expected	437	numeric	python3 -c arithmetic expression -> 2484.0
+04	loop-sum	code-trace	phase-11/tasks/04-loop-sum.prompt	phase-11/tasks/04-loop-sum.expected	466	numeric	python3 phase-11/tasks/04-loop-sum.truth.py -> 90
+05	list-aliasing	code-trace	phase-11/tasks/05-list-aliasing.prompt	phase-11/tasks/05-list-aliasing.expected	461	numeric	python3 phase-11/tasks/05-list-aliasing.truth.py -> 7
+06	mode-char	code-trace	phase-11/tasks/06-mode-char.prompt	phase-11/tasks/06-mode-char.expected	553	exact_normalized	python3 phase-11/tasks/06-mode-char.truth.py -> a
+07	index-shift-bug	bug-localisation	phase-11/tasks/07-index-shift-bug.prompt	phase-11/tasks/07-index-shift-bug.expected	510	numeric	python3 phase-11/tasks/07-index-shift-bug.truth.py -> 4
+08	zero-div-bug	bug-localisation	phase-11/tasks/08-zero-div-bug.prompt	phase-11/tasks/08-zero-div-bug.expected	586	numeric	python3 phase-11/tasks/08-zero-div-bug.truth.py -> 6

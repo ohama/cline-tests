@@ -1,0 +1,6 @@
+task_id: 03
+match: numeric
+expected: 2484
+tolerance: 0.01
+derivation: python3 -c "p=2000; i1=p*0.05*3; t1=p+i1; i2=t1*0.04*2; final=t1+i2; print(final, round(final))" -> 2484.0 2484
+notes: year0-3 simple interest 2000*0.05*3=300 -> 2300; year3-5 simple interest on 2300 at 4% for 2yr = 184 -> 2484. No floating-point rounding drift observed (2484.0 exactly).

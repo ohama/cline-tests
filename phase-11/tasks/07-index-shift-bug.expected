@@ -1,0 +1,6 @@
+task_id: 07
+match: numeric
+expected: 4
+tolerance: 0
+derivation: python3 phase-11/tasks/07-index-shift-bug.truth.py -> 4
+notes: line 4 ("total += nums[i + 1]") indexes one past the intended element; calling sum_first_n([10,20,30], 3) raises IndexError when i=2 (nums[3] is out of range for a 3-element list). Derived by catching the exception and reading its traceback frame's line number, not asserted from memory. The .truth.py function body is placed at file line 1 so its physical line numbers match the prompt's displayed numbering exactly.

@@ -1,0 +1,6 @@
+task_id: 04
+match: numeric
+expected: 90
+tolerance: 0
+derivation: python3 phase-11/tasks/04-loop-sum.truth.py -> 90
+notes: range(1, n-1) with n=5 visits indices 1,2,3 (values 20,30,40); loop excludes both the first and last element of the list. Sum = 90.

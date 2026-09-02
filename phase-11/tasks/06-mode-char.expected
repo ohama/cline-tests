@@ -1,0 +1,6 @@
+task_id: 06
+match: exact_normalized
+expected: a
+tolerance: 0
+derivation: python3 phase-11/tasks/06-mode-char.truth.py -> a
+notes: "banana" -> counts {b:1, a:3, n:2}; iterating sorted keys (a,b,n) finds 'a' first with the highest count (3), so max_char='a'.

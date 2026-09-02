@@ -1,0 +1,6 @@
+task_id: 01
+match: numeric
+expected: 8
+tolerance: 0.01
+derivation: python3 -c "rateA=1/6; rateB=1/12; combined=rateA+rateB; filled=2*combined; remaining=1-filled; extra=remaining/rateB; total=2+extra; print(total)" -> 8.0
+notes: 2 hours combined fills 1/2 the tank; remaining 1/2 tank at Pipe B's rate (1/12/hr) takes 6 more hours; 2+6=8.

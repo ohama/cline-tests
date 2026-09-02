@@ -1,0 +1,6 @@
+task_id: 02
+match: numeric
+expected: 60
+tolerance: 0.01
+derivation: python3 -c "salt=40*0.20; total=salt/0.08; water=total-40; print(water)" -> 60.0
+notes: 8 liters of salt at 20% of 40L; to be 8% of the new total, total must be 100L; 100-40=60L of water added.

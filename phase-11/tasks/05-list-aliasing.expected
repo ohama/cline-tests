@@ -1,0 +1,6 @@
+task_id: 05
+match: numeric
+expected: 7
+tolerance: 0
+derivation: python3 phase-11/tasks/05-list-aliasing.truth.py -> 7
+notes: `original` and `modified` are the same list object (aliasing, not a copy) -- the two appends after the loop grow the list [1,2,3,4,5] to length 7, and `original` sees the same growth because it is not a separate copy. A model that assumes `original` is unaffected would answer 5.

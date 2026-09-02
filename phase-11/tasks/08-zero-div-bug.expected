@@ -1,0 +1,6 @@
+task_id: 08
+match: numeric
+expected: 6
+tolerance: 0
+derivation: python3 phase-11/tasks/08-zero-div-bug.truth.py -> 6
+notes: line 6 ("return total / len(positives)") is unguarded against an empty `positives` list; calling average_positive([-1,-2,-3]) raises ZeroDivisionError since no element is positive. Derived by catching the exception and reading its traceback frame's line number. The .truth.py function body is placed at file line 1 so its physical line numbers match the prompt's displayed numbering exactly.

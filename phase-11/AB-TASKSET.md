@@ -232,14 +232,14 @@ itself becoming the answer sheet.)
 
 | id | category | description | prompt_bytes | match_mode |
 |----|----------|-------------|-------------:|------------|
-| 01 | word-problem | two-pipe combined-then-solo fill-time problem | (see MANIFEST.tsv) | numeric |
-| 02 | word-problem | saline-solution dilution-to-target-concentration problem | (see MANIFEST.tsv) | numeric |
-| 03 | word-problem | two-stage simple-interest reinvestment problem | (see MANIFEST.tsv) | numeric |
-| 04 | code-trace | trace a sum-of-interior-elements loop over a fixed list | (see MANIFEST.tsv) | numeric |
-| 05 | code-trace | trace list aliasing vs `.copy()`, then a length check on the original | (see MANIFEST.tsv) | numeric |
-| 06 | code-trace | trace a most-frequent-letter counter over a fixed string | (see MANIFEST.tsv) | exact_normalized |
-| 07 | bug-localisation | locate a wrong-index off-by-one defect (IndexError) by line number | (see MANIFEST.tsv) | numeric |
-| 08 | bug-localisation | locate an unguarded-division defect (ZeroDivisionError) by line number | (see MANIFEST.tsv) | numeric |
+| 01 | word-problem | two-pipe combined-then-solo fill-time problem | 427 | numeric |
+| 02 | word-problem | saline-solution dilution-to-target-concentration problem | 361 | numeric |
+| 03 | word-problem | two-stage simple-interest reinvestment problem | 437 | numeric |
+| 04 | code-trace | trace a sum-of-interior-elements loop over a fixed list | 466 | numeric |
+| 05 | code-trace | trace list aliasing vs `.copy()`, then a length check on the original | 461 | numeric |
+| 06 | code-trace | trace a most-frequent-letter counter over a fixed string | 553 | exact_normalized |
+| 07 | bug-localisation | locate a wrong-index off-by-one defect (IndexError) by line number | 510 | numeric |
+| 08 | bug-localisation | locate an unguarded-division defect (ZeroDivisionError) by line number | 586 | numeric |
 
 See `phase-11/tasks/MANIFEST.tsv` for exact prompt-byte counts, match modes, and each answer's
 derivation method.

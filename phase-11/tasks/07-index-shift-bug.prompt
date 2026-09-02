@@ -1,0 +1,11 @@
+The following Python function has exactly one defect. It is supposed to sum the first n elements of nums, but it does not work correctly (it raises an exception for the input shown). On which line number is the defect?
+
+1: def sum_first_n(nums, n):
+2:     total = 0
+3:     for i in range(n):
+4:         total += nums[i + 1]
+5:     return total
+
+Called as: sum_first_n([10, 20, 30], 3)
+
+Respond with exactly one line at the end of your reply, in exactly this form and nothing else on that line: ANSWER: <value>

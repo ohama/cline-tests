@@ -1,0 +1,12 @@
+The following Python function has exactly one defect. It is supposed to return the average of the positive numbers in nums, but it does not work correctly (it raises an exception for the input shown). On which line number is the defect?
+
+1: def average_positive(nums):
+2:     positives = [x for x in nums if x > 0]
+3:     total = 0
+4:     for x in positives:
+5:         total += x
+6:     return total / len(positives)
+
+Called as: average_positive([-1, -2, -3])
+
+Respond with exactly one line at the end of your reply, in exactly this form and nothing else on that line: ANSWER: <value>

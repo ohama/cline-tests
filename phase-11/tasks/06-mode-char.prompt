@@ -1,0 +1,19 @@
+What does the following Python function return when called as f("banana")?
+
+```python
+def f(text):
+    counts = {}
+    for ch in text:
+        if ch.isalpha():
+            key = ch.lower()
+            counts[key] = counts.get(key, 0) + 1
+    max_count = 0
+    max_char = ""
+    for key in sorted(counts):
+        if counts[key] > max_count:
+            max_count = counts[key]
+            max_char = key
+    return max_char
+```
+
+Respond with exactly one line at the end of your reply, in exactly this form and nothing else on that line: ANSWER: <value>
