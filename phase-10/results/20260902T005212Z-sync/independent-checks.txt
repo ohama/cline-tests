@@ -1,0 +1,21 @@
+=== independent confirmations, 2026-09-02T00:52:13Z ===
+
+-- diff live vs mirror (must be empty) --
+OK: diff empty -- live and mirror are byte-identical
+live   sha256 (post-sync): d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e
+mirror sha256 (post-sync): d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e
+OK: sha256s match
+
+-- STATE.md alias table (grep for the three new aliases) --
+46:| `flashnext-plan` | chat | http://localhost:8011/v1 |
+47:| `flashnext-act` | chat | http://localhost:8011/v1 |
+48:| `flashnext-reach-xhigh` | chat | http://localhost:8011/v1 |
+
+alias-table hit count: 3
+
+-- SHA256SUMS coverage for litellm-config.yaml --
+SHA256SUMS hit count: 1
+d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e  ./config/litellm-config.yaml
+recorded hash: d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e
+actual   hash: d7278a9ff52ee996b3a6fd5af2eb41fee66249407ba37b396aa45d632fe2e18e
+OK: SHA256SUMS hash matches the mirror file

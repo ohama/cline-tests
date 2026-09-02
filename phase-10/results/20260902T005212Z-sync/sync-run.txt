@@ -1,0 +1,4 @@
+  갱신: config/litellm-config.yaml
+  → STATE.md 재생성 · SHA256SUMS 94개
+  1건 갱신됨
+exit code: 0

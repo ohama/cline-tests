@@ -1,0 +1,23 @@
+=== mirror commit, 2026-09-02T00:52:13Z ===
+
+-- git status --porcelain (before add) --
+ M SHA256SUMS
+ M STATE.md
+ M config/litellm-config.yaml
+ M launchagents/com.ohama.flashnext.plist
+ M launchagents/com.ohama.litellm.plist
+ M sync.sh
+?? launchagents/com.ohama.kanban-proxy.plist
+?? launchagents/com.ohama.kanban.plist
+?? launchagents/com.ohama.telegram-connect.plist
+
+[main a1ffaf6] sync: flashnext-plan/-act/-reach-xhigh (Plan/Act reasoning injection, hosted_vllm/ prefix)
+ 9 files changed, 397 insertions(+), 117 deletions(-)
+ create mode 100644 launchagents/com.ohama.kanban-proxy.plist
+ create mode 100644 launchagents/com.ohama.kanban.plist
+ create mode 100644 launchagents/com.ohama.telegram-connect.plist
+
+-- resulting commit --
+a1ffaf6 sync: flashnext-plan/-act/-reach-xhigh (Plan/Act reasoning injection, hosted_vllm/ prefix)
+
+-- git status --porcelain (after commit, expected empty) --

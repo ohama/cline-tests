@@ -1,0 +1,33 @@
+=== scope note on commit a1ffaf6 (not a bug, disclosed for honesty) ===
+
+git status --porcelain, captured BEFORE `git add -A` in Step 6, showed more than the
+Phase 10 alias change:
+
+ M SHA256SUMS
+ M STATE.md
+ M config/litellm-config.yaml          <- the Phase 10 change this plan exists to sync
+ M launchagents/com.ohama.flashnext.plist
+ M launchagents/com.ohama.litellm.plist
+ M sync.sh
+?? launchagents/com.ohama.kanban-proxy.plist
+?? launchagents/com.ohama.kanban.plist
+?? launchagents/com.ohama.telegram-connect.plist
+
+`stat -f %Sm` on the working-tree copies of sync.sh / the flashnext+litellm plists shows
+mtimes of 2026-08-30 -- two days before this plan ran, and before the mirror repo's only
+other commit (d122711, 2026-08-29). `./sync.sh --check`, run fresh in Step 2 of this
+plan BEFORE any write, reported exactly ONE diff (`config/litellm-config.yaml`) -- meaning
+these other files were already byte-identical to the live system on disk in this working
+tree, just never committed to the mirror's own git history.
+
+Conclusion: this commit is the mirror's FIRST commit since 2026-08-29, so it is also the
+first opportunity to commit ~2 days of accumulated, unrelated drift (a Kanban/
+Kanban-proxy/Telegram-connect launchd rollout, and a reformatting of the flashnext/litellm
+plists) that some earlier, uncommitted `./sync.sh` run had already written to disk. This
+plan's own script only ever asked `sync.sh` to reconcile `config/litellm-config.yaml`
+(the one entry `--check` flagged); it did not itself cause the plist/sync.sh changes.
+They are swept into the same commit because `git -C ~/local-llm-settings add -A` stages
+the whole working tree, and there is no cleaner way to commit "only the Phase 10 part" of
+a directory whose own stated purpose is to be one living, whole-tree snapshot of the
+machine ("살아 있는 기준점", not per-topic history). Recorded here rather than left for a
+future reader to notice unexplained.
