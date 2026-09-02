@@ -1,0 +1,36 @@
+OK: providers.json holds flashnext @ localhost:4000/v1, top-level contextWindow=29000, no models[] override, no codex alias
+trigger = maxInputTokens x 0.9 = 26100 — PROVEN to fire: phase-01/results/exp-verify29k/ (2026-08-30, 서버 400 0건)
+OK[WRAPPER]: WRAPPER_PLAN_ALIAS ('flashnext-plan') and WRAPPER_ACT_ALIAS ('flashnext-act') are non-empty and distinct
+OK[WRAPPER]: WRAPPER_PLAN_ALIAS='flashnext-plan' is a known-good plan alias (outcome-neutral: USE-03 may revert to plain 'flashnext')
+OK[WRAPPER]: WRAPPER_ACT_ALIAS='flashnext-act' is a known-good act alias
+OK[WRAPPER]: cline-plan sets WRAPPER_MODE_FLAG="-p" (ROADMAP criterion 1/2 mode pairing)
+FAIL[WRAPPER]: cline-plan does not set WRAPPER_ALIAS from $WRAPPER_PLAN_ALIAS — possible mode/alias mismatch (ROADMAP criterion 2)
+OK[WRAPPER]: cline-act sets WRAPPER_MODE_FLAG="" (no mode flag — Act is the CLI's own default)
+OK[WRAPPER]: cline-act reads WRAPPER_ALIAS from $WRAPPER_ACT_ALIAS
+OK[WRAPPER]: cline-act contains no -p/--plan token outside comments
+OK[WRAPPER]: neither cline-plan nor cline-act contains a literal alias string
+OK[WRAPPER]: WRAPPER_CLINE_BIN is an absolute path ('/opt/homebrew/bin/cline')
+--- construction region extracted from /var/folders/l5/kgnn3k0x6jxgmmbjcspzjky40000gn/T//verify-wrappers-selftest.gtyaQV/m1-alias-mismatch/wrapper_common.sh (for audit) ---
+set -- -P "$WRAPPER_PROVIDER"
+[ -n "$WRAPPER_MODE_FLAG" ] && set -- "$@" "$WRAPPER_MODE_FLAG"
+set -- "$@" -m "$WRAPPER_ALIAS" --compaction "$WRAPPER_COMPACTION" -t "$TIMEOUT"
+[ -n "$JSON_FLAG" ] && set -- "$@" --json
+[ -n "$CWD" ] && set -- "$@" -c "$CWD"
+set -- "$@" "$PROMPT"
+
+# CLINE_NO_AUTO_UPDATE=1: not proven to work (CFG-05 is unresolved — the binary drifted
+# 3.0.53->3.0.60 anyway) but a version change mid-use would silently invalidate every pinned
+# fact this wrapper rests on (phase-10/probe_vrf04_cline.sh sets it for the same reason).
+CLINE_RC=0
+CLINE_NO_AUTO_UPDATE=1 "$CMD" "$@" || CLINE_RC=$?
+--- end construction region ---
+OK[WRAPPER]: construction region in /var/folders/l5/kgnn3k0x6jxgmmbjcspzjky40000gn/T//verify-wrappers-selftest.gtyaQV/m1-alias-mismatch/wrapper_common.sh shows no named-array or $* caller-argument passthrough
+OK[WRAPPER]: construction region in /var/folders/l5/kgnn3k0x6jxgmmbjcspzjky40000gn/T//verify-wrappers-selftest.gtyaQV/m1-alias-mismatch/wrapper_common.sh invokes the resolved binary variable, never a bare 'cline'
+OK[WRAPPER]: WRAPPER_CHECK_ALIAS_LIVE not set — live gateway check skipped (default, per hard constraint: no network dependency on the default path)
+FAIL[WRAPPER]: cline-plan 'wrapper-check' behavioural assertion failed (exit=0, expected -p, -m flashnext-plan once, -P openai-compatible, zero --thinking) — observed argv: -P openai-compatible -p -m flashnext-act --compaction agentic -t 600 wrapper-check 
+OK[WRAPPER]: cline-act 'wrapper-check' argv observed: -P openai-compatible -m flashnext-act --compaction agentic -t 600 wrapper-check 
+OK[WRAPPER]: cline-plan --thinking high 'wrapper-check' correctly refused (exit=2), stub argv file byte-unchanged (USE-02 --thinking leak check)
+OK[WRAPPER]: cline-act --thinking high 'wrapper-check' correctly refused (exit=2), stub argv file byte-unchanged (USE-02 --thinking leak check)
+OK[WRAPPER]: cline-plan -m flashnext 'wrapper-check' correctly refused (exit=2), stub argv file byte-unchanged (-m override rejection check)
+FAIL[WRAPPER]: 2 wrapper assertion(s) failed for /var/folders/l5/kgnn3k0x6jxgmmbjcspzjky40000gn/T//verify-wrappers-selftest.gtyaQV/m1-alias-mismatch — see FAIL[WRAPPER] lines above
+FAIL[WRAPPER]: mode/alias pairing check failed — see above

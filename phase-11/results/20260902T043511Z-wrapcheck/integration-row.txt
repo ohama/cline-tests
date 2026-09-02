@@ -1,0 +1,3 @@
+run_headless.sh exit code: 1
+abort line (verbatim): ABORT: wrapper mode/alias check failed (verify_config.sh exit 3) — this is NOT a providers.json drift; healing would not help. See FAIL[WRAPPER] above.
+verdict: PASS
