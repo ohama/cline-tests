@@ -49,7 +49,14 @@ CFG-16 의 질문도 이에 따라 좁아졌다 — `GATE-VERDICT.md` §3.2.
 ### CFG — 별칭과 주입
 
 - [x] **CFG-11**: `flashnext-plan` 별칭이 **`enable_thinking: true` 와 `reasoning_effort: medium` 을 함께**
-  주입한다 (Cline 은 `--thinking` 을 쓰지 않는다)
+  주입한다 (~~Cline 은 `--thinking` 을 쓰지 않는다~~)
+  <br>🔴 **2026-09-02 정정 — 괄호 안 전제가 지금은 거짓이다.** 3.0.53 에서는 참이었으나
+  설치된 **3.0.60 에는 `--thinking <level>` 플래그가 실재한다**(`none|low|medium|high|xhigh`,
+  `cline --help` 로 직접 확인). 클라이언트가 보낸 `reasoning_effort` 는 litellm 의 kwarg 병합
+  순서상 **별칭이 주입한 값을 덮어쓴다.** 즉 사용자가 `--thinking` 을 쓰면 별칭 설계가
+  우회된다. **Phase 11 의 래퍼는 `--thinking` 통과를 능동적으로 막아야 한다** — 플래그가
+  없어서 안전하다는 가정은 더 이상 성립하지 않는다. 이는 CFG-05(자동 업데이트 미차단)의
+  3차 피해다.
   <br>※ **2026-09-01 변경.** 원래는 `reasoning_effort` 만 주입할 계획이었다. `VALIDATED.md` §4 의
   권장이 *"중간 → `enable_thinking: true` + `reasoning_effort: medium`"* 으로 **두 파라미터를 함께**
   쓰라고 명시하고, `enable_thinking` 의 기본값이 `false` 이므로 effort 만으로 사고가 켜진다는 보장이
