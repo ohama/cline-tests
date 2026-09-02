@@ -21,7 +21,7 @@ litellm 설정 변경(Phase 10)은 그 답이 나온 뒤에만 일어난다. 게
 **Phase Numbering:** v1 이 1–8 을 썼다. v1.1 은 9 에서 시작한다 (연속 번호, 재시작 없음).
 
 - [x] **Phase 9: 사전 확인 게이트 (스택 무변경)** - `:8011` 직결 무위험 실측으로 두 킬 컨디션에 근거 있는 답을 낸다
-- [ ] **Phase 10: 별칭 주입과 도달 증명** - litellm 재기동을 감수하고 별칭을 추가한 뒤, 서버 로그로 도달을 증명한다
+- [x] **Phase 10: 별칭 주입과 도달 증명** - litellm 재기동을 감수하고 별칭을 추가한 뒤, 서버 로그로 도달을 증명한다
 - [ ] **Phase 11: 사용 표면 — 래퍼와 A/B 게이트** - `cline-plan`/`cline-act` 짝 강제와 medium 개선 여부 판정
 - [ ] **Phase 12: 문서 갱신** - 매뉴얼·고정값·설계문서를 실측 결과로 갱신
 
@@ -125,17 +125,36 @@ Plans:
      `flashnext-codex` 29–33행)은 CFG-13 의 바이트 동일 검사 대상으로 유지된다.
 **Plans**: 6 plans (6 waves, 전 구간 직렬 — 재기동 옆에서는 아무것도 측정할 수 없고
 모델이 `--max-num-seqs 1` 이라 동시 요청도 불가)
+**Status**: ✅ 완료 (2026-09-02) — 검증 7/7, `10-VERIFICATION.md`
+  - **별칭 5개 라이브** — `flashnext`(불변) · `flashnext-codex`(불변) · `flashnext-plan` ·
+    `flashnext-act` · `flashnext-reach-xhigh`. deprecated `qwen-*` 6개 제거(CFG-17)
+  - **도달 증명** — 서버 로그 `prompt_tokens` 기준(HTTP 200 아님). `flashnext`→
+    `flashnext-reach-xhigh` **+40**, `flashnext-plan`→`reach-xhigh` **+42**, 오라클과 정확히 일치.
+    접두사 교란은 같은 본문 3쌍 전부 **델타 0** 으로 배제됨
+  - **CFG-16 양성** — 출하 조합이 별칭 경유로 284자 `reasoning` 생성(클라이언트는 파라미터 미전송)
+  - **VRF-04 양성** — 실제 `cline` 실행에서 `flashnext-plan` 스트림에 사고 이벤트 다수,
+    `flashnext` 대조군 **0건**. "설정이 존재한다"와 "작동한다"가 처음으로 같아짐
+  - **스택** — `flashnext`/`role-shim` PID 불변, `verify_config.sh` OK, 사본 동기 완료
+**⚠ 증명 강도 고지** (`phase-10/PHASE-10-FINDINGS.md` §4):
+  - **배포 팔(−2)은 도달을 증명한 팔(+42)이 아니다.** 좁은 마진은 우발적 프롬프트 드리프트에 취약
+  - **재기동 B 중단은 미측정** — 샘플러가 기록하려던 connection-refused 로 `set -e` 에 죽음.
+    A 의 ~7초로 메우지 않음
+  - **`cline` 3.0.53 → 3.0.60 드리프트** — Phase 9 소스 인용은 3.0.60 에서 미재검증
+  - **`cline -m` 이 `providers.json` 을 쓴다**(`updatedAt`). `model`·`contextWindow` 는 불변.
+    제약을 해시가 아니라 이 두 값으로 정정함 → Phase 11 이 물려받음
+  - 이 페이즈는 **아무것도 관측하지 않으면서 통과를 보고한 계측기 5개**를 만들었고 전부
+    종료 코드가 아니라 실제 출력을 읽어 잡았다 — 방법론상 가장 값진 발견
 
 Plans:
-- [ ] 10-01-PLAN.md — 후보 설정 작성(신규 별칭 추가 **+ CFG-17 deprecated 6개 삭제**) + 설치 전
+- [x] 10-01-PLAN.md — 후보 설정 작성(신규 별칭 추가 **+ CFG-17 deprecated 6개 삭제**) + 설치 전
       검증 사다리(스크래치 포트 4010 부팅)와 그 음성 대조군
-- [ ] 10-02-PLAN.md — 백업·기준선·롤백 리허설(변경 전에 실행) + 변경 브리핑 + 🔴 사람 체크포인트
-- [ ] 10-03-PLAN.md — 🔴 **유지보수 창(이 페이즈에서 유일하게 litellm 재기동 가능).**
+- [x] 10-02-PLAN.md — 백업·기준선·롤백 리허설(변경 전에 실행) + 변경 브리핑 + 🔴 사람 체크포인트
+- [x] 10-03-PLAN.md — 🔴 **유지보수 창(이 페이즈에서 유일하게 litellm 재기동 가능).**
       무변경 설정으로 리허설 재기동 → 설치 → 재기동 → 다표본 헬스 → CFG-13/14 증거
-- [ ] 10-04-PLAN.md — CFG-16 사고 내용 확인(:8011/:4000) + VRF-01/02/03 도달 증명 스크립트
+- [x] 10-04-PLAN.md — CFG-16 사고 내용 확인(:8011/:4000) + VRF-01/02/03 도달 증명 스크립트
       + `hosted_vllm/` 접두사 교란 해소
-- [ ] 10-05-PLAN.md — VRF-04: 실제 `cline` 실행과 대조군, NDJSON 관측 기록
-- [ ] 10-06-PLAN.md — CFG-15 `sync.sh` 반영·커밋 + 요구사항/기준 전체 증거 매핑과 약한 증명 고지
+- [x] 10-05-PLAN.md — VRF-04: 실제 `cline` 실행과 대조군, NDJSON 관측 기록
+- [x] 10-06-PLAN.md — CFG-15 `sync.sh` 반영·커밋 + 요구사항/기준 전체 증거 매핑과 약한 증명 고지
 
 ### Phase 11: 사용 표면 — 래퍼와 A/B 게이트
 **Goal**: `cline-plan`/`cline-act` 래퍼가 모드와 별칭의 짝을 강제하고, `medium` 이 실제로

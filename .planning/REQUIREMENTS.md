@@ -48,25 +48,25 @@ CFG-16 의 질문도 이에 따라 좁아졌다 — `GATE-VERDICT.md` §3.2.
 
 ### CFG — 별칭과 주입
 
-- [ ] **CFG-11**: `flashnext-plan` 별칭이 **`enable_thinking: true` 와 `reasoning_effort: medium` 을 함께**
+- [x] **CFG-11**: `flashnext-plan` 별칭이 **`enable_thinking: true` 와 `reasoning_effort: medium` 을 함께**
   주입한다 (Cline 은 `--thinking` 을 쓰지 않는다)
   <br>※ **2026-09-01 변경.** 원래는 `reasoning_effort` 만 주입할 계획이었다. `VALIDATED.md` §4 의
   권장이 *"중간 → `enable_thinking: true` + `reasoning_effort: medium`"* 으로 **두 파라미터를 함께**
   쓰라고 명시하고, `enable_thinking` 의 기본값이 `false` 이므로 effort 만으로 사고가 켜진다는 보장이
   없다. 실제로 `medium`(21) < 미지정(23) 이라는 시스템 프롬프트 길이 이상 징후가 그 의심의 근거다.
   두 개를 함께 넣으면 이 불확실성 자체가 사라진다
-- [ ] **CFG-12**: PRB-02 가 통과를 확인한 경우에만 `flashnext-act` 별칭이 만들어진다.
+- [x] **CFG-12**: PRB-02 가 통과를 확인한 경우에만 `flashnext-act` 별칭이 만들어진다.
   통과하지 못하면 만들지 않고 그 사실이 기록된다
-- [ ] **CFG-13**: 기존 `flashnext` 별칭은 변경되지 않는다 (회귀 판정 기준선)
-- [ ] **CFG-14**: `drop_params: true` 를 쓰지 않는다 — 파라미터를 조용히 버려 200 을 만드는
+- [x] **CFG-13**: 기존 `flashnext` 별칭은 변경되지 않는다 (회귀 판정 기준선)
+- [x] **CFG-14**: `drop_params: true` 를 쓰지 않는다 — 파라미터를 조용히 버려 200 을 만드는
   실패 모드이며, 이 프로젝트가 두 번 당한 것과 같은 종류다
-- [ ] **CFG-15**: 변경이 `~/local-llm-settings` 에 반영되고 `sync.sh` 결과에 나타난다
-- [ ] **CFG-16**: 별칭이 주입하는 **두 파라미터 조합**(`enable_thinking: true` + `reasoning_effort: medium`)이
+- [x] **CFG-15**: 변경이 `~/local-llm-settings` 에 반영되고 `sync.sh` 결과에 나타난다
+- [x] **CFG-16**: 별칭이 주입하는 **두 파라미터 조합**(`enable_thinking: true` + `reasoning_effort: medium`)이
   실제로 `reasoning` 필드를 만드는 것이 `:8011` 과 `:4000` 양쪽에서 확인된다
   <br>※ **2026-09-01 신설.** 이 조합은 이 스택에서 측정된 적이 없다. VALIDATED.md 의 권장은
   `:8000` 직결 시절 기록이다. 조합이 안 되면 별칭 정의를 고쳐야 하므로 Phase 10 안에서 답이 나야 한다
 
-- [ ] **CFG-17**: deprecated `qwen-*` 별칭 6개(`qwen-local`, `qwen-35b`, `qwen-122b`,
+- [x] **CFG-17**: deprecated `qwen-*` 별칭 6개(`qwen-local`, `qwen-35b`, `qwen-122b`,
   `qwen-122b-claude`, `qwen-35b-claude`, `qwen-122b-codex`)가 라이브 설정에서 제거된다.
   `flashnext` 와 `flashnext-codex` 는 보존한다
   <br>※ **2026-09-01 사용자 지시.** 설정 파일 주석이 스스로 정한 삭제 조건("한동안 로그를 보고
@@ -80,16 +80,16 @@ CFG-16 의 질문도 이에 따라 좁아졌다 — `GATE-VERDICT.md` §3.2.
 
 ### VRF — 도달 증명
 
-- [ ] **VRF-01**: 동일 사용자 메시지를 `flashnext` 와 `flashnext-plan` 으로 각각 보냈을 때
+- [x] **VRF-01**: 동일 사용자 메시지를 `flashnext` 와 `flashnext-plan` 으로 각각 보냈을 때
   서버 로그의 `prompt_tokens` 가 **다르다** — 주입이 실제로 도달했다는 증거
-- [ ] **VRF-02**: 판정 근거가 서버 측 증거이지 HTTP 200 응답이 아니다
-- [ ] **VRF-04**: **실제 `cline` CLI 실행**의 `--json` 스트림에 `reasoning` 이 나타나는지가
+- [x] **VRF-02**: 판정 근거가 서버 측 증거이지 HTTP 200 응답이 아니다
+- [x] **VRF-04**: **실제 `cline` CLI 실행**의 `--json` 스트림에 `reasoning` 이 나타나는지가
   `flashnext-plan` 과 대조군 양쪽에서 관측·기록된다
   <br>※ **2026-09-01 신설.** curl 은 *게이트웨이가 파라미터를 전달한다*만 증명한다.
   *Cline 이 그 경로로 실제 사고를 한다*는 별개이며, 리서치도 이를 "deferred, not done"으로
   명시했다(신뢰도 MEDIUM). v1 에서 설정은 기록됐는데 CLI 가 안 읽어 이틀을 쓴 전례가 있다.
   <br>※ 관측 결과가 부정적이어도 이 요구사항은 충족된다 — 관측이 요구사항이다
-- [ ] **VRF-03**: 재실행 가능한 검증 스크립트로 남는다 (일회성 확인이 아님)
+- [x] **VRF-03**: 재실행 가능한 검증 스크립트로 남는다 (일회성 확인이 아님)
 
 ### USE — 사용 표면과 문서
 
@@ -129,16 +129,17 @@ CFG-16 의 질문도 이에 따라 좁아졌다 — `GATE-VERDICT.md` §3.2.
 | PRB-02 | Phase 9 | Complete |
 | PRB-03 | Phase 9 | Complete |
 | PRB-04 | Phase 9 | Complete |
-| CFG-11 | Phase 10 | Pending |
-| CFG-12 | Phase 10 | Pending |
-| CFG-13 | Phase 10 | Pending |
-| CFG-14 | Phase 10 | Pending |
-| CFG-15 | Phase 10 | Pending |
-| CFG-16 | Phase 10 | Pending |
-| VRF-01 | Phase 10 | Pending |
-| VRF-02 | Phase 10 | Pending |
-| VRF-03 | Phase 10 | Pending |
-| VRF-04 | Phase 10 | Pending |
+| CFG-11 | Phase 10 | Complete |
+| CFG-12 | Phase 10 | Complete |
+| CFG-13 | Phase 10 | Complete |
+| CFG-14 | Phase 10 | Complete |
+| CFG-15 | Phase 10 | Complete |
+| CFG-16 | Phase 10 | Complete |
+| CFG-17 | Phase 10 | Complete |
+| VRF-01 | Phase 10 | Complete |
+| VRF-02 | Phase 10 | Complete |
+| VRF-03 | Phase 10 | Complete |
+| VRF-04 | Phase 10 | Complete |
 | USE-01 | Phase 11 | Pending |
 | USE-02 | Phase 11 | Pending |
 | USE-03 | Phase 11 | Pending |

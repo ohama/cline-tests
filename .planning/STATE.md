@@ -6,25 +6,21 @@ See: .planning/PROJECT.md (updated 2026-09-01)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
   — v1 에서 **합성 조건에 한해** 달성. 실제 에이전트 부하에서는 미달성
-**Current focus:** v1.1 — Phase 10 (별칭 주입과 도달 증명) — **스택을 실제로 바꾸는 첫 페이즈**
+**Current focus:** v1.1 — Phase 11 (사용 표면: `cline-plan`/`cline-act` 래퍼와 A/B 게이트)
 
 ## Current Position
 
 Milestone: v1.1 Plan/Act ↔ reasoning_effort
-Phase: 10 of 12 — 진행 중 (1/6 plans 완료, 2026-09-01)
-Plan: 1 of 6 완료 (10-01)
-Status: 10-01 완료 — 후보 설정 작성 + 4단 검증 사다리 구축·자체 증명. **스택은 여전히
-  하나도 바뀌지 않았다** — 후보는 `phase-10/config/`에만 존재, 설치는 10-03 몫.
-Last activity: 2026-09-01 — 10-01 완료. `hosted_vllm/` 접두사 3별칭(flashnext-plan/-act/
-  -reach-xhigh)을 순수 삽입으로 후보 생성(기계적 3중 증명: diff 0줄 삭제·앵커 이전 구간
-  바이트 동일·flashnext/-codex deep-equal). 4단 사다리(YAML 파싱→drop_params 금지→CFG-13
-  기준선→스크래치 4010 실부팅)를 만들고 실제로 후보에 통과시킨 뒤, 4개 뮤턴트를 심어 사다리가
-  실제로 거부하는지 증명(3/3 결정론적 뮤턴트 CAUGHT, 1개는 측정치로 기록). 실행 중 발견한
-  실제 버그 3건 자동 수정(계획 자체의 검증 문구 2건, 사다리의 90초 지연 감지 1건 — 자세한
-  내용은 10-01-SUMMARY.md 참조). **미해결 항목**: 실행 중 `.planning/REQUIREMENTS.md`·
-  `ROADMAP.md`에 커밋되지 않은 외부 편집(CFG-17, deprecated qwen-* 별칭 6개 삭제를 10-01
-  범위에 편입)을 발견했으나, 현재의 권위 있는 `10-01-PLAN.md`와 충돌(순수 삽입 불변식)하여
-  실행하지 않고 그대로 남겨둠 — 오케스트레이터가 정리해야 함.
+Phase: 10 of 12 — ✅ **완료** (2026-09-02), 검증 7/7. 다음은 Phase 11
+Plan: 6 of 6 완료 (10-01 ~ 10-06)
+Status: Phase 10 종료 — 별칭 5개 라이브, 도달 증명 완료, 실제 `cline` 에서 사고 관측됨
+Last activity: 2026-09-02 — Phase 10 전체 완료. 사람 승인을 받고 유지보수 창을 열어
+  `litellm` 을 두 번 재기동하며 라이브 설정을 교체했다. `flashnext-plan`(사고 medium) ·
+  `flashnext-act`(사고 끔) · `flashnext-reach-xhigh`(검증 전용) 3개 추가, deprecated
+  `qwen-*` 6개 제거(CFG-17). **도달을 HTTP 200 이 아니라 서버 로그 `prompt_tokens` 로
+  증명**했고(+40, 오라클 정확 일치), 접두사 교란은 같은 본문 3쌍 전부 델타 0 으로 배제했다.
+  **실제 `cline` 실행에서 `flashnext-plan` 스트림에만 사고가 나타났다**(대조군 0건) —
+  v1.1 이 겨냥한 "설정이 존재한다 ≠ 작동한다"의 간극이 처음으로 닫혔다.
 
 Progress: [███░░░░░░░] v1.1 (19/19 requirements mapped, 4/19 complete: PRB-01..04;
   Phase 9 완료, Phase 10 1/6 plans 완료, Phase 11–12 plans TBD)
