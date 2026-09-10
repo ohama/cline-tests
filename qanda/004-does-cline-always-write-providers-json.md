@@ -118,7 +118,7 @@ Phase 10 의 VRF-04(3.0.60)는 `updatedAt` 만 바뀌고 **`model` 은 `flashnex
 
 ## 4. 막는 법 — 검증됨
 
-`sdk/packages/shared/src/storage/paths.ts:347-353`:
+`sdk/packages/shared/src/storage/paths.ts:424-430` (3.0.61 기준. 3.0.53 에서는 `:347-353`):
 
 ```ts
 export function resolveProviderSettingsPath(): string {
@@ -200,6 +200,6 @@ git show cli-v3.0.53:apps/cli/src/main.ts    # 여전히 조회 가능
 | `-m` → 파일 | `main.ts:1056` `modelId: args.model ?? …` |
 | 동작 불변 | `git diff cli-v3.0.53 cli-v3.0.61 -- apps/cli/src/main.ts` → `filterChatModels` 한 줄뿐 |
 | Phase 9 판독 범위 오류 | `session-runtime.ts:109-113` 은 커넥터 읽기 경로 |
-| env 우선 | `paths.ts:347-353` |
+| env 우선 | `paths.ts:424-430` (3.0.61). 3.0.53 에서는 `:347-353` — 코드 동일, 위치만 이동 |
 | 격리 실측 | 이 문서 작성 중 실행, sha `588bd7cc5e15977a` 전후 동일 |
 | 100% 발생률 | `phase-11/AB-RESULTS.md`, `providers-drift.tsv` (31/31) |

@@ -157,7 +157,8 @@ fi
 # help anyone who read the file in between.
 #
 # resolveProviderSettingsPath() honours CLINE_PROVIDER_SETTINGS_PATH unconditionally — not
-# sandbox-only (sdk/packages/shared/src/storage/paths.ts:347-353). Pointing it at a per-invocation
+# sandbox-only (sdk/packages/shared/src/storage/paths.ts:424-430 at cli-v3.0.61; :347-353 at
+# cli-v3.0.53 — same code, shifted). Pointing it at a per-invocation
 # copy sends the write there instead. The copy carries the real settings, so baseUrl, the verified
 # contextWindow=29000 and the credentials all still apply; only the mutation is redirected.
 #
