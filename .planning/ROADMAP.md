@@ -243,10 +243,17 @@ Plans:
      `--thinking` 이 litellm 에서 400 이 된다는 사실이 명시된다 (USE-04)
   3. `docs/plan-act-reasoning-design.md` / `-implementation.md` 상단 상태 배지가
      "제안/계획"에서 이번 마일스톤의 실측 결과(구현됨 · 게이트 폐기 등)로 갱신된다 (USE-05)
-**Plans**: TBD
+**Plans**: 8 plans (3 waves)
 
 Plans:
-- [ ] 12-01: TBD (plan-phase 에서 세분화)
+- [ ] 12-01-PLAN.md — 문서 스윕 검사기(`verify_docs.sh`)를 편집 **전에** 작성, 뮤턴트로 실패 능력 증명, RED 기준선 포착, 범위 결정 8건 기록
+- [ ] 12-02-PLAN.md — `plan-act-reasoning-implementation.md`: reasoning 재첨부 오탐 정정, 대체된 래퍼 스케치, 정정 배너·부록 (USE-05)
+- [ ] 12-03-PLAN.md — `plan-act-reasoning-design.md`·`-diagrams.md`: 상태 배지, 게이트 ①·② 판정, 접두사별 `--thinking` 실패 모드 (USE-05)
+- [ ] 12-04-PLAN.md — `docs/manual/01-cli.md` §6a 래퍼 사용법 + `--mode` 대 `-p` 증거 정합 (USE-04 기준 1)
+- [ ] 12-05-PLAN.md — `docs/cline-config-pins.md` 별칭 고정값·접두사별 상태 코드·고정 대 측정 구분 (USE-04 기준 2)
+- [ ] 12-06-PLAN.md — `max_tokens` 동적화 정정: `32k-compaction-policy.md`·`cline-max-tokens-findings.md` (범위 결정 1)
+- [ ] 12-07-PLAN.md — `howto/` 2건·`qanda/` 2건의 낡은 서술 제자리 정정 (범위 결정 2)
+- [ ] 12-08-PLAN.md — 스윕 GREEN, 문장 인용 과대주장 감사 9건, `PHASE-12-FINDINGS.md`, 요구사항·로드맵·상태 갱신, 사람 확인
 
 ## Progress
 
