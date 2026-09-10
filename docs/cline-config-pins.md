@@ -1,7 +1,11 @@
-# Cline 설정 고정 (CFG-04, CFG-05, CFG-06)
+# Cline 설정 고정 (Phase 1: CFG-04·CFG-05·CFG-06 / v1.1: CFG-11..17)
 
 이 문서는 Phase 1 이 고정한 네 가지 값 — `cline` 버전, `kanban` 버전, 압축(compaction) 모드,
 모델 — 의 근거와 증거를 기록한다. 나중에 뭔가 어긋났을 때 제일 먼저 볼 문서다.
+
+**2026-09-10 추가.** §7 은 v1.1(Phase 10/11)이 `flashnext` 위에 추가·삭제한 별칭 고정을 같은
+형식으로 기록한다. §1–§6 은 Phase 1 문서 원문 그대로이며, 아래 §7 은 새 내용의 순수 추가다 —
+기존 문장을 정정하는 것이 아니므로 이 파일 전체에 정정-전 기록 부록은 없다.
 
 정본은 코드다: `phase-01/config/cline-invocation.env` (값 정의) 와
 `phase-01/config/check_versions.sh` (드리프트 검증). 이 문서는 그 값들이 **왜** 그 값인지의
@@ -133,3 +137,131 @@ check_versions: PASS
 Check C 의 스캐너는 fixture plist 로도 검증됨: `CLINE_NO_AUTO_UPDATE` 가 없는 fixture 는
 FAIL + exit 1, 있는 fixture 는 PASS + exit 0 (실제 `~/Library/LaunchAgents/` 는 건드리지 않고
 `LAUNCHAGENTS_DIR` 환경변수로 스캔 대상 디렉터리를 바꿔서 테스트).
+
+## 7. v1.1 별칭 고정 (CFG-11..17)
+
+Phase 10 이 litellm 설정(`~/local-llm-settings/config/litellm-config.yaml`)에 세 개의 별칭을
+추가하고 여섯 개를 삭제했다. Phase 1 의 §1 표가 고정한 네 값(모델은 `flashnext` 그 자체)은
+전혀 바뀌지 않았다 — 여기서 고정하는 것은 그 위에 얹힌 새 표면이다.
+
+### 7.1 살아있는 다섯 개 별칭
+
+읽기 전용으로 이 세션에 재확인한 실제 목록(`grep -c 'model_name: flashnext'
+~/local-llm-settings/config/litellm-config.yaml` → 5, 아래 표의 순서와 정확히 일치):
+`flashnext`, `flashnext-codex`, `flashnext-plan`, `flashnext-act`, `flashnext-reach-xhigh`.
+
+| 별칭 | prefix | 주입 파라미터 | 상태 | 요구사항 |
+| --- | --- | --- | --- | --- |
+| `flashnext` | `openai/` | 없음 (control) | v1.1 로 변경 없음, 바이트 동일 | CFG-13 |
+| `flashnext-codex` | `openai/` | 없음 | 변경 없음, **호출 금지 — 모델 서버가 죽는다** | — |
+| `flashnext-plan` | `hosted_vllm/` | `enable_thinking:true` + `reasoning_effort:medium` | 출하된 Plan 모드 기본값 | CFG-11 |
+| `flashnext-act` | `hosted_vllm/` | `enable_thinking:false` | 출하된 Act 모드 기본값 | CFG-12 |
+| `flashnext-reach-xhigh` | `hosted_vllm/` | `reasoning_effort:xhigh` | **검증 전용, 사용 표면 아님** — §7.3 | — |
+
+증거: `phase-10/ALIAS-DESIGN.md` §1–§2, `phase-10/CFG-13-EVIDENCE.md` Checks 1–4,
+`phase-10/PHASE-10-FINDINGS.md` §1–§2.
+
+**왜 새 별칭 세 개는 `openai/` 가 아니라 `hosted_vllm/` 인가.** `openai/` prefix 로
+`reasoning_effort` 를 보내면 litellm 자체의 파라미터 검증(`UnsupportedParamsError`)이 게이트웨이를
+떠나기도 전에 요청을 거부한다 — **HTTP 400**. 이 prefix 를 바꾸는 것은 새 별칭을 만드는
+구현 디테일이 아니라, 그 자체로 이 400 문제를 다시 여는 행위다. 그래서 이 문서는 prefix 를
+`고정`으로 취급한다 (§7.6). 자세한 메커니즘은 `phase-10/ALIAS-DESIGN.md` §3.
+
+### 7.2 삭제된 여섯 개 `qwen-*` 별칭 (CFG-17)
+
+`qwen-local`, `qwen-35b`, `qwen-122b`, `qwen-122b-claude`, `qwen-35b-claude`, `qwen-122b-codex` —
+이 여섯은 CFG-17 에 따라 설정에서 완전히 삭제되었다. **역사적 존재이며 더 이상 도달 불가능**이다.
+과거 문서가 이 이름들을 언급하는 것을 보게 되면, 오설정이 아니라 이 삭제 때문임을 알 수 있도록
+여기 기록한다. 삭제 근거와 안전장치(`flashnext`/`flashnext-codex` 바이트 동일성 보존)는
+`phase-10/ALIAS-DESIGN.md` §2.
+
+### 7.3 `flashnext-reach-xhigh` — 결정 완료, 세 번째로 미루지 않음
+
+이 별칭은 **검증 전용이며 사용 표면이 아니다.** `phase-12/SCOPE-DECISIONS.md` 3번 항목의 결정:
+**남긴다.** 제거하려면 litellm 재시작이 한 번 더 필요하고, 그 재시작은 Kanban/Telegram 서비스의
+또 한 번의 중단을 의미한다 — 남겨 두는 데는 비용이 없다. **v1.2 제거 후보**로 기록한다. 이
+항목은 이미 두 번 다음으로 미뤄졌다(`phase-10/PHASE-10-FINDINGS.md` §5, 그리고
+`flashnext-plan`/`flashnext-act` 의 keep-or-revert 판단을 다룬 Phase 11 결과 문서의 해당 절) —
+**지금 결정되었고, 세 번째로 다음 페이즈에 넘기지 않는다.**
+
+**이 별칭이 지고 있는 증명은 다르다 — 반드시 밝혀야 하는 마진 차이.** reach 는 **넓은 마진으로
+증명되었다 — `flashnext-reach-xhigh` 에서, +40**, 그런데 이 별칭은 한 번도 출하된 적이 없다
+(`phase-10/PHASE-10-FINDINGS.md` §4.1, `phase-11/PHASE-11-FINDINGS.md` §5.4). 실제로 출하된
+`flashnext-plan` 자신의 마진은 **−2** 다 — 명시적으로, 더 약하고 보강적인 증명이다. 이것을
+"출하된 별칭의 reach 가 넓은 마진으로 증명됐다"로 뭉뚱그리면 안 된다 — 그렇지 않았다. 두 델타
+숫자(그리고 그 둘의 관계)의 원천 기록은 `phase-10/REACH-PROOF.md` §3 — 같은 표를 여기서 세 번째로
+베끼지 않는다. `howto/thinking-and-reasoning-effort.md` 와 `howto/fast-and-deep-mode.md` 도 같은
+숫자를 자체-검증(self-service verification)이라는 다른 목적으로 이미 싣고 있다.
+
+### 7.4 `--thinking` 은 prefix 마다 다르게 실패한다 — 상태 코드 하나가 아니다
+
+USE-04 와 ROADMAP Phase 12 criterion 2 는 모두 `--thinking` 이 "litellm 에서 400 이 된다"고
+평평하게(단일 코드로) 말한다. 실측하면 이건 다섯 개 살아있는 별칭 중 **정확히 하나에만** 맞는
+말이다:
+
+- `flashnext` (`openai/` prefix): litellm 자신의 `UnsupportedParamsError` → **HTTP 400**.
+- `flashnext-plan` / `flashnext-act` / `flashnext-reach-xhigh` (`hosted_vllm/` prefix): 값이
+  litellm 검증은 통과하고, **모델 서버**가 그 값을 거부한다 → **HTTP 500**.
+- 래퍼를 거치지 않고 바이너리를 직접 부르는 원시 `cline --thinking high` 는 그 모델 서버의
+  500 을 Cline 자신의 오류 이벤트로 표면화하며 **exit 1** 로 끝난다 — 이 경로에서는 400 을
+  절대 볼 수 없다.
+- 셋 다 생성-큐 슬롯을 소비하지 않는다 — 값 검증이 큐잉보다 먼저 일어난다.
+
+즉 요구사항의 "400" 은 다섯 개 살아있는 별칭 중 딱 하나에만 정확하다. prefix 별로 상태 코드를
+따로 적어 두고, 이 부정확함 자체를 명시적으로 짚는다 — 지적되지 않은 부정확한 성공 기준은
+바로 이런 식으로 거짓 주장이 마일스톤을 넘어 살아남는 경로다. 측정 원천:
+`phase-11/OPEN-ITEMS.md` Open Item 1 (cases 1a/1c).
+
+**CFG-11 전제 정정.** `cline@3.0.53` 시점엔 `--thinking` 이 CLI 에 없다고 믿었다. 지금 설치된
+3.0.60+ 에서는 실재하는 플래그(`none|low|medium|high|xhigh`)이고, litellm 이 클라이언트 kwargs 를
+`litellm_params` **뒤에** 병합하기 때문에 클라이언트가 보낸 값이 별칭이 주입한
+`reasoning_effort` 를 **덮어쓴다**. 이게 정확히 `phase-11/cline-plan`/`cline-act` 가 이 플래그를
+무조건 거부하는 이유다 — deny-by-default 근거는 `phase-11/WRAPPER-DESIGN.md` §3/§4.
+
+### 7.5 고정 vs 측정값 — 이 절이 이 문서에서 가장 중요한 단락
+
+**고정** (조용히 드리프트하면 안 되는 값 — §1 의 고정/요구사항/증거 어휘를 그대로 확장):
+
+- 별칭 이름과 그 주입 파라미터 값 — `flashnext-plan` 은 언제나
+  `enable_thinking:true` + `reasoning_effort:medium` 을 주입한다.
+- `hosted_vllm/` vs `openai/` prefix 선택 — 바꾸면 400 문제가 다시 열린다.
+- `providers.json` 의 `model` 과 `contextWindow` — `verify_config.sh` 가 이미 이 둘을 단언한다.
+
+**측정값, 고정 아님** (이미 드리프트했고, 이걸로 아무것도 판단하지 않는다):
+
+- 절대 `prompt_tokens` 오라클 값 — **23/21/51/63 → 13/11/41/53** 로 원인 불명인 채 이동했다
+  (`phase-09/PRB-03-ORACLE.md` §5).
+- 와이어 `max_tokens` — 과거엔 고정 `2048` 로 기록됐으나, cline 3.0.60/3.0.61 에서 **20983** 으로
+  실측됐고, 그 이후 아예 고정값이 아님이 밝혀졌다 — cline 이 요청마다
+  `prompt_tokens + max_tokens` 가 `contextWindow × 0.9` 근처에 오도록 완료 예산을 동적으로
+  산정한다. 산술 자체는 `docs/cline-max-tokens-findings.md` 와 `docs/32k-compaction-policy.md`
+  (plan 12-06 이 동시에 정정 중)를 참조 — **여기서는 링크만 하고 그 산술을 다시 적지 않는다.**
+
+**미래의 드리프트는 절대값이나 파일 해시가 아니라 델타로 판단한다.** `unspecified` 로부터의
+델타 — `medium` −2, `low` +28, `xhigh` +40 — 는 서로 몇 주 떨어진 세 번의 독립 측정 라운드에서
+비트 단위로 동일하게 유지됐다(`phase-09/PRB-03-ORACLE.md` §2/§5) — 그 사이 절대값은 전부
+이동했다. `providers.json` 도 마찬가지로 `model` 과 `contextWindow` 로 판단하고, **sha256 으로
+판단하지 않는다** — 그 제약은 이 마일스톤 안에서 이미 한 번 정정됐다, 타임스탬프만 바뀐 재작성이
+해시를 바꿔놨을 뿐 정작 중요한 것은 아무것도 바뀌지 않았을 때.
+
+### 7.6 `providers.json` 은 반복적으로 고쳐질 뿐 안정적이지 않다
+
+지금은 `model=flashnext`, `contextWindow=29000` 을 읽는다 — 하지만 이건 **한 시점의
+관측이지 고정이 아니다.** 격리되지 않은 `cline -m` 호출은 **호출마다** `model` 을 덮어쓴다
+(31/31 실측, 100%) — 2026-09-10 시점에 래퍼들은 이 쓰기를 스크래치 사본으로 리다이렉트하지만,
+래퍼 밖에서 실행되는 맨 `cline -m` 은 여전히 공유 파일을 매 호출 때마다 오염시킨다. 이 파일이
+"유지된다"거나 "그대로 있다"는 함의를 어디에도 쓰지 않는다 — 이건 이 마일스톤에서 가장 안심되는
+쪽으로 완화되어 거짓이 되기 쉬운 성질이라, 여기 명시적으로 못 박는다.
+
+### 7.7 버전 고정과의 상호작용 — 참고, 새 절 아님
+
+§5/§6 은 Phase 1 시절 `cline@3.0.53` 고정과, launchd plist 가 존재하지 않아 공허하게 통과한
+`check_versions.sh` 스캔을 기술한다. `cline` 은 그 이후 3.0.53 → 3.0.60 → **3.0.61** 로
+드리프트했고 CFG-05(자동 업데이트가 실제로 막혀 있는가)는 여전히 미해결이다. 3.0.53 고정이
+지금 지켜지고 있다는 함의는 여기 추가하지 않는다 — "실제 버전을 확인하라"는 경고는 이미
+`docs/manual/01-cli.md` §8 이 소유하고 있으므로, 거기를 참조하고 중복 서술하지 않는다.
+
+### 7.8 래퍼 사용법은 여기가 아니다
+
+래퍼 사용법(어떻게 부르는가)은 `docs/manual/01-cli.md` §6a 에 있고, 정확한 래퍼 계약은
+`phase-11/WRAPPER-DESIGN.md` 에 있다. 이 문서는 고정값에만 범위를 좁힌다.
