@@ -1,7 +1,17 @@
 # 구현 계획: Act = thinking off · Plan = `reasoning_effort: medium`
 
-> **상태: 계획. 미착수.** 설계 근거는 `docs/plan-act-reasoning-design.md` 를 따른다.
-> 작성 2026-09-01.
+> **2026-09-10 정정.** 이 계획은 **v1.1 에서 구현됐다** — 별칭(`flashnext-plan`/`flashnext-act`)은
+> Phase 10, 래퍼(`phase-11/cline-plan`/`phase-11/cline-act`)는 Phase 11 이 만들었다.
+> `cline-plan → flashnext-plan` 배포 결정은 **keep** 이며, §T6(Gate②) 사전 등록 규칙의 기계적
+> 출력 `revert` 를 인간이 **override** 한 결과다(분류 `override-with-reason`,
+> `phase-11/AB-RESULTS.md` §11). override 의 근거는 A/B 가 정확도 개선을 찾았기 때문이
+> **아니다** — 두 arm 이 동등하게 시도된 구간(과제 01–06, N=5)에서 arm A 와 arm C 모두
+> **25/30** 으로 정확히 같았고, 셀 단위 순열검정은 **p=0.563** 으로 우연과 구별되지 않았다
+> (`phase-11/AB-RESULTS.md` §6·§11). override 의 실제 근거는 정확도와 무관하다 —
+> `providers.json` 부작용이 commit `017c65e` 로 봉쇄 가능해졌다는 사실이다
+> (`phase-11/WRAPPER-DESIGN.md`). 현재 유효한 본문은 아래 §1 부터이고, 이 정정으로 대체된
+> 원문은 이 문서 끝 §9(정정 전 원문을 보존하는 부록)에 그대로 보존한다. "이 정정이 바꾸는
+> 것"은 §7, 아직 닫히지 않은 항목은 §8 참조.
 >
 > 이 계획은 설계 문서의 3층 구조 중 **L1(차단 해제)을 쓰지 않는다.** 아래 §1 참조.
 
@@ -92,14 +102,52 @@ curl -s -o /dev/null -w "enable_thinking:false → HTTP %{http_code}\n" \
 (`docs/32k-compaction-policy.md`). 컨텍스트는 단조 증가한다. 여기에 사고 트레이스까지
 누적되면 32K 천장에 **더 빨리** 부딪히고, 압축은 여전히 줄이지 못한다.
 
-**소스 조사 결과 (2026-09-01, tag `cli-v3.0.53`):**
-- `agentic-compaction.ts:88` 의 `reasoningChars` 는 **압축 요약기 자신의** reasoning 출력을
-  세는 텔레메트리다. 요약문 `text` 만 반환되고 reasoning 은 버려진다. **누적의 증거가 아니다.**
-- `toGatewayRequestMessages()` (`compat.ts:306`) 는 `message.content` 배열만 순회한다.
-  `reasoning` 을 아웃바운드 메시지에 싣는 코드는 발견되지 않았다.
-- `runtime-event-adapter.ts:290` 의 `reasoning: reasoning.reasoning` 은 이벤트 구성(표시용)이다.
+**소스 조사 결과 — 2026-09-10 정정 (원 조사는 2026-09-01, tag `cli-v3.0.53`).**
 
-**소스는 "누적되지 않는다" 쪽을 가리키나 결정적이지 않다.** 실측으로 확정한다:
+> **인용 형식 — 필수.** `/Users/ohama/projs/cline-src` 는 현재 `cli-v3.0.61` 로 체크아웃되어
+> 있다. 아래 줄 번호는 전부 `cli-v3.0.53` 태그에서 읽은 것이고, 그 태그는 이제 작업 트리가
+> 아니라 `git show cli-v3.0.53:<path>` 로만 접근된다. 예를 들어:
+> ```bash
+> (cd /Users/ohama/projs/cline-src && git show cli-v3.0.53:sdk/packages/llms/src/providers/ai-sdk.ts | sed -n '280,295p')
+> ```
+> 현재 체크아웃된 작업 트리를 그냥 grep 해서 못 찾는 것은 이 인용이 틀렸다는 뜻이 아니다 —
+> qanda/004(`qanda/004-does-cline-always-write-providers-json.md`)의 "이전 판이 틀렸습니다"
+> 정정이 바로 이 실수(작업 트리 이동을 모르고 "없다"고
+> 결론)였다. 다섯 경로 전부 `git show cli-v3.0.53:<path>` 로 이번 세션에 재확인됐다
+> (`phase-12/SCOPE-DECISIONS.md` 항목 6).
+
+`phase-09/PRB-04-FINDINGS.md` §3 의 재조사 결과를 그대로 인용한다(재도출하지 않음):
+
+- Cline 은 **Cerebras 가 아닌 provider 에 대해 기본적으로 reasoning 히스토리를 재부착한다.**
+  `shouldIncludeReasoningHistory`(`sdk/packages/llms/src/providers/ai-sdk.ts:284-289`, 재확인:
+  `git show cli-v3.0.53:sdk/packages/llms/src/providers/ai-sdk.ts`)는
+  `isCerebrasProvider`(`sdk/packages/llms/src/providers/model-facts.ts:449`, 재확인:
+  `git show cli-v3.0.53:sdk/packages/llms/src/providers/model-facts.ts`)를 호출해 판단한다.
+  우리 provider(`openai-compatible`/`flashnext`)는 Cerebras 가 아니므로 기본값은 재부착이다.
+- `agentPartToContentBlock` 의 `case "reasoning"` 분기(정의:
+  `sdk/packages/core/src/runtime/config/agent-message-codec.ts:231`, 분기 자체는 `:237`, 재확인:
+  `git show cli-v3.0.53:sdk/packages/core/src/runtime/config/agent-message-codec.ts`)는 들어온
+  reasoning part 를 `ThinkingContent` 블록으로 변환해 **Task 의 `Message[]` 히스토리에
+  영속화**한다 — 버려지지도, 표시용으로만 쓰이지도 않는다.
+- `sdk/packages/core/src/session/services/message-builder.ts:1213-1214`(재확인:
+  `git show cli-v3.0.53:sdk/packages/core/src/session/services/message-builder.ts`)는
+  `block.type === "thinking"` 바이트를 대화 텍스트 예산에 그대로 합산한다 — Cline 자신의 회계상
+  1급 시민 콘텐츠다.
+- 원래 인용됐던 두 함수(`agentic-compaction.ts` 의 `reasoningChars`, `compat.ts` 의
+  `toGatewayRequestMessages()`)는 **재부착 경로 위에 있지 않다** — 전자는 압축 요약기 자신의
+  reasoning 출력을 세는 텔레메트리(다른 LLM 호출의 자기계측)고, 후자는 `message.content` 배열만
+  순회해 이 경로를 보지 못한다. 신중한 소스 읽기가 왜 틀린 답을 냈는지가 정확히 여기다 —
+  살펴본 함수 자체가 재부착과 무관한 함수였다.
+- **두 주장을 반드시 분리해서 유지한다.** *아키텍처* 주장("Cline 은 reasoning 을 컨텍스트에서
+  뺀다")은 **틀렸다.** *토큰비용* 주장("이 스택에서는 비용이 0이다")은 **맞았고, 영향받지
+  않는다** — PRB-04 의 재생(replay) 행렬이 16/16 회 `delta=0`(`prompt_tokens` 고정값 46, 두
+  엔드포인트 `:8011`/`:4000`, 두 필드명 `reasoning`/`reasoning_content`, 합성 1,380자 트레이스와
+  실제 캡처된 2,497자 트레이스 양쪽 모두, 길이 임계 효과 없음)을 확인했다
+  (`phase-09/PRB-04-FINDINGS.md` §1a·§1b). **게이트가 통과한 이유는 재생된 reasoning 이 토큰
+  비용을 만들지 않기 때문이며, reasoning 이 빠져 있어서가 아니다.** 이 둘을 섞는 것이 바로
+  이번에 바로잡는 오류다.
+
+**소스는 누적된다 쪽을 가리킨다 — 다만 실측이 확정한 것은 토큰 비용이 0이라는 사실이다(아래).**
 
 ```bash
 # 동일 프롬프트로 3턴, thinking on/off 두 번 실행하고 prompt_tokens 증가폭 비교
@@ -188,10 +236,16 @@ grep "Prefill started" ~/llm-system/services/logs/flashnext.err | tail -2
 
 별칭만으로는 `cline -p -m flashnext-act` 같은 불일치를 막지 못한다.
 
-```bash
-cline-plan() { CLINE_NO_AUTO_UPDATE=1 cline -p -m flashnext-plan "$@"; }
-cline-act()  { CLINE_NO_AUTO_UPDATE=1 cline    -m flashnext-act  "$@"; }
-```
+> **[superseded, 2026-09-10]** 아래는 최초 스케치였던 셸 함수 정의였다 — 원문은 이 문서 끝
+> §9(정정 전 원문을 보존하는 부록)에 보존한다. **superseded, 단순히 낡은 것이 아니다:**
+> `phase-11/WRAPPER-DESIGN.md` §2 가 이 정확한 스케치를 이름으로 지목해 안전하지 않다고
+> 증명한다 — `"$@"` 가 호출자의 `--thinking high` 나 두 번째 `-m` 을 실제 바이너리로 그대로
+> 전달하고, litellm 은 클라이언트 kwargs 를 `litellm_params` **뒤에** 병합하므로 호출자가
+> 별칭의 주입을 조용히 이긴다 — 이것이 바로 Phase 11 `MUTANT-LEAKY` 테스트가 잡아내는 그
+> 누출이고, 배포된 래퍼의 deny-by-default 파서가 막으려는 것이다. 셸 함수는 파일 경로가 없어
+> `verify_config.sh` 가 정적으로 검사할 수도, 테스트 하네스가 서브프로세스로 실행할 수도
+> 없다. 실제로 배포된 것은 `phase-11/WRAPPER-DESIGN.md` §2·§3·§4 의 계약을 따르는 실제
+> 스크립트(`phase-11/cline-plan` / `phase-11/cline-act`, deny-by-default 파서)다.
 
 `phase-01/config/verify_config.sh` 에 추가:
 - 래퍼 정의에 plan↔plan, act↔act 짝이 유지되는지
@@ -248,3 +302,75 @@ T6    개선 없음                      → 별칭 유지, 래퍼 기본값 되
 
 **T1-a 와 T2 는 T3(설정 변경) 이전에 끝난다.** 무위험 구간에서 답이 나오므로,
 스택을 건드리기 전에 계획 폐기 여부가 결정된다.
+
+## 7. 이 정정이 바꾸는 것
+
+| 대상 | 이전 | 이후 |
+| --- | --- | --- |
+| 상태 배지 | 계획, 미착수 | 구현됨(v1.1) — 배포 결정 keep(override), `phase-11/AB-RESULTS.md` §11 |
+| §T2 소스 인용 | 소스 판독이 "누적 안 됨"을 시사한다고 결론 | 소스는 누적됨을 확인(`shouldIncludeReasoningHistory`); 그 위에서 토큰비용은 실측 0 |
+| §T5 래퍼 스케치 | 셸 함수로 `"$@"` 를 그대로 전달하는 스케치 | 실제 스크립트(`phase-11/cline-plan`/`phase-11/cline-act`), deny-by-default 파서 — 셸 함수는 superseded |
+| Gate① 판정과 이유 | 미판정(계획 단계) | 통과 — "누적이 없어서"가 아니라 "재부착돼도 토큰비용이 0이라서" |
+| Gate② A/B 결과 | 미실행(계획 단계) | 실행됨(66/88 셀) — 개선 없음(동등 구간 25/30 대 25/30, p=0.563); keep 은 인간의 override, 근거는 `providers.json` 부작용 봉쇄(정확도와 무관) |
+
+## 8. 여전히 미해결
+
+- **CFG-05 — `CLINE_NO_AUTO_UPDATE=1` 은 cline 자동 업데이트를 막지 못한다.** 바이너리는
+  Phase 10–11 동안 3.0.53 → 3.0.60 → 3.0.61 로 드리프트했고, 한 번은 실행 중간에 디스크에서
+  **완전히 사라진 채** 발견됐다(`phase-11/OPEN-ITEMS.md`). 이 문서의 버전 의존적 주장은 전부
+  잠정적이다.
+- **실제 워크로드에서는 압축이 여전히 프루닝하지 않는다.** cline-bench 는 4번 시도 중 0번
+  통과했고, 그중 3번이 `fail-context` 였다. reasoning 과는 무관한 결함이지만, A/B(§T6)가
+  cline-bench 를 쓸 수 없었던 이유가 바로 이것이다.
+- **`--compaction basic` 은 올바른 최상위 `contextWindow` 설정 위에서 여전히 한 번도
+  테스트되지 않았다.**
+- **봉쇄(containment)는 하루치 기록밖에 없다.** commit `017c65e`, 오늘(2026-09-10), 실
+  운영 기록 없음. "고쳤다"/"해결됐다"라고 쓰지 않는다 — **2026-09-10 기준 봉쇄됨, 장기 노출
+  대기 중**이라고 쓴다.
+- **설명되지 않은 채로 남겨 둔 모순.** Phase 10 의 VRF-04 는 cline 3.0.60 에서, 소스가
+  3.0.53/3.0.61 과 바이트 단위로 동일한데도 `model` 이 변하지 않는 것을 관측했다. Phase 11 은
+  3.0.61 에서 같은 호출 패턴이 31/31 회 변경되는 것을 관측했다. `phase-11/PHASE-11-FINDINGS.md`
+  §5.8 의 솔직한 결론은 Phase 10 의 단일 관측이 이상치(outlier)일 가능성이 더 높다는
+  것이며 — **메커니즘은 제안되지 않았다.** 그렇게만 기록한다. 메커니즘을 지어내지 않는다.
+
+## 9. 부록 — 정정 전 기록
+
+아래는 위 정정으로 대체되기 전, 이 문서가 실제로 담고 있던 원문이다. 측정값의 오류가 아니라
+**소스 판독의 거짓 음성(false negative)이 어떤 모습이었는지, 그리고 그런 판독에도 불구하고
+게이트가 왜 그래도 통과했는지**의 증거로 원문 그대로 보존한다. 결론 문장만 위 §1·§7·§8 로
+대체됐다.
+
+<details>
+<summary>원문 펼치기</summary>
+
+원래 상태 배지 (문서 최상단, 2026-09-01 작성):
+
+```
+> **상태: 계획. 미착수.** 설계 근거는 `docs/plan-act-reasoning-design.md` 를 따른다.
+> 작성 2026-09-01.
+```
+
+원래 §T2 "소스 조사 결과 (2026-09-01, tag `cli-v3.0.53`)":
+
+```
+- `agentic-compaction.ts:88` 의 `reasoningChars` 는 **압축 요약기 자신의** reasoning 출력을
+  세는 텔레메트리다. 요약문 `text` 만 반환되고 reasoning 은 버려진다. **누적의 증거가 아니다.**
+- `toGatewayRequestMessages()` (`compat.ts:306`) 는 `message.content` 배열만 순회한다.
+  `reasoning` 을 아웃바운드 메시지에 싣는 코드는 발견되지 않았다.
+- `runtime-event-adapter.ts:290` 의 `reasoning: reasoning.reasoning` 은 이벤트 구성(표시용)이다.
+```
+
+원래 전환 문장:
+
+```
+**소스는 "누적되지 않는다" 쪽을 가리키나 결정적이지 않다.** 실측으로 확정한다:
+```
+
+원래 §T5 래퍼 스케치:
+
+```sh
+cline-plan() { CLINE_NO_AUTO_UPDATE=1 cline -p -m flashnext-plan "$@"; }
+cline-act()  { CLINE_NO_AUTO_UPDATE=1 cline    -m flashnext-act  "$@"; }
+```
+
+</details>
