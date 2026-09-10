@@ -1,0 +1,2 @@
+REFUSED: cline-act does not accept '-p/--plan'. The mode flag is fixed by which wrapper you invoked.
+usage: cline-act [-t|--timeout <secs>] [-c|--cwd <path>] [--json] [--] <prompt...>

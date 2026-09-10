@@ -1,0 +1,16 @@
+---RUN---
+-P
+openai-compatible
+-p
+-m
+flashnext-plan
+--compaction
+agentic
+-t
+600
+--timeout
+90
+--json
+hello
+---ENV---
+CLINE_NO_AUTO_UPDATE=1

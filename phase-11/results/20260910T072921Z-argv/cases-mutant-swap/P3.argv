@@ -1,0 +1,14 @@
+---RUN---
+-P
+openai-compatible
+-p
+-m
+flashnext-act
+--compaction
+agentic
+-t
+90
+--json
+hello
+---ENV---
+CLINE_NO_AUTO_UPDATE=1

@@ -1,0 +1,2 @@
+REFUSED: cline-act does not accept '-m/--model'. The alias is fixed by phase-11/wrapper.env (currently: flashnext-act) — that pairing is the whole point of this wrapper (USE-01).
+usage: cline-act [-t|--timeout <secs>] [-c|--cwd <path>] [--json] [--] <prompt...>

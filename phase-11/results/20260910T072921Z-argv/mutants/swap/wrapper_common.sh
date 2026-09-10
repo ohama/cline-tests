@@ -145,6 +145,14 @@ if [ "${CLINE_WRAPPER_TEST:-}" != "1" ]; then
   fi
 fi
 
+# --- construction site: the ONLY place the binary is named ---
+set -- -P "$WRAPPER_PROVIDER"
+[ -n "$WRAPPER_MODE_FLAG" ] && set -- "$@" "$WRAPPER_MODE_FLAG"
+set -- "$@" -m "$WRAPPER_ALIAS" --compaction "$WRAPPER_COMPACTION" -t "$TIMEOUT"
+[ -n "$JSON_FLAG" ] && set -- "$@" --json
+[ -n "$CWD" ] && set -- "$@" -c "$CWD"
+set -- "$@" "$PROMPT"
+
 # --- providers.json containment (qanda/004, 2026-09-10) --------------------------------
 # cline persists the resolved model on every run: apps/cli/src/main.ts:1122 calls
 # saveProviderSettings({... model: config.modelId ...}) with no enclosing condition, and
@@ -184,14 +192,6 @@ if [ "${CLINE_WRAPPER_TEST:-}" != "1" ]; then
     exit 3
   fi
 fi
-
-# --- construction site: the ONLY place the binary is named ---
-set -- -P "$WRAPPER_PROVIDER"
-[ -n "$WRAPPER_MODE_FLAG" ] && set -- "$@" "$WRAPPER_MODE_FLAG"
-set -- "$@" -m "$WRAPPER_ALIAS" --compaction "$WRAPPER_COMPACTION" -t "$TIMEOUT"
-[ -n "$JSON_FLAG" ] && set -- "$@" --json
-[ -n "$CWD" ] && set -- "$@" -c "$CWD"
-set -- "$@" "$PROMPT"
 
 # CLINE_NO_AUTO_UPDATE=1: not proven to work (CFG-05 is unresolved — the binary drifted
 # 3.0.53->3.0.60 anyway) but a version change mid-use would silently invalidate every pinned

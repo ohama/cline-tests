@@ -1,0 +1,14 @@
+SENTINEL-R8-UNTOUCHED
+---RUN---
+-P
+openai-compatible
+-m
+flashnext-act
+--compaction
+agentic
+-t
+600
+-p
+x
+---ENV---
+CLINE_NO_AUTO_UPDATE=1

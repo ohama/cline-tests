@@ -1,0 +1,15 @@
+SENTINEL-P4-UNTOUCHED
+---RUN---
+-P
+openai-compatible
+-p
+-m
+flashnext-plan
+--compaction
+agentic
+-t
+600
+--
+-weird prompt
+---ENV---
+CLINE_NO_AUTO_UPDATE=1
