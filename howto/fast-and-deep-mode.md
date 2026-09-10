@@ -1,5 +1,11 @@
 # fast 모드 / deep 모드 만들기
 
+> 🔴 **정정 (2026-09-10):** 이 문서는 Phase 9/10 중간에 작성되어 아래 "방법 2"(litellm 별칭)와
+> "방법 3"(셸 래퍼)을 각각 Phase 10 "진행 중", Phase 11 "예정"으로 설명했다. **둘 다 그 뒤
+> 배포됐다** — 별칭은 `flashnext-plan`/`flashnext-act`로(Phase 10), 래퍼는
+> `phase-11/cline-plan`/`phase-11/cline-act` 스크립트로(Phase 11). 아래 본문을 현재 상태로
+> 갱신했다.
+
 **목표:** 빠르게 답하는 모드(사고 끔)와 깊게 답하는 모드(사고 켬, `medium`)를 골라 쓰기.
 
 **짧은 답:** 된다. 다만 **어디서 전환하느냐**에 따라 지금 되는 것과 안 되는 것이 갈리고,
@@ -24,7 +30,7 @@ litellm 설정 파일에 이렇게 적혀 있다:
 
 |  | 사고 끔 | 사고 켬 (medium) |
 |---|---|---|
-| **drafter 붙음** ← 현재 서버 | 지금 기본 상태 | Phase 10 이 추가 중 |
+| **drafter 붙음** ← 현재 서버 | 지금 기본 상태 | 지금 됨 — `flashnext-plan` (Phase 10 배포) |
 | **drafter 없음** | 서버 재기동 필요 | 서버 재기동 필요 |
 
 사고를 켜고 끄는 것을 `fast`/`deep` 이라 부르면, 나중에 누가 "deep 모드"를 보고
@@ -50,7 +56,11 @@ litellm 설정 파일에 이렇게 적혀 있다:
 |---|---|---|---|
 | **act** — 사고 끔 | ✅ 아무것도 안 보냄 | ✅ 아무것도 안 보냄 | ✅ 지금 기본값 |
 | 사고 켬, **xhigh** | ✅ `enable_thinking:true` | ✅ `enable_thinking:true` | ❌ 보낼 방법 없음 |
-| **plan** — 켬 + **medium** | ✅ `reasoning_effort:medium` | ❌ **400** | ❌ Phase 10 필요 |
+| **plan** — 켬 + **medium** | ✅ `reasoning_effort:medium` | ❌ **400** ¹ | ✅ `flashnext-plan` (배포됨) |
+
+¹ 이 400 은 `flashnext` 별칭(`openai/` 접두사) 기준이다. `hosted_vllm/` 접두사 별칭
+(`flashnext-plan`/`flashnext-act`)에 잘못된 `--thinking` 값을 보내면 litellm 의 400 이 아니라
+**모델 서버의 500** 이 난다 — 접두사마다 다른 상태 코드다 (`phase-11/OPEN-ITEMS.md` Open Item 1).
 
 ### 왜 `:4000` 에서 "켬 + medium" 이 안 되나
 
@@ -66,7 +76,8 @@ reasoning_effort  → 400 거부   (openai/ 프로바이더의 지원 목록에 
 
 **결과: `:4000` 을 통하면 사고는 켤 수 있어도 강도를 못 고른다. 항상 최대치다.**
 
-해법은 별칭 접두사를 `hosted_vllm/` 로 바꾸는 것 — Phase 10 이 하고 있다.
+해법은 별칭 접두사를 `hosted_vllm/` 로 바꾸는 것 — Phase 10 이 했다. 그 결과가
+`flashnext-plan`/`flashnext-act` 별칭이다 (`phase-10/PHASE-10-FINDINGS.md`).
 
 ---
 
@@ -104,7 +115,7 @@ curl -s http://localhost:8011/v1/chat/completions -H 'Content-Type: application/
 
 ---
 
-## 방법 2 — litellm 별칭 (재기동 필요) ⭐ 진행 중
+## 방법 2 — litellm 별칭 (재기동 필요) ⭐ 배포됨
 
 별칭에 파라미터를 심어두면 **모델 이름만 바꿔서** 모드를 고를 수 있다.
 Cline 을 포함해 모든 클라이언트가 혜택을 본다.
@@ -137,9 +148,8 @@ act 쪽은 **새 별칭이 필요 없다.** `enable_thinking` 의 기본값이 `
 **적용하려면 litellm 재기동이 필요하다** — 핫리로드가 없다(`/config/reload` → 404).
 재기동 동안 Kanban(`:3484`)과 Telegram 커넥터 요청이 끊긴다.
 
-> **이건 Phase 10 이 지금 하고 있는 일이다.** 백업·롤백 리허설·검증 사다리를 갖춰서
-> 유지보수 창 한 번에 처리한다. 직접 손으로 고치기보다 그쪽을 기다리는 편이 안전하다.
-> 진행 상황: `.planning/phases/10-alias-injection-reach-proof/`
+> **이건 Phase 10 이 했다.** 백업·롤백 리허설·검증 사다리를 갖춰서 유지보수 창 한 번에
+> 처리했다. 결과: `phase-10/PHASE-10-FINDINGS.md`.
 
 적용 후 사용:
 
@@ -153,17 +163,22 @@ cline -P openai-compatible -m flashnext      --json "..."   # act  (사고 없�
 
 ---
 
-## 방법 3 — 셸 래퍼 (Phase 11 예정)
+## 방법 3 — 셸 래퍼 (배포됨)
 
-별칭이 생기면 그다음은 **모드와 별칭을 실수로 어긋나게 쓰는 것**을 막는 일이다.
+별칭이 생긴 뒤 다음 문제는 **모드와 별칭을 실수로 어긋나게 쓰는 것**을 막는 일이었다.
+Phase 11 이 이를 **셸 함수가 아니라 실행 파일 스크립트**로 만들었다 — 셸 함수 형태
+(`cline-plan() { ... "$@"; }`)는 `phase-11/WRAPPER-DESIGN.md` §2 가 기각했다:
+`"$@"` 가 호출자의 `--thinking high` 나 두 번째 `-m` 을 그대로 통과시켜, 별칭이 주입한
+설정을 조용히 덮어쓸 수 있기 때문이다.
 
 ```bash
-cline-plan "..."   # 항상 -p -m flashnext-plan
-cline-act  "..."   # 항상 act 별칭
+./phase-11/cline-plan "..."   # 항상 -p -m flashnext-plan
+./phase-11/cline-act  "..."   # 항상 act 별칭, -p 없음
 ```
 
-래퍼가 짝을 강제하지 않으면 `--plan` 모드에서 act 별칭을 쓰는 조합이 조용히 생긴다.
-Phase 11 이 이걸 만들고, 불일치를 주입한 네거티브 테스트로 검출을 확인한다.
+래퍼는 화이트리스트에 없는 인자(예: `--thinking`, 두 번째 `-m`)를 조용히 무시하지 않고
+**거부**한다. 불일치를 주입한 네거티브 테스트(`phase-11/wrapper_argv_test.sh`)로 검출을
+확인했다. 동작 원리는 `qanda/003-how-the-wrappers-work.md`.
 
 ---
 
@@ -171,7 +186,7 @@ Phase 11 이 이걸 만들고, 불일치를 주입한 네거티브 테스트로 
 
 | | 방법 1 요청마다 | 방법 2 별칭 | 방법 3 래퍼 |
 |---|---|---|---|
-| 지금 되나 | ✅ | Phase 10 | Phase 11 |
+| 지금 되나 | ✅ | ✅ | ✅ |
 | 재기동 | 불필요 | **필요** | 불필요 |
 | Cline 에서 | ❌ | ✅ | ✅ |
 | 강도 선택 | ✅ | ✅ | ✅ |
@@ -229,7 +244,7 @@ Phase 11 이 이걸 만들고, 불일치를 주입한 네거티브 테스트로 
 |---|---|
 | `enable_thinking:true` == `xhigh` (둘 다 +40) | `phase-09/PRB-03-ORACLE.md` §2b |
 | `et-medium` == `medium` (effort 가 이긴다) | 같은 곳 |
-| `:4000` 에서 `enable_thinking:true` → 200, reasoning 30자 | `phase-09/results/*-prb01-02/prb02.tsv` |
+| `:4000` 에서 `enable_thinking:true` → 200, reasoning 30자 | `phase-09/results/20260901T014027Z-prb01-02/prb02.tsv` |
 | `reasoning_effort` → 400 (openai/ 프로바이더) | `10-RESEARCH.md` Q1 |
 | 사고 되먹임 토큰 비용 0 | `phase-09/PRB-04-FINDINGS.md` |
 | `xhigh` 가 `max_tokens:300` 을 다 써서 본문이 빔 | `phase-09/PRB-03-ORACLE.md` §3 |

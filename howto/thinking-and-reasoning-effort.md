@@ -1,5 +1,10 @@
 # Qwen3.8 Flash-Next 의 thinking 설정 — 어디서 어떻게 확인하나
 
+> 🔴 **정정 (2026-09-10):** 이 문서는 2026-09-01 무렵 작성되어 (a) 별칭에 thinking 파라미터가
+> 없다고 설명하고 (b) Cline 의 Plan/Act 모드와 이 설정이 연동되지 않는다고 답했다. **둘 다 그
+> 뒤 바뀌었다.** `flashnext-plan` 별칭이 배포됐고(Phase 10), Plan/Act 와 reasoning effort 는
+> `phase-11/cline-plan`/`cline-act` 래퍼를 통해 실제로 연동된다(Phase 11). 아래 본문을 갱신했다.
+
 **질문:** `enable_thinking` 과 `reasoning_effort` 가 지금 어떻게 설정돼 있고,
 그게 실제로 먹히는지 내가 직접 어떻게 확인하나?
 
@@ -83,9 +88,10 @@ plutil -p ~/Library/LaunchAgents/com.ohama.litellm.plist | grep -A6 ProgramArgum
 grep -nE "model_name|enable_thinking|reasoning_effort" /Users/ohama/agent-stack/litellm/config.yaml
 ```
 
-**2026-09-01 현재: 어느 별칭에도 thinking 파라미터가 없다.** 전부 모델 기본값
-(`enable_thinking: false`)으로 동작한다. Phase 10 이 `flashnext-plan` 별칭을 추가하면서
-바뀔 예정이다.
+**2026-09-01 시점에는 어느 별칭에도 thinking 파라미터가 없었다.** 전부 모델 기본값
+(`enable_thinking: false`)으로 동작했다. Phase 10 이 `flashnext-plan` 별칭을 추가하면서
+바뀌었다 — 지금은 `flashnext-plan` 이 `enable_thinking: true` / `reasoning_effort: medium`
+을 심어 둔 상태로 배포돼 있다 (`phase-10/PHASE-10-FINDINGS.md`).
 
 ### 접두사가 중요하다
 
@@ -207,8 +213,13 @@ curl -s -o /dev/null -w '%{http_code}\n' http://localhost:4000/v1/chat/completio
 "붙여도 공짜라서"다.
 
 **Q. Cline 의 Plan/Act 모드가 이 설정과 연동되나?**
-**현재는 아니다.** 소스상 연결이 없다. `--plan` 은 명령 실행을 막을 뿐이고,
-thinking 은 `--thinking` 플래그가 따로 관장한다. 그 둘을 잇는 것이 v1.1 의 목표다.
+**연동된다 — 다만 cline 소스 안에서가 아니다.** cline 자체의 소스에는 `--plan`/`-p` 와
+`--thinking` 을 잇는 코드가 없다는 원래 관찰은 **지금도 맞고, 여전히 중요하다** — 바로 그래서
+링크를 cline **바깥에서** 만들어야 했다. 실제 링크는 `phase-11/cline-plan`/`cline-act` 래퍼가
+만든다: 래퍼가 모드 플래그(`-p` 유무)와 litellm 별칭(`flashnext-plan`/`flashnext-act`)을 짝지어
+호출하고, 그 별칭이 reasoning 파라미터를 주입한다. `cline-plan` 은 항상 `-p -m flashnext-plan`,
+`cline-act` 는 항상 `-m flashnext-act` — 사용자가 손으로 짝을 맞출 필요가 없다. 자세한 동작은
+`qanda/003-how-the-wrappers-work.md`.
 
 ---
 
@@ -222,5 +233,7 @@ thinking 은 `--thinking` 플래그가 따로 관장한다. 그 둘을 잇는 �
 | `phase-09/GATE-VERDICT.md` | 게이트 판정과 반증 조건 |
 | `docs/plan-act-reasoning-design.md` | Plan/Act ↔ effort 설계 |
 
-재현용 스크립트는 `phase-09/probe_*.sh` / `probe_*.py` 에 있다. 전부 안전 외피
+재현용 스크립트는 `phase-09/probe_prb01.sh`, `phase-09/probe_prb02.sh`,
+`phase-09/probe_prb03_oracle.sh`, `phase-09/probe_prb04_realtrace.py`,
+`phase-09/probe_prb04_replay.py`, `phase-09/probe_multiturn_growth.py` 에 있다. 전부 안전 외피
 (`phase-09/probe_lib.sh`)를 거쳐 PID·설정 해시를 전후로 대조한다.
