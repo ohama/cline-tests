@@ -6,23 +6,29 @@ See: .planning/PROJECT.md (updated 2026-09-01)
 
 **Core value:** Cline 이 32K 벽에 닿기 전에 스스로 압축해서, 작업이 중간에 죽지 않는 것
   — v1 에서 **합성 조건에 한해** 달성. 실제 에이전트 부하에서는 미달성
-**Current focus:** v1.1 — Phase 11 (사용 표면: `cline-plan`/`cline-act` 래퍼와 A/B 게이트)
+**Current focus:** v1.1 — Phase 12 종료, 마일스톤 완료는 사람 확인 대기 중 (12-08 체크포인트)
 
 ## Current Position
 
 Milestone: v1.1 Plan/Act ↔ reasoning_effort
-Phase: 11 of 12 — ✅ **완료** (2026-09-10), 검증 20/20. 다음은 Phase 12 (마지막)
-Plan: 7 of 7 완료 (11-01 ~ 11-07)
-Status: Phase 11 종료 — 래퍼 출하, A/B 개선 없음, `keep` 은 **사람 override**
-Last activity: 2026-09-10 — Phase 11 전체 완료. 래퍼가 모드↔별칭 짝을 강제하고
-  `--thinking`/`-m`/`-P` 를 화이트리스트로 거부한다. **A/B 는 정확도 개선을 찾지 못했다**
-  (동일 반복수 과제에서 A 25/30 = C 25/30, p=0.563). 사전 등록 규칙은 `revert` 를 냈고
-  사람이 뒤집었다 — **부작용이 격리로 해소됐기 때문이지 이득이 증명돼서가 아니다.**
-  같은 날 `cline` 의 `providers.json` 오염을 `CLINE_PROVIDER_SETTINGS_PATH` 로 격리해
-  탐지→예방으로 바꿨다(exit 4 → 0).
+Phase: 12 of 12 — ✅ **완료** (2026-09-10), 스윕 GREEN 134/134, 문장 인용 감사 9/9 PASS.
+  **마일스톤 자체는 사람 체크포인트(12-08 마지막 태스크) 확인 전까지 미완료로 남는다.**
+Plan: 8 of 8 완료 (12-01 ~ 12-08)
+Status: Phase 12 문서 갱신 종료 — USE-04/USE-05 충족, ROADMAP 기준 3건 모두 충족,
+  요구사항·로드맵의 부정확한 "400" 문구는 정정 각주로 남기고 재서술하지 않음
+Last activity: 2026-09-10 — Phase 12 전체 완료(12-08). `phase-12/verify_docs.sh` RED(50/134,
+  exit 5) → GREEN(134/134, exit 0), 같은 세션에서 뮤턴트 8개 재검증(전부 CAUGHT/PASS).
+  손으로 읽는 과대주장 감사 9개 항목 전부 PASS — 그중 하나(claim 6)는 이 감사가 직접 찾은
+  실제 오류(`howto/fast-and-deep-mode.md`의 "`-m` 이 `providers.json` 을 안 건드린다"는
+  거짓 문장, 기계식 스윕은 이 문장을 검사하지 않았다)를 고친 뒤에야 PASS 로 재확인됐다.
+  `PHASE-12-FINDINGS.md` 가 문서별 변경·요구사항/기준 매핑·이 마일스톤이 스스로 정정한
+  과거 주장 6건·고지사항(§5)을 기록했다. USE-04/USE-05 완료로 뒤집었고, USE-04 자체의
+  "400" 문구와 ROADMAP 기준 2 의 같은 문구는 **재서술하지 않고 각주로 정정**했다(반증
+  가능성 유지). 아래 Blockers/Concerns 절의 이월 항목 중 이 페이즈가 닫은 것은
+  **없다** — 그 절은 이 태스크에서 그대로 이월했다(문구 변경 없음).
 
-Progress: [█████████░] v1.1 (20/20 requirements mapped, 18/20 complete: PRB-01..04,
-  CFG-11..17, VRF-01..04, USE-01..03; Phase 9–11 완료, Phase 12 계획 중)
+Progress: [██████████] v1.1 (20/20 requirements mapped, 20/20 complete: PRB-01..04,
+  CFG-11..17, VRF-01..04, USE-01..05; Phase 9–12 완료. 마일스톤 완료 선언은 사람 확인 대기)
 
 ## Performance Metrics
 
@@ -37,6 +43,10 @@ Progress: [█████████░] v1.1 (20/20 requirements mapped, 18/2
 **v1.1:** Phase 9 Plan 03 — 3 tasks, 3 commits, ~15min (2026-09-01)
 **v1.1:** Phase 10 Plan 01 — 3 tasks, 3 commits, ~25min (2026-09-01), 스택 무변경 유지,
   뮤턴트 4개 심어 사다리 검증(3/3 결정론적 CAUGHT)
+**v1.1:** Phase 12 — 8 플랜(3 waves), 문서 11건 정정(+1건 각주만), 스윕 RED 50/134 → GREEN
+  134/134(exit 5 → 0), 뮤턴트 8개(selftest) 전부 CAUGHT/PASS, 손 감사 9/9 PASS(1건은 감사
+  중 발견한 실제 오류를 고친 뒤 PASS), 스택 무변경 전 구간 유지, 모델 요청 0건(누적
+  `Prefill started` 1054 그대로) (2026-09-10)
 
 ## Accumulated Context
 
@@ -202,12 +212,15 @@ Phase 10(3.0.60)은 `model` 불변·`updatedAt` 만 변경을 기록했다. 그�
 ## Session Continuity
 
 Last session: 2026-09-10
-Stopped at: Phase 11 완료·종료 커밋. Phase 12 리서치 완료(`12-RESEARCH.md`), 계획 착수 직전.
-  다음: /gsd:plan-phase 12 — 마일스톤 마지막 페이즈(문서 갱신).
-  ※ Phase 12 범위 결정 4건(오케스트레이터 확정):
-    - `max_tokens` 동적화를 `32k-compaction-policy.md` §4·`cline-max-tokens-findings.md` 에 반영
-      (고정 2048 전제 위의 오버슈트 산술이 죽었다) — **범위 포함**
-    - `howto/`·`qanda/` 의 낡은 서술도 **범위 포함**
-    - `flashnext-reach-xhigh` 는 **존치 + 검증 전용으로 문서화**. 제거는 재기동을 또 부르므로 v1.2 후보
-    - `01-cli.md §6` 의 `--mode <act|plan>`(바이너리 문자열 스캔)은 **실측된 `-p` 가 이긴다**
+Stopped at: Phase 12 전체 완료(12-01 ~ 12-08), Phase 12 자동 태스크 종료. **12-08 의 사람
+  체크포인트("approved" 또는 수정 요청)가 아직 응답 대기 중이다** — 이것이 v1.1 마일스톤의
+  마지막 남은 항목이다.
+  다음: 체크포인트가 "approved" 로 응답되면 **`/gsd:audit-milestone`** 또는
+  **`/gsd:complete-milestone`** 을 실행해 v1.1 을 아카이브한다. 응답이 수정 요청이면 그
+  파일·문장을 고치고 `phase-12/verify_docs.sh`/`phase-12/anti-overclaim.md` 를 재확인한 뒤
+  다시 확인을 요청한다.
+  ※ Phase 12 최종 상태: `phase-12/verify_docs.sh` GREEN 134/134(exit 0),
+  `phase-12/anti-overclaim.md` 9/9 PASS, `phase-12/PHASE-12-FINDINGS.md` 작성 완료,
+  `.planning/REQUIREMENTS.md`(USE-04/USE-05 완료 + "400" 각주) ·
+  `.planning/ROADMAP.md`(Phase 12 완료 + 기준 3건 충족 + 기준 2 각주) 갱신 완료.
 Resume file: None

@@ -23,7 +23,7 @@ litellm 설정 변경(Phase 10)은 그 답이 나온 뒤에만 일어난다. 게
 - [x] **Phase 9: 사전 확인 게이트 (스택 무변경)** - `:8011` 직결 무위험 실측으로 두 킬 컨디션에 근거 있는 답을 낸다
 - [x] **Phase 10: 별칭 주입과 도달 증명** - litellm 재기동을 감수하고 별칭을 추가한 뒤, 서버 로그로 도달을 증명한다
 - [x] **Phase 11: 사용 표면 — 래퍼와 A/B 게이트** - `cline-plan`/`cline-act` 짝 강제와 medium 개선 여부 판정
-- [ ] **Phase 12: 문서 갱신** - 매뉴얼·고정값·설계문서를 실측 결과로 갱신
+- [x] **Phase 12: 문서 갱신** - 매뉴얼·고정값·설계문서를 실측 결과로 갱신
 
 **실행 순서:** 9 → 10 → 11 → 12, **전 구간 순차 실행.** `config.json` 의
 `parallelization: true` 는 이 마일스톤에 적용되지 않는다 — 게이트 순서(제약 2)와 설정 변경
@@ -237,23 +237,33 @@ Plans:
 **Depends on**: Phase 11 (A/B 판정과 최종 래퍼 상태가 확정된 후에만 문서화 가능)
 **Requirements**: USE-04, USE-05
 **Success Criteria** (관찰 가능·반증 가능):
-  1. `docs/manual/01-cli.md` 에 `cline-plan`/`cline-act` 사용법(도입되지 않았다면 그 사유)이
-     반영된다 (USE-04)
-  2. `docs/cline-config-pins.md` 에 별칭과 주입 파라미터가 고정값 목록으로 추가되고,
-     `--thinking` 이 litellm 에서 400 이 된다는 사실이 명시된다 (USE-04)
-  3. `docs/plan-act-reasoning-design.md` / `-implementation.md` 상단 상태 배지가
+  1. ✅ `docs/manual/01-cli.md` 에 `cline-plan`/`cline-act` 사용법(도입되지 않았다면 그 사유)이
+     반영된다 (USE-04) — 충족: `docs/manual/01-cli.md` §6a (invocation·화이트리스트·종료
+     코드·격리 서술·한계). 증거: `phase-12/PHASE-12-FINDINGS.md` §3.
+  2. ✅ `docs/cline-config-pins.md` 에 별칭과 주입 파라미터가 고정값 목록으로 추가되고,
+     `--thinking` 이 litellm 에서 400 이 된다는 사실이 명시된다 (USE-04) — 충족:
+     `docs/cline-config-pins.md` §7.1·§7.4.
+     <br>🔶 **2026-09-10 정정 — 이 기준 자체의 "400" 문구가 다섯 개 살아있는 별칭 중
+     하나에만 정확하다.** `flashnext`(`openai/`)만 400; `hosted_vllm/` 세 별칭은 모델
+     서버의 500; 래퍼를 거치지 않은 원시 `cline --thinking high` 는 exit 1. 기준 문구는
+     고치지 않는다 — `.planning/REQUIREMENTS.md` USE-04 의 같은 날 같은 정정과 동일한
+     이유(반증 가능성 유지)다. 정확한 형태는 `docs/cline-config-pins.md` §7.4. 근거:
+     `phase-11/OPEN-ITEMS.md` Open Item 1, `phase-12/PHASE-12-FINDINGS.md` §2·§3.
+  3. ✅ `docs/plan-act-reasoning-design.md` / `-implementation.md` 상단 상태 배지가
      "제안/계획"에서 이번 마일스톤의 실측 결과(구현됨 · 게이트 폐기 등)로 갱신된다 (USE-05)
+     — 충족: 두 문서 모두 채택됨/구현됨 배지, 두 게이트 판정과 이유. 증거:
+     `phase-12/PHASE-12-FINDINGS.md` §1·§3.
 **Plans**: 8 plans (3 waves)
 
 Plans:
-- [ ] 12-01-PLAN.md — 문서 스윕 검사기(`verify_docs.sh`)를 편집 **전에** 작성, 뮤턴트로 실패 능력 증명, RED 기준선 포착, 범위 결정 8건 기록
-- [ ] 12-02-PLAN.md — `plan-act-reasoning-implementation.md`: reasoning 재첨부 오탐 정정, 대체된 래퍼 스케치, 정정 배너·부록 (USE-05)
-- [ ] 12-03-PLAN.md — `plan-act-reasoning-design.md`·`-diagrams.md`: 상태 배지, 게이트 ①·② 판정, 접두사별 `--thinking` 실패 모드 (USE-05)
-- [ ] 12-04-PLAN.md — `docs/manual/01-cli.md` §6a 래퍼 사용법 + `--mode` 대 `-p` 증거 정합 (USE-04 기준 1)
-- [ ] 12-05-PLAN.md — `docs/cline-config-pins.md` 별칭 고정값·접두사별 상태 코드·고정 대 측정 구분 (USE-04 기준 2)
-- [ ] 12-06-PLAN.md — `max_tokens` 동적화 정정: `32k-compaction-policy.md`·`cline-max-tokens-findings.md` (범위 결정 1)
-- [ ] 12-07-PLAN.md — `howto/` 2건·`qanda/` 2건의 낡은 서술 제자리 정정 (범위 결정 2)
-- [ ] 12-08-PLAN.md — 스윕 GREEN, 문장 인용 과대주장 감사 9건, `PHASE-12-FINDINGS.md`, 요구사항·로드맵·상태 갱신, 사람 확인
+- [x] 12-01-PLAN.md — 문서 스윕 검사기(`verify_docs.sh`)를 편집 **전에** 작성, 뮤턴트로 실패 능력 증명, RED 기준선 포착, 범위 결정 8건 기록
+- [x] 12-02-PLAN.md — `plan-act-reasoning-implementation.md`: reasoning 재첨부 오탐 정정, 대체된 래퍼 스케치, 정정 배너·부록 (USE-05)
+- [x] 12-03-PLAN.md — `plan-act-reasoning-design.md`·`-diagrams.md`: 상태 배지, 게이트 ①·② 판정, 접두사별 `--thinking` 실패 모드 (USE-05)
+- [x] 12-04-PLAN.md — `docs/manual/01-cli.md` §6a 래퍼 사용법 + `--mode` 대 `-p` 증거 정합 (USE-04 기준 1)
+- [x] 12-05-PLAN.md — `docs/cline-config-pins.md` 별칭 고정값·접두사별 상태 코드·고정 대 측정 구분 (USE-04 기준 2)
+- [x] 12-06-PLAN.md — `max_tokens` 동적화 정정: `32k-compaction-policy.md`·`cline-max-tokens-findings.md` (범위 결정 1)
+- [x] 12-07-PLAN.md — `howto/` 2건·`qanda/` 2건의 낡은 서술 제자리 정정 (범위 결정 2)
+- [x] 12-08-PLAN.md — 스윕 GREEN, 문장 인용 과대주장 감사 9건, `PHASE-12-FINDINGS.md`, 요구사항·로드맵·상태 갱신, 사람 확인
 
 ## Progress
 
@@ -266,7 +276,7 @@ Phases execute in numeric order: 9 → 10 → 11 → 12 (전 구간 순차, 병�
 | 9. 사전 확인 게이트 | v1.1 | 4/4 | Complete | 2026-09-01 |
 | 10. 별칭 주입과 도달 증명 | v1.1 | 6/6 | Complete | 2026-09-02 |
 | 11. 사용 표면 — 래퍼와 A/B 게이트 | v1.1 | 7/7 | Complete | 2026-09-10 |
-| 12. 문서 갱신 | v1.1 | 0/TBD | Not started | - |
+| 12. 문서 갱신 | v1.1 | 8/8 | Complete | 2026-09-10 |
 
 ---
 *Roadmap created: 2026-09-01 — v1.1 Plan/Act ↔ reasoning_effort*

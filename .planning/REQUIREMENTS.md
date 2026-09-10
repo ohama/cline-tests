@@ -104,9 +104,22 @@ CFG-16 의 질문도 이에 따라 좁아졌다 — `GATE-VERDICT.md` §3.2.
 - [x] **USE-02**: `verify_config.sh` 가 짝 불일치와 `--thinking high` 사용을 잡아낸다
 - [x] **USE-03**: `medium` vs 기본 A/B 결과가 기록된다. 개선이 없으면 래퍼 기본값을
   `flashnext` 로 되돌리고 그 판단을 남긴다
-- [ ] **USE-04**: `docs/manual/01-cli.md` 에 사용법이, `docs/cline-config-pins.md` 에 별칭과
+- [x] **USE-04**: `docs/manual/01-cli.md` 에 사용법이, `docs/cline-config-pins.md` 에 별칭과
   파라미터가 고정값으로 기록된다. **`--thinking` 이 현재 400 이라는 사실**도 명시된다
-- [ ] **USE-05**: `docs/plan-act-reasoning-design.md` / `-implementation.md` 가 실측 결과로 갱신된다
+  <br>🔶 **2026-09-10 정정 — 위 "현재 400" 은 다섯 개 살아있는 별칭 중 정확히 하나에만
+  맞는다.** 실측: `flashnext`(`openai/` 접두사)만 litellm 자신의 `UnsupportedParamsError` →
+  **HTTP 400**. `flashnext-plan`/`flashnext-act`/`flashnext-reach-xhigh`(`hosted_vllm/`
+  접두사)는 litellm 검증을 통과하고 **모델 서버가 500** 을 낸다. 래퍼를 거치지 않은 원시
+  `cline --thinking high` 는 그 500 을 Cline 자신의 오류 이벤트로 표면화하며 **exit 1** 로
+  끝난다 — 이 경로에서는 400 을 전혀 볼 수 없다. **요구사항 문장 자체는 고치지 않는다** —
+  실측에 맞춰 조용히 재서술하면 반증 불가능해진다. 정확한 형태는
+  `docs/cline-config-pins.md` §7.4 에 접두사별로 기록됐다. 근거:
+  `phase-11/OPEN-ITEMS.md` Open Item 1, `phase-12/PHASE-12-FINDINGS.md` §2·§3.
+- [x] **USE-05**: `docs/plan-act-reasoning-design.md` / `-implementation.md` 가 실측 결과로 갱신된다
+  <br>✅ **2026-09-10 완료.** 상태 배지가 "제안/계획"에서 채택됨/구현됨으로 바뀌었고, 두 게이트
+  판정(① 재첨부는 실재하나 토큰 비용 0, ② 개선 없음·`keep`은 사람의 override)이 이유와 함께
+  기록됐다. `docs/plan-act-reasoning-diagrams.md` 도 같은 정정을 받았다(요구사항이 이름을
+  붙이진 않았으나 같은 3층 설계 문서군). 근거: `phase-12/PHASE-12-FINDINGS.md` §1·§2.
 
 ## Future Requirements (v1.2+)
 
@@ -114,6 +127,10 @@ CFG-16 의 질문도 이에 따라 좁아졌다 — `GATE-VERDICT.md` §3.2.
 - **CFG-05** — `CLINE_NO_AUTO_UPDATE=1` 이 듣지 않는 문제의 실질적 해결
 - **Kanban·Telegram 표면 적용** — 커넥터의 `mode: act|plan` 옵션 활용
 - **Phase 1 VERIFICATION.md 보강** — v1 의 유일한 미검증 페이즈
+- **`flashnext-reach-xhigh` 제거** — 2026-09-10, `phase-12/SCOPE-DECISIONS.md` 3번 항목에서
+  결정. 검증 전용 별칭이라 사용 표면이 아니지만, 제거하려면 litellm 재기동이 한 번 더
+  필요하고 그 재기동은 Kanban/Telegram 서비스의 또 한 번의 중단을 의미한다 — **남겨 두는
+  데는 비용이 없다.** v1.2+ 유지보수 창에서 함께 처리할 후보로 남긴다.
 
 ## Out of Scope
 
@@ -150,8 +167,8 @@ CFG-16 의 질문도 이에 따라 좁아졌다 — `GATE-VERDICT.md` §3.2.
 | USE-01 | Phase 11 | Complete |
 | USE-02 | Phase 11 | Complete |
 | USE-03 | Phase 11 | Complete |
-| USE-04 | Phase 12 | Pending |
-| USE-05 | Phase 12 | Pending |
+| USE-04 | Phase 12 | Complete |
+| USE-05 | Phase 12 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 19 total
