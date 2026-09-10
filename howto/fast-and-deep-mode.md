@@ -158,8 +158,14 @@ cline -P openai-compatible -m flashnext-plan --json "..."   # plan (사고 mediu
 cline -P openai-compatible -m flashnext      --json "..."   # act  (사고 없음)
 ```
 
-`-m` 은 **호출마다** 모델을 고른다. `providers.json` 을 건드리지 않으므로
-검증된 `contextWindow: 29000` 설정이 안전하다.
+`-m` 은 **호출마다** 모델을 고른다 — 그러나 **`providers.json` 의 `model` 필드를 매 호출마다
+무조건 덮어쓴다**(cline 자신의 시작 경로에 있는 동작, Phase 11 검증에서 31/31, 100% 확인;
+`qanda/004-does-cline-always-write-providers-json.md`). 방금 위 명령처럼 래퍼 없이 직접 부르면
+이 쓰기가 격리되지 않고 공유 파일에 그대로 남는다 — Kanban·Telegram 이 같은 파일을 읽으므로
+마지막으로 부른 별칭이 그쪽에도 보인다. `model`/`contextWindow` 값 자체는
+`bash phase-01/config/verify_config.sh` 로 매번 확인할 수 있고, 이 쓰기를 격리하려면
+아래 방법 3(`phase-11/cline-plan`/`cline-act`)을 쓴다 — 격리는 "고쳐졌다"가 아니라
+"봉쇄됐다"이며, `qanda/003-how-the-wrappers-work.md` 가 정확한 표현이다.
 
 ---
 
