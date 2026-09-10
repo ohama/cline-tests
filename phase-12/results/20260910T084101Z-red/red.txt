@@ -1,0 +1,140 @@
+OK[DOCS]: document present: docs/plan-act-reasoning-implementation.md
+FAIL[DOCS]: FORBIDDEN docs/plan-act-reasoning-implementation.md: forbidden literal still present in live body (uncorrected): '상태: 계획. 미착수.' — 3:> **상태: 계획. 미착수.** 설계 근거는 `docs/plan-act-reasoning-design.md` 를 따른다.
+FAIL[DOCS]: FORBIDDEN docs/plan-act-reasoning-implementation.md: forbidden literal still present in live body (uncorrected): '누적의 증거가 아니다' — 97:  세는 텔레메트리다. 요약문 `text` 만 반환되고 reasoning 은 버려진다. **누적의 증거가 아니다.**
+FAIL[DOCS]: FORBIDDEN docs/plan-act-reasoning-implementation.md: forbidden literal still present in live body (uncorrected): '`reasoning` 을 아웃바운드 메시지에 싣는 코드는 발견되지 않았다' — 99:  `reasoning` 을 아웃바운드 메시지에 싣는 코드는 발견되지 않았다.
+FAIL[DOCS]: FORBIDDEN docs/plan-act-reasoning-implementation.md: forbidden literal still present in live body (uncorrected): '소스는 "누적되지 않는다" 쪽을 가리키나 결정적이지 않다' — 102:**소스는 "누적되지 않는다" 쪽을 가리키나 결정적이지 않다.** 실측으로 확정한다:
+FAIL[DOCS]: FORBIDDEN docs/plan-act-reasoning-implementation.md: forbidden literal still present in live body (uncorrected): 'cline-plan() { CLINE_NO_AUTO_UPDATE=1 cline -p -m flashnext-plan "$@"; }' — 192:cline-plan() { CLINE_NO_AUTO_UPDATE=1 cline -p -m flashnext-plan "$@"; }
+FAIL[DOCS]: REQUIRED docs/plan-act-reasoning-implementation.md: required anchor missing: 'shouldIncludeReasoningHistory'
+FAIL[DOCS]: REQUIRED docs/plan-act-reasoning-implementation.md: required anchor missing: 'phase-11/WRAPPER-DESIGN.md'
+FAIL[DOCS]: REQUIRED docs/plan-act-reasoning-implementation.md: required anchor missing: '이 정정이 바꾸는 것'
+FAIL[DOCS]: REQUIRED docs/plan-act-reasoning-implementation.md: required anchor missing: '부록 — 정정 전 기록'
+FAIL[DOCS]: REQUIRED_ANY docs/plan-act-reasoning-implementation.md [unresolved-section]: none of the alternatives present (미해결|여전히 미해결)
+FAIL[DOCS]: APPENDIX_INTEGRITY docs/plan-act-reasoning-implementation.md: appendix is missing preserved original text for: 상태: 계획. 미착수.|누적의 증거가 아니다|`reasoning` 을 아웃바운드 메시지에 싣는 코드는 발견되지 않았다|소스는 "누적되지 않는다" 쪽을 가리키나 결정적이지 않다|cline-plan() { CLINE_NO_AUTO_UPDATE=1 cline -p -m flashnext-plan "$@"; } — this is a deletion, not a correction
+OK[DOCS]: CITED_PATHS_EXIST docs/plan-act-reasoning-implementation.md: all backtick-cited docs/howto/qanda/phase-/.planning paths resolve against /Users/ohama/projs/cline-tests
+FAIL[DOCS]: TAG_CITATION docs/plan-act-reasoning-implementation.md: cites cli-v3.0.53 without the required 'git show cli-v3.0.53:' form
+FAIL[DOCS]: AB_DISCLOSURE docs/plan-act-reasoning-implementation.md: mentions the A/B but is missing: p=0.563|25/30|override-or-오버라이드-or-뒤집|phase-11/AB-RESULTS.md
+OK[DOCS]: document present: docs/plan-act-reasoning-design.md
+FAIL[DOCS]: FORBIDDEN docs/plan-act-reasoning-design.md: forbidden literal still present in live body (uncorrected): '상태: 제안. 아직 구현되지 않았다.' — 3:> **상태: 제안. 아직 구현되지 않았다.** v1 마일스톤 범위 밖이며, 채택 전에 §5 의 두 게이트를
+FAIL[DOCS]: FORBIDDEN docs/plan-act-reasoning-design.md: forbidden literal still present in live body (uncorrected): 'cline-plan() { CLINE_NO_AUTO_UPDATE=1 cline -p -m flashnext-plan "$@"; }' — 125:cline-plan() { CLINE_NO_AUTO_UPDATE=1 cline -p -m flashnext-plan "$@"; }
+FAIL[DOCS]: REQUIRED docs/plan-act-reasoning-design.md: required anchor missing: 'phase-09/GATE-VERDICT.md'
+FAIL[DOCS]: REQUIRED docs/plan-act-reasoning-design.md: required anchor missing: 'phase-11/WRAPPER-DESIGN.md'
+FAIL[DOCS]: REQUIRED docs/plan-act-reasoning-design.md: required anchor missing: 'phase-11/OPEN-ITEMS.md'
+FAIL[DOCS]: REQUIRED docs/plan-act-reasoning-design.md: required anchor missing: 'hosted_vllm/'
+FAIL[DOCS]: REQUIRED docs/plan-act-reasoning-design.md: required anchor missing: '이 정정이 바꾸는 것'
+FAIL[DOCS]: REQUIRED docs/plan-act-reasoning-design.md: required anchor missing: '부록 — 정정 전 기록'
+FAIL[DOCS]: APPENDIX_INTEGRITY docs/plan-act-reasoning-design.md: appendix is missing preserved original text for: 상태: 제안. 아직 구현되지 않았다.|cline-plan() { CLINE_NO_AUTO_UPDATE=1 cline -p -m flashnext-plan "$@"; } — this is a deletion, not a correction
+OK[DOCS]: CITED_PATHS_EXIST docs/plan-act-reasoning-design.md: all backtick-cited docs/howto/qanda/phase-/.planning paths resolve against /Users/ohama/projs/cline-tests
+FAIL[DOCS]: TAG_CITATION docs/plan-act-reasoning-design.md: cites cli-v3.0.53 without the required 'git show cli-v3.0.53:' form
+FAIL[DOCS]: AB_DISCLOSURE docs/plan-act-reasoning-design.md: mentions the A/B but is missing: p=0.563|25/30|phase-11/AB-RESULTS.md
+OK[DOCS]: document present: docs/plan-act-reasoning-diagrams.md
+FAIL[DOCS]: FORBIDDEN docs/plan-act-reasoning-diagrams.md: forbidden literal still present in live body (uncorrected): '상태: 계획, 미착수.' — 5:> **상태: 계획, 미착수.**
+FAIL[DOCS]: FORBIDDEN docs/plan-act-reasoning-diagrams.md: forbidden literal still present in live body (uncorrected): '소스 조사는 "누적되지 않는다" 쪽을 가리킨다' — 190:> 소스 조사는 "누적되지 않는다" 쪽을 가리킨다 — `toGatewayRequestMessages()` 는 `content`
+FAIL[DOCS]: REQUIRED docs/plan-act-reasoning-diagrams.md: required anchor missing: 'shouldIncludeReasoningHistory'
+FAIL[DOCS]: REQUIRED docs/plan-act-reasoning-diagrams.md: required anchor missing: '부록 — 정정 전 기록'
+FAIL[DOCS]: REQUIRED_ANY docs/plan-act-reasoning-diagrams.md [zero-cost]: none of the alternatives present (delta=0|0 토큰|토큰 비용은 0)
+FAIL[DOCS]: APPENDIX_INTEGRITY docs/plan-act-reasoning-diagrams.md: appendix is missing preserved original text for: 상태: 계획, 미착수.|소스 조사는 "누적되지 않는다" 쪽을 가리킨다 — this is a deletion, not a correction
+OK[DOCS]: CITED_PATHS_EXIST docs/plan-act-reasoning-diagrams.md: all backtick-cited docs/howto/qanda/phase-/.planning paths resolve against /Users/ohama/projs/cline-tests
+FAIL[DOCS]: TAG_CITATION docs/plan-act-reasoning-diagrams.md: cites cli-v3.0.53 without the required 'git show cli-v3.0.53:' form
+FAIL[DOCS]: AB_DISCLOSURE docs/plan-act-reasoning-diagrams.md: mentions the A/B but is missing: p=0.563|25/30|phase-11/AB-RESULTS.md
+OK[DOCS]: document present: docs/manual/01-cli.md
+FAIL[DOCS]: REQUIRED docs/manual/01-cli.md: required anchor missing: '## 6a'
+FAIL[DOCS]: REQUIRED docs/manual/01-cli.md: required anchor missing: 'phase-11/cline-plan'
+FAIL[DOCS]: REQUIRED docs/manual/01-cli.md: required anchor missing: 'phase-11/cline-act'
+OK[DOCS]: REQUIRED docs/manual/01-cli.md: required anchor present: 'phase-04/run_headless.sh'
+OK[DOCS]: REQUIRED docs/manual/01-cli.md: required anchor present: 'GAP-PLANMODE'
+FAIL[DOCS]: REQUIRED docs/manual/01-cli.md: required anchor missing: 'CLINE_PROVIDER_SETTINGS_PATH'
+FAIL[DOCS]: REQUIRED docs/manual/01-cli.md: required anchor missing: 'phase-11/WRAPPER-DESIGN.md'
+OK[DOCS]: REQUIRED docs/manual/01-cli.md: required anchor present: '--mode'
+FAIL[DOCS]: REQUIRED docs/manual/01-cli.md: required anchor missing: 'cli-v3.0.53'
+FAIL[DOCS]: REQUIRED docs/manual/01-cli.md: required anchor missing: '3.0.61'
+OK[DOCS]: REQUIRED_ANY docs/manual/01-cli.md [exit-codes]: satisfied by '종료 코드'
+OK[DOCS]: CITED_PATHS_EXIST docs/manual/01-cli.md: all backtick-cited docs/howto/qanda/phase-/.planning paths resolve against /Users/ohama/projs/cline-tests
+OK[DOCS]: TAG_CITATION docs/manual/01-cli.md: does not cite cli-v3.0.53 (check not triggered)
+OK[DOCS]: AB_DISCLOSURE docs/manual/01-cli.md: does not mention the A/B (check not triggered)
+OK[DOCS]: document present: docs/cline-config-pins.md
+FAIL[DOCS]: REQUIRED docs/cline-config-pins.md: required anchor missing: 'flashnext-plan'
+FAIL[DOCS]: REQUIRED docs/cline-config-pins.md: required anchor missing: 'flashnext-act'
+FAIL[DOCS]: REQUIRED docs/cline-config-pins.md: required anchor missing: 'flashnext-reach-xhigh'
+OK[DOCS]: REQUIRED docs/cline-config-pins.md: required anchor present: 'flashnext-codex'
+FAIL[DOCS]: REQUIRED docs/cline-config-pins.md: required anchor missing: 'enable_thinking'
+FAIL[DOCS]: REQUIRED docs/cline-config-pins.md: required anchor missing: 'reasoning_effort'
+FAIL[DOCS]: REQUIRED docs/cline-config-pins.md: required anchor missing: 'hosted_vllm/'
+FAIL[DOCS]: REQUIRED docs/cline-config-pins.md: required anchor missing: 'qwen-'
+FAIL[DOCS]: REQUIRED docs/cline-config-pins.md: required anchor missing: '400'
+FAIL[DOCS]: REQUIRED docs/cline-config-pins.md: required anchor missing: '500'
+FAIL[DOCS]: REQUIRED docs/cline-config-pins.md: required anchor missing: 'phase-10/REACH-PROOF.md'
+FAIL[DOCS]: REQUIRED docs/cline-config-pins.md: required anchor missing: 'phase-11/WRAPPER-DESIGN.md'
+FAIL[DOCS]: REQUIRED docs/cline-config-pins.md: required anchor missing: '20983'
+FAIL[DOCS]: REQUIRED docs/cline-config-pins.md: required anchor missing: '13/11/41/53'
+FAIL[DOCS]: REQUIRED_ANY docs/cline-config-pins.md [delta-framing]: none of the alternatives present (델타|delta)
+OK[DOCS]: REQUIRED_ANY docs/cline-config-pins.md [per-call-write]: satisfied by '호출마다'
+OK[DOCS]: CITED_PATHS_EXIST docs/cline-config-pins.md: all backtick-cited docs/howto/qanda/phase-/.planning paths resolve against /Users/ohama/projs/cline-tests
+OK[DOCS]: TAG_CITATION docs/cline-config-pins.md: does not cite cli-v3.0.53 (check not triggered)
+OK[DOCS]: AB_DISCLOSURE docs/cline-config-pins.md: does not mention the A/B (check not triggered)
+OK[DOCS]: document present: docs/32k-compaction-policy.md
+FAIL[DOCS]: FORBIDDEN docs/32k-compaction-policy.md: forbidden literal still present in live body (uncorrected): '`max_tokens` 실측값은 `2048`.' — 69:초과한 뒤에 돈다. 서버 예산은 `prompt_tokens + max_tokens ≤ 32768`, `max_tokens` 실측값은 `2048`.
+FAIL[DOCS]: FORBIDDEN docs/32k-compaction-policy.md: forbidden literal still present in live body (uncorrected): '여전히 미적용(실측 2048 고정)' — 171:- `providers.json` 의 `maxTokens` 는 여전히 미적용(실측 2048 고정). Branch A 라 문제되지 않는다.
+OK[DOCS]: REQUIRED docs/32k-compaction-policy.md: required anchor present: '2048'
+FAIL[DOCS]: REQUIRED docs/32k-compaction-policy.md: required anchor missing: '20983'
+OK[DOCS]: REQUIRED docs/32k-compaction-policy.md: required anchor present: '278'
+FAIL[DOCS]: REQUIRED docs/32k-compaction-policy.md: required anchor missing: 'phase-11/AB-PROTOCOL.md'
+OK[DOCS]: REQUIRED docs/32k-compaction-policy.md: required anchor present: '2026-08-30 전면 정정'
+FAIL[DOCS]: REQUIRED_ANY docs/32k-compaction-policy.md [new-banner]: none of the alternatives present (2026-09-10 정정|2026-09-10 추가 정정)
+OK[DOCS]: REQUIRED_ANY docs/32k-compaction-policy.md [budget-shape]: satisfied by '26,100'
+OK[DOCS]: CITED_PATHS_EXIST docs/32k-compaction-policy.md: all backtick-cited docs/howto/qanda/phase-/.planning paths resolve against /Users/ohama/projs/cline-tests
+FAIL[DOCS]: TAG_CITATION docs/32k-compaction-policy.md: cites cli-v3.0.53 without the required 'git show cli-v3.0.53:' form
+OK[DOCS]: AB_DISCLOSURE docs/32k-compaction-policy.md: does not mention the A/B (check not triggered)
+OK[DOCS]: document present: docs/cline-max-tokens-findings.md
+FAIL[DOCS]: FORBIDDEN docs/cline-max-tokens-findings.md: forbidden literal still present in live body (uncorrected): '**`OBSERVED_MAX = 2048`.**' — 49:**`OBSERVED_MAX = 2048`.** 이 세션에서 딱 1개의 요청만 발생했다(도구 호출 없이 한 단어만
+OK[DOCS]: REQUIRED docs/cline-max-tokens-findings.md: required anchor present: '2048'
+FAIL[DOCS]: REQUIRED docs/cline-max-tokens-findings.md: required anchor missing: '20983'
+FAIL[DOCS]: REQUIRED docs/cline-max-tokens-findings.md: required anchor missing: 'phase-11/OPEN-ITEMS.md'
+FAIL[DOCS]: REQUIRED docs/cline-max-tokens-findings.md: required anchor missing: '부록 — 정정 전 기록'
+FAIL[DOCS]: REQUIRED docs/cline-max-tokens-findings.md: required anchor missing: '이 정정이 바꾸는 것'
+OK[DOCS]: REQUIRED_ANY docs/cline-max-tokens-findings.md [dynamism]: satisfied by '요청마다'
+FAIL[DOCS]: APPENDIX_INTEGRITY docs/cline-max-tokens-findings.md: appendix is missing preserved original text for: **`OBSERVED_MAX = 2048`.** — this is a deletion, not a correction
+OK[DOCS]: CITED_PATHS_EXIST docs/cline-max-tokens-findings.md: all backtick-cited docs/howto/qanda/phase-/.planning paths resolve against /Users/ohama/projs/cline-tests
+OK[DOCS]: TAG_CITATION docs/cline-max-tokens-findings.md: does not cite cli-v3.0.53 (check not triggered)
+FAIL[DOCS]: AB_DISCLOSURE docs/cline-max-tokens-findings.md: mentions the A/B but is missing: p=0.563|25/30|override-or-오버라이드-or-뒤집|phase-11/AB-RESULTS.md
+OK[DOCS]: document present: howto/fast-and-deep-mode.md
+FAIL[DOCS]: FORBIDDEN howto/fast-and-deep-mode.md: forbidden literal still present in live body (uncorrected): '## 방법 2 — litellm 별칭 (재기동 필요) ⭐ 진행 중' — 107:## 방법 2 — litellm 별칭 (재기동 필요) ⭐ 진행 중
+FAIL[DOCS]: FORBIDDEN howto/fast-and-deep-mode.md: forbidden literal still present in live body (uncorrected): '## 방법 3 — 셸 래퍼 (Phase 11 예정)' — 156:## 방법 3 — 셸 래퍼 (Phase 11 예정)
+FAIL[DOCS]: FORBIDDEN howto/fast-and-deep-mode.md: forbidden literal still present in live body (uncorrected): 'Phase 10 이 하고 있다' — 69:해법은 별칭 접두사를 `hosted_vllm/` 로 바꾸는 것 — Phase 10 이 하고 있다.
+FAIL[DOCS]: FORBIDDEN howto/fast-and-deep-mode.md: forbidden literal still present in live body (uncorrected): 'Phase 10 이 추가 중' — 27:| **drafter 붙음** ← 현재 서버 | 지금 기본 상태 | Phase 10 이 추가 중 |
+FAIL[DOCS]: REQUIRED howto/fast-and-deep-mode.md: required anchor missing: '2026-09-10'
+FAIL[DOCS]: REQUIRED howto/fast-and-deep-mode.md: required anchor missing: 'phase-11/cline-plan'
+FAIL[DOCS]: CITED_PATHS_EXIST howto/fast-and-deep-mode.md: cited path(s) do not exist under /Users/ohama/projs/cline-tests: phase-09/results/*-prb01-02/prb02.tsv
+OK[DOCS]: TAG_CITATION howto/fast-and-deep-mode.md: does not cite cli-v3.0.53 (check not triggered)
+OK[DOCS]: AB_DISCLOSURE howto/fast-and-deep-mode.md: does not mention the A/B (check not triggered)
+OK[DOCS]: document present: howto/thinking-and-reasoning-effort.md
+FAIL[DOCS]: FORBIDDEN howto/thinking-and-reasoning-effort.md: forbidden literal still present in live body (uncorrected): '바뀔 예정이다' — 88:바뀔 예정이다.
+FAIL[DOCS]: FORBIDDEN howto/thinking-and-reasoning-effort.md: forbidden literal still present in live body (uncorrected): '**현재는 아니다.** 소스상 연결이 없다' — 210:**현재는 아니다.** 소스상 연결이 없다. `--plan` 은 명령 실행을 막을 뿐이고,
+FAIL[DOCS]: FORBIDDEN howto/thinking-and-reasoning-effort.md: forbidden literal still present in live body (uncorrected): '그 둘을 잇는 것이 v1.1 의 목표다' — 211:thinking 은 `--thinking` 플래그가 따로 관장한다. 그 둘을 잇는 것이 v1.1 의 목표다.
+FAIL[DOCS]: REQUIRED howto/thinking-and-reasoning-effort.md: required anchor missing: '2026-09-10'
+OK[DOCS]: REQUIRED howto/thinking-and-reasoning-effort.md: required anchor present: 'flashnext-plan'
+FAIL[DOCS]: CITED_PATHS_EXIST howto/thinking-and-reasoning-effort.md: cited path(s) do not exist under /Users/ohama/projs/cline-tests: phase-09/probe_*.sh
+OK[DOCS]: TAG_CITATION howto/thinking-and-reasoning-effort.md: does not cite cli-v3.0.53 (check not triggered)
+OK[DOCS]: AB_DISCLOSURE howto/thinking-and-reasoning-effort.md: does not mention the A/B (check not triggered)
+OK[DOCS]: document present: qanda/001-testing-plan-act-with-cline-cli.md
+FAIL[DOCS]: FORBIDDEN qanda/001-testing-plan-act-with-cline-cli.md: forbidden literal still present in live body (uncorrected): '래퍼의 기본 별칭은 아직 확정 전입니다' — 163:- **래퍼의 기본 별칭은 아직 확정 전입니다.** Phase 11 의 A/B 는 `revert`(= `flashnext` 로
+FAIL[DOCS]: FORBIDDEN qanda/001-testing-plan-act-with-cline-cli.md: forbidden literal still present in live body (uncorrected): '사용자 비준을 기다리는 중입니다' — 164:  되돌림)를 출력했고, 사용자 비준을 기다리는 중입니다. 되돌려져도 `flashnext-plan` 별칭
+OK[DOCS]: REQUIRED qanda/001-testing-plan-act-with-cline-cli.md: required anchor present: '2026-09-10'
+OK[DOCS]: REQUIRED qanda/001-testing-plan-act-with-cline-cli.md: required anchor present: 'phase-11/AB-RESULTS.md'
+OK[DOCS]: CITED_PATHS_EXIST qanda/001-testing-plan-act-with-cline-cli.md: all backtick-cited docs/howto/qanda/phase-/.planning paths resolve against /Users/ohama/projs/cline-tests
+OK[DOCS]: TAG_CITATION qanda/001-testing-plan-act-with-cline-cli.md: does not cite cli-v3.0.53 (check not triggered)
+OK[DOCS]: AB_DISCLOSURE qanda/001-testing-plan-act-with-cline-cli.md: mentions the A/B and carries all required disclosure elements (25/30, p=0.563, override, AB-RESULTS.md)
+OK[DOCS]: document present: qanda/003-how-the-wrappers-work.md
+FAIL[DOCS]: FORBIDDEN qanda/003-how-the-wrappers-work.md: forbidden literal still present in live body (uncorrected): '**오염을 막지 못합니다. 사후 탐지만 합니다.**' — 132:**오염을 막지 못합니다. 사후 탐지만 합니다.**
+FAIL[DOCS]: REQUIRED qanda/003-how-the-wrappers-work.md: required anchor missing: 'CLINE_PROVIDER_SETTINGS_PATH'
+FAIL[DOCS]: REQUIRED qanda/003-how-the-wrappers-work.md: required anchor missing: '017c65e'
+OK[DOCS]: REQUIRED qanda/003-how-the-wrappers-work.md: required anchor present: '2026-09-10'
+OK[DOCS]: REQUIRED qanda/003-how-the-wrappers-work.md: required anchor present: 'phase-11/AB-RESULTS.md'
+OK[DOCS]: CITED_PATHS_EXIST qanda/003-how-the-wrappers-work.md: all backtick-cited docs/howto/qanda/phase-/.planning paths resolve against /Users/ohama/projs/cline-tests
+OK[DOCS]: TAG_CITATION qanda/003-how-the-wrappers-work.md: does not cite cli-v3.0.53 (check not triggered)
+FAIL[DOCS]: AB_DISCLOSURE qanda/003-how-the-wrappers-work.md: mentions the A/B but is missing: p=0.563|override-or-오버라이드-or-뒤집
+
+=== escape hatch summary: 0 use(s) of verify_docs:allow ===
+
+CASES 50/134
+FAIL[DOCS]: 84 assertion(s) failed against DOCS_ROOT=/Users/ohama/projs/cline-tests — see FAIL[DOCS] lines above
+exit code: 5
