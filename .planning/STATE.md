@@ -11,19 +11,18 @@ See: .planning/PROJECT.md (updated 2026-09-01)
 ## Current Position
 
 Milestone: v1.1 Plan/Act ↔ reasoning_effort
-Phase: 10 of 12 — ✅ **완료** (2026-09-02), 검증 7/7. 다음은 Phase 11
-Plan: 6 of 6 완료 (10-01 ~ 10-06)
-Status: Phase 10 종료 — 별칭 5개 라이브, 도달 증명 완료, 실제 `cline` 에서 사고 관측됨
-Last activity: 2026-09-02 — Phase 10 전체 완료. 사람 승인을 받고 유지보수 창을 열어
-  `litellm` 을 두 번 재기동하며 라이브 설정을 교체했다. `flashnext-plan`(사고 medium) ·
-  `flashnext-act`(사고 끔) · `flashnext-reach-xhigh`(검증 전용) 3개 추가, deprecated
-  `qwen-*` 6개 제거(CFG-17). **도달을 HTTP 200 이 아니라 서버 로그 `prompt_tokens` 로
-  증명**했고(+40, 오라클 정확 일치), 접두사 교란은 같은 본문 3쌍 전부 델타 0 으로 배제했다.
-  **실제 `cline` 실행에서 `flashnext-plan` 스트림에만 사고가 나타났다**(대조군 0건) —
-  v1.1 이 겨냥한 "설정이 존재한다 ≠ 작동한다"의 간극이 처음으로 닫혔다.
+Phase: 11 of 12 — ✅ **완료** (2026-09-10), 검증 20/20. 다음은 Phase 12 (마지막)
+Plan: 7 of 7 완료 (11-01 ~ 11-07)
+Status: Phase 11 종료 — 래퍼 출하, A/B 개선 없음, `keep` 은 **사람 override**
+Last activity: 2026-09-10 — Phase 11 전체 완료. 래퍼가 모드↔별칭 짝을 강제하고
+  `--thinking`/`-m`/`-P` 를 화이트리스트로 거부한다. **A/B 는 정확도 개선을 찾지 못했다**
+  (동일 반복수 과제에서 A 25/30 = C 25/30, p=0.563). 사전 등록 규칙은 `revert` 를 냈고
+  사람이 뒤집었다 — **부작용이 격리로 해소됐기 때문이지 이득이 증명돼서가 아니다.**
+  같은 날 `cline` 의 `providers.json` 오염을 `CLINE_PROVIDER_SETTINGS_PATH` 로 격리해
+  탐지→예방으로 바꿨다(exit 4 → 0).
 
-Progress: [██████░░░░] v1.1 (20/20 requirements mapped, 15/20 complete: PRB-01..04,
-  CFG-11..17, VRF-01..04; Phase 9–10 완료, Phase 11–12 plans TBD)
+Progress: [█████████░] v1.1 (20/20 requirements mapped, 18/20 complete: PRB-01..04,
+  CFG-11..17, VRF-01..04, USE-01..03; Phase 9–11 완료, Phase 12 계획 중)
 
 ## Performance Metrics
 
@@ -166,6 +165,30 @@ v1.1 설계 근거: `docs/plan-act-reasoning-{design,implementation,diagrams}.md
 - CFG-05(자동 업데이트 미차단)의 2차 피해다 — 3.0.53 에서 검증한 소스가 3.0.60 에는
   적용되지 않는다. 이 드리프트가 검증을 계속 무효화한다.
 
+### 🟢 해결됨 — `cline -m` 의 providers.json 오염 (2026-09-10)
+
+위 🔴 절(2026-09-01)의 후속. **소스에서 원인을 특정하고 격리했다.**
+
+- **원인:** `apps/cli/src/main.ts:1122` 가 `saveProviderSettings({… model: config.modelId …})` 를
+  **조건 없이** 호출하고, `config.modelId` 는 `args.model ?? …`(`:1056`). 즉 `-m` 이 파일에 남는다.
+- **버전 드리프트가 아니다.** `cli-v3.0.53` 과 `cli-v3.0.61` 의 해당 코드는 동일하다
+  (`git diff` 상 무관한 한 줄만 변경). **처음부터 있었다.**
+- **`-p` 와 무관하다.** `cline-act`(`-p` 없음)도 똑같이 오염시킨다. A/B 에서 31/31.
+- **Phase 9 의 판독은 범위 오류였다** — `session-runtime.ts`(커넥터 *읽기* 경로)만 보고
+  `main.ts`(CLI 자신의 *쓰기* 경로)를 보지 않았다. 한 모듈의 부재를 전체의 부재로 일반화했다.
+- **격리:** `resolveProviderSettingsPath()` 가 `CLINE_PROVIDER_SETTINGS_PATH` 를 무조건 우선한다
+  (`paths.ts:424-430` @3.0.61, `:347-353` @3.0.53). 래퍼가 호출마다 `mktemp` 사본을 만들어
+  거기로 돌리고, 사본 생성 실패 시 **exit 3 으로 거부**한다.
+- **검증:** 두 래퍼 exit 4 → **0**, `providers.json` sha 전후 동일, argv 13/13, 뮤턴트 9/9.
+- 🟡 **실사용 이력은 하루뿐이다.** 다음 자동 업데이트가 이 동작을 또 바꿀 수 있다(CFG-05).
+- 근거: `qanda/004-does-cline-always-write-providers-json.md`, 커밋 `017c65e`
+
+### 🔴 미해결 모순 — Phase 10 VRF-04 대 Phase 11 31/31
+
+Phase 10(3.0.60)은 `model` 불변·`updatedAt` 만 변경을 기록했다. 그러나 소스는 세 태그에서
+동일하고 Phase 11 은 31/31 로 `model` 변경을 관측했다. **Phase 10 관측이 이상치이나 기전은
+설명하지 못했다.** 지어내지 않고 미해결로 남긴다.
+
 ### Blockers/Concerns (v1 에서 이월, v1.1 범위 밖)
 
 - 🔴 **CFG-05** — `CLINE_NO_AUTO_UPDATE=1` 이 cline 자동 업데이트를 막지 못한다. v1.2+ 로 이월.
@@ -178,15 +201,13 @@ v1.1 설계 근거: `docs/plan-act-reasoning-{design,implementation,diagrams}.md
 
 ## Session Continuity
 
-Last session: 2026-09-02
-Stopped at: Phase 10 완료 및 종료 커밋(검증 7/7). 별칭 5개가 라이브이고, 실제 `cline`
-  실행에서 사고가 관측됐다.
-  다음: /gsd:plan-phase 11 — `cline-plan`/`cline-act` 래퍼로 모드와 별칭의 짝을 강제하고,
-  `medium` 이 실제로 결과를 개선하는지 A/B 로 판정한다. **개선이 없다는 결과도 유효한 통과다.**
-  ※ Phase 11 이 물려받는 것:
-    - `cline -m` 이 매 호출마다 `providers.json` 의 `updatedAt` 을 쓴다(위 🔴 절).
-      판정은 파일 해시가 아니라 `model`·`contextWindow` 로 할 것.
-    - `cline` 이 3.0.60 으로 드리프트했다(CFG-05 미해결). 3.0.53 기준 소스 인용은
-      재검증 없이 신뢰하지 말 것.
-    - 배포 팔(`flashnext-plan`, −2 마진)은 도달을 증명한 팔이 아니다.
+Last session: 2026-09-10
+Stopped at: Phase 11 완료·종료 커밋. Phase 12 리서치 완료(`12-RESEARCH.md`), 계획 착수 직전.
+  다음: /gsd:plan-phase 12 — 마일스톤 마지막 페이즈(문서 갱신).
+  ※ Phase 12 범위 결정 4건(오케스트레이터 확정):
+    - `max_tokens` 동적화를 `32k-compaction-policy.md` §4·`cline-max-tokens-findings.md` 에 반영
+      (고정 2048 전제 위의 오버슈트 산술이 죽었다) — **범위 포함**
+    - `howto/`·`qanda/` 의 낡은 서술도 **범위 포함**
+    - `flashnext-reach-xhigh` 는 **존치 + 검증 전용으로 문서화**. 제거는 재기동을 또 부르므로 v1.2 후보
+    - `01-cli.md §6` 의 `--mode <act|plan>`(바이너리 문자열 스캔)은 **실측된 `-p` 가 이긴다**
 Resume file: None

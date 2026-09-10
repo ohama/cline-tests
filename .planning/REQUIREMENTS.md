@@ -100,9 +100,9 @@ CFG-16 의 질문도 이에 따라 좁아졌다 — `GATE-VERDICT.md` §3.2.
 
 ### USE — 사용 표면과 문서
 
-- [ ] **USE-01**: `cline-plan` / `cline-act` 래퍼가 모드와 별칭의 짝을 강제한다
-- [ ] **USE-02**: `verify_config.sh` 가 짝 불일치와 `--thinking high` 사용을 잡아낸다
-- [ ] **USE-03**: `medium` vs 기본 A/B 결과가 기록된다. 개선이 없으면 래퍼 기본값을
+- [x] **USE-01**: `cline-plan` / `cline-act` 래퍼가 모드와 별칭의 짝을 강제한다
+- [x] **USE-02**: `verify_config.sh` 가 짝 불일치와 `--thinking high` 사용을 잡아낸다
+- [x] **USE-03**: `medium` vs 기본 A/B 결과가 기록된다. 개선이 없으면 래퍼 기본값을
   `flashnext` 로 되돌리고 그 판단을 남긴다
 - [ ] **USE-04**: `docs/manual/01-cli.md` 에 사용법이, `docs/cline-config-pins.md` 에 별칭과
   파라미터가 고정값으로 기록된다. **`--thinking` 이 현재 400 이라는 사실**도 명시된다
@@ -147,9 +147,9 @@ CFG-16 의 질문도 이에 따라 좁아졌다 — `GATE-VERDICT.md` §3.2.
 | VRF-02 | Phase 10 | Complete |
 | VRF-03 | Phase 10 | Complete |
 | VRF-04 | Phase 10 | Complete |
-| USE-01 | Phase 11 | Pending |
-| USE-02 | Phase 11 | Pending |
-| USE-03 | Phase 11 | Pending |
+| USE-01 | Phase 11 | Complete |
+| USE-02 | Phase 11 | Complete |
+| USE-03 | Phase 11 | Complete |
 | USE-04 | Phase 12 | Pending |
 | USE-05 | Phase 12 | Pending |
 
