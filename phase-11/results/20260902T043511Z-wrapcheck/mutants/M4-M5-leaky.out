@@ -10,7 +10,7 @@ OK[WRAPPER]: cline-act reads WRAPPER_ALIAS from $WRAPPER_ACT_ALIAS
 OK[WRAPPER]: cline-act contains no -p/--plan token outside comments
 OK[WRAPPER]: neither cline-plan nor cline-act contains a literal alias string
 OK[WRAPPER]: WRAPPER_CLINE_BIN is an absolute path ('/opt/homebrew/bin/cline')
---- construction region extracted from /var/folders/l5/kgnn3k0x6jxgmmbjcspzjky40000gn/T//verify-wrappers-selftest.gtyaQV/m4-thinking-leak/wrapper_common.sh (for audit) ---
+--- construction region extracted from /var/folders/l5/kgnn3k0x6jxgmmbjcspzjky40000gn/T//verify-wrappers-selftest.XWOGOi/m4-thinking-leak/wrapper_common.sh (for audit) ---
 set -- -P "$WRAPPER_PROVIDER"
 [ -n "$WRAPPER_MODE_FLAG" ] && set -- "$@" "$WRAPPER_MODE_FLAG"
 set -- "$@" -m "$WRAPPER_ALIAS" --compaction "$WRAPPER_COMPACTION" -t "$WRAPPER_DEFAULT_TIMEOUT"
@@ -18,13 +18,13 @@ set -- "$@" "${ORIG_ARGS[@]}"
 
 CLINE_NO_AUTO_UPDATE=1 "$CMD" "$@"
 --- end construction region ---
-FAIL[WRAPPER]: construction region in /var/folders/l5/kgnn3k0x6jxgmmbjcspzjky40000gn/T//verify-wrappers-selftest.gtyaQV/m4-thinking-leak/wrapper_common.sh expands a named array with [@]/[*] — looks like a caller-argument passthrough leak (--thinking / -m would reach the real binary unfiltered)
-OK[WRAPPER]: construction region in /var/folders/l5/kgnn3k0x6jxgmmbjcspzjky40000gn/T//verify-wrappers-selftest.gtyaQV/m4-thinking-leak/wrapper_common.sh invokes the resolved binary variable, never a bare 'cline'
+FAIL[WRAPPER]: construction region in /var/folders/l5/kgnn3k0x6jxgmmbjcspzjky40000gn/T//verify-wrappers-selftest.XWOGOi/m4-thinking-leak/wrapper_common.sh expands a named array with [@]/[*] — looks like a caller-argument passthrough leak (--thinking / -m would reach the real binary unfiltered)
+OK[WRAPPER]: construction region in /var/folders/l5/kgnn3k0x6jxgmmbjcspzjky40000gn/T//verify-wrappers-selftest.XWOGOi/m4-thinking-leak/wrapper_common.sh invokes the resolved binary variable, never a bare 'cline'
 OK[WRAPPER]: WRAPPER_CHECK_ALIAS_LIVE not set — live gateway check skipped (default, per hard constraint: no network dependency on the default path)
 OK[WRAPPER]: cline-plan 'wrapper-check' argv observed: -P openai-compatible -p -m flashnext-plan --compaction agentic -t 600 wrapper-check 
 OK[WRAPPER]: cline-act 'wrapper-check' argv observed: -P openai-compatible -m flashnext-act --compaction agentic -t 600 wrapper-check 
 FAIL[WRAPPER]: cline-plan --thinking high 'wrapper-check' should exit non-zero and leave the stub argv file byte-unchanged (USE-02 --thinking leak check) — observed exit=0, byte-unchanged=no
 FAIL[WRAPPER]: cline-act --thinking high 'wrapper-check' should exit non-zero and leave the stub argv file byte-unchanged (USE-02 --thinking leak check) — observed exit=0, byte-unchanged=no
 FAIL[WRAPPER]: cline-plan -m flashnext 'wrapper-check' should exit non-zero and leave the stub argv file byte-unchanged (-m override rejection check) — observed exit=0, byte-unchanged=no
-FAIL[WRAPPER]: 4 wrapper assertion(s) failed for /var/folders/l5/kgnn3k0x6jxgmmbjcspzjky40000gn/T//verify-wrappers-selftest.gtyaQV/m4-thinking-leak — see FAIL[WRAPPER] lines above
+FAIL[WRAPPER]: 4 wrapper assertion(s) failed for /var/folders/l5/kgnn3k0x6jxgmmbjcspzjky40000gn/T//verify-wrappers-selftest.XWOGOi/m4-thinking-leak — see FAIL[WRAPPER] lines above
 FAIL[WRAPPER]: mode/alias pairing check failed — see above
