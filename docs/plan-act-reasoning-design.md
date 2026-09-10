@@ -1,9 +1,29 @@
 # Plan/Act 모드와 `reasoning_effort` 연결 설계 (제안)
 
-> **상태: 제안. 아직 구현되지 않았다.** v1 마일스톤 범위 밖이며, 채택 전에 §5 의 두 게이트를
-> 반드시 통과해야 한다. `~/local-llm-settings/config/litellm-config.yaml` 수정이 필요하다.
+> **2026-09-10 정정.** 아래 상태 배지는 2026-09-01 작성 당시의 것이며 더 이상 유효하지
+> 않다. v1.1 마일스톤이 이 설계를 **채택하고 구현했다** — 별칭은 Phase 10, 래퍼는 Phase 11
+> 에서 출하됐고, §5 의 두 게이트 모두 판정이 끝났다. 무엇이 바뀌는지는 §9
+> "이 정정이 바꾸는 것"을, 아직 열려 있는 항목은 §10 "미해결"을 볼 것. 정정 전 원문은 §11
+> 부록에 그대로 보존한다.
 >
-> 작성 2026-09-01 · 근거는 이 문서 안에 실측 출처를 명시한다.
+> **상태: 채택됨 (v1.1).** §5 의 두 게이트 판정, 이 문서 자신의 게이트 기준으로:
+> - **게이트 ① (컨텍스트 누적)**: kill 아님. Cline 은 사고 이력을 실제로 다음 턴에 다시
+>   붙인다(구조적으로는 누적된다) — 그러나 이 스택에서 재생된 사고는 토큰 비용이 **0**이다
+>   (16/16 판정 전부 `delta=0`, `prompt_tokens` 46 고정). 게이트가 통과한 이유는 "안
+>   붙여서"가 아니라 **"붙여도 0 토큰이라서"**다. 근거: `phase-09/GATE-VERDICT.md` §4.2,
+>   `phase-09/PRB-04-FINDINGS.md` §3.
+> - **게이트 ② (A/B)**: 정확도 개선을 **찾지 못했다**. 동일 반복수로 비교 가능한
+>   과제(01–06)에서 arm A 25/30, arm C 25/30 — 순열검정 p=0.563, 우연과 구별 불가.
+>   사전 등록된 판정 규칙의 기계적 출력은 `revert` 였다. **사람이 이를 override 해
+>   `keep` 으로 확정했다** — 개선이 증명돼서가 아니라, 규칙의 두 번째 근거였던
+>   `providers.json` 오염 부작용이 그날 격리(commit `017c65e`)로 해소되어 더 이상 되돌릴
+>   수밖에 없는 확실한 부작용이 아니게 됐기 때문이다. task 08 전체, arm B 전체, task 07 의
+>   arm C 5회 중 4회는 시도되지 않았다(66/88 셀). 근거: `phase-11/AB-RESULTS.md` §8·§11.
+>
+> `~/local-llm-settings/config/litellm-config.yaml` 수정은 이미 끝났다(Phase 10) — 더
+> 이상 "필요하다"가 아니라 "됐다."
+>
+> 작성 2026-09-01 · 정정 2026-09-10 · 근거는 이 문서 안에 실측 출처를 명시한다.
 >
 > **구현 계획: `docs/plan-act-reasoning-implementation.md`.**
 > 그 계획은 이 문서의 L1(`allowed_openai_params` 통과)을 쓰지 않는다 — litellm 별칭이
@@ -22,7 +42,11 @@ coding 95.0% / reasoning 100% / agent 93.3% 다(`~/local-llm-settings/VALIDATED.
 
 ### 1-1. Plan/Act 는 도구 가드이지 사고 설정이 아니다
 
-`cline/cline` tag `cli-v3.0.53` 소스 확인:
+`cline/cline` tag `cli-v3.0.53` 소스 확인. ※ 2026-09-10: `cline-src` 작업 트리는 이후
+`cli-v3.0.61` 로 이동했다 — 아래 인용을 재확인하려면 워킹 트리를 그렙하지 말고
+`git show cli-v3.0.53:<path>` 형태로 조회할 것(예:
+`git show cli-v3.0.53:sdk/packages/core/src/extensions/tools/command-guard-extension.ts`),
+`phase-12/SCOPE-DECISIONS.md` 항목 6.
 
 ```
 --plan     → createPlanModeCommandGuardExtension
@@ -66,6 +90,26 @@ To drop these, set `litellm.drop_params=True`
 
 VALIDATED.md 가 기록한 `low`/`medium`/`xhigh` 정상, `high` → 500 은 **`:8000` 직결 기준**이며
 그 문서가 명시하고 있다. litellm 계층은 당시 측정 대상이 아니었다. 두 기록은 모순되지 않는다.
+
+> **2026-09-10 정정 — 위 400 은 별칭에 따라 다르다.** 위 문장은 `flashnext`(`openai/`
+> 접두사, 무수정)를 통해 값을 **직접** 보낼 때만 참이다. Phase 10 이 만든
+> `flashnext-plan`/`flashnext-act`/`flashnext-reach-xhigh` 는 `hosted_vllm/` 접두사라 값이
+> litellm 을 **통과한다** — 그 대신 **모델 서버 자신이 거부해 HTTP 500** 이 난다
+> (`phase-11/OPEN-ITEMS.md` Open Item 1, case 1a: `Unexpected reasoning effort high.
+> Supported types are xhigh (default), medium, and low.`). 래퍼 없이 맨손 `cline --thinking
+> high` 로 이 별칭을 실제로 호출하면, 이 500 이 Cline 자신의 NDJSON 오류 이벤트로 그대로
+> 나타나며 **exit 1** 로 끝난다 — 사용자는 이 경로에서 400 을 보지 않는다(case 1c). 세
+> 케이스(1a/1b/1c) 모두 `Generation queued` 로그를 남기지 않았다 — 값 검증이 생성 큐 진입보다
+> 먼저 실패하기 때문에 실제 모델 생성 비용은 0이다.
+>
+> 이 문제 전체를 무의미하게 만드는 사실 하나가 더 있다: **Phase 11 의 래퍼는 `--thinking`
+> 을 파싱 단계에서 거부한다.** 화이트리스트 방식(deny-by-default)이라 실제 바이너리를
+> 호출하기도 전에 막는다(`phase-11/WRAPPER-DESIGN.md` §4) — 래퍼(`phase-11/cline-plan`/
+> `cline-act`)를 쓰는 사용자는 400 도 500 도 만나지 않는다. 이것은 버전에 따라 반대
+> 방향으로도 어긋나 있었다: 3.0.53 에서는 `--thinking` 자체가 CLI 에 없다고 믿었으나,
+> 3.0.60+ 에서는 실제 플래그(`none|low|medium|high|xhigh`)이고, 클라이언트가 보낸 값이
+> litellm 이 `litellm_params` 뒤에 클라이언트 kwargs 를 병합하기 때문에 별칭의 주입값을
+> **덮어쓴다** — 바로 이것이 래퍼가 통과시키지 않고 거부해야 하는 이유다.
 
 ### 1-4. 사고 길이를 제한할 수 없다
 
@@ -121,13 +165,17 @@ flashnext-act    reasoning_effort 없음
 
 L2 만으로는 `cline -p -m flashnext-act` 같은 불일치가 가능하고, 아무도 알려주지 않는다.
 
-```bash
-cline-plan() { CLINE_NO_AUTO_UPDATE=1 cline -p -m flashnext-plan "$@"; }
-cline-act()  { CLINE_NO_AUTO_UPDATE=1 cline    -m flashnext-act  "$@"; }
-```
+> **2026-09-10 정정 — 이 절의 셸 함수 스케치는 폐기됐다(superseded), 삭제가 아니다.** 원문은
+> §11 부록에 그대로 보존돼 있다. 문제는 세 가지였다: `"$@"` 가 호출자의 `--thinking high`
+> 나 두 번째 `-m` 을 그대로 통과시켜 이 메커니즘 전체를 무력화한다(호출자가 주입값을
+> 덮어쓸 수 있다는 뜻); 셸 함수는 파일 경로가 없어 `verify_config.sh` 가 정적으로 검사할
+> 수 없다; 테스트 하네스가 서브프로세스로 경로 호출할 수도 없다. 출하된 대체물은
+> **`phase-11/cline-plan` / `phase-11/cline-act`**, 화이트리스트 방식(deny-by-default) 파서다.
+> 상세: `phase-11/WRAPPER-DESIGN.md` §2·§3·§4.
 
 `phase-01/config/verify_config.sh` 에 어서션 추가: plan 모드 호출에 `-m flashnext-plan` 이
-붙어 있는지. 짝이 어긋난 상태를 검사로 잡는다.
+붙어 있는지. 짝이 어긋난 상태를 검사로 잡는다. (이 어서션은 실제로
+`phase-11/verify_wrappers.sh` 로 구현됐다 — `phase-11/WRAPPER-DESIGN.md` §8.)
 
 ## 3. 파라미터 도달을 증명하는 방법
 
@@ -222,3 +270,53 @@ v1 이 "설정했다"와 "작동한다"를 구분하지 못해 이틀을 쓴 뒤
 | litellm 라우팅 | `~/local-llm-settings/config/litellm-config.yaml` |
 | CLI 사용법 | `docs/manual/01-cli.md` |
 | 버전 고정 (CFG-05 미해결) | `docs/cline-config-pins.md` |
+
+## 9. 이 정정이 바꾸는 것
+
+| 대상 | 이전 (2026-09-01) | 이후 (2026-09-10) |
+| --- | --- | --- |
+| 상태 배지 | 제안. 아직 구현되지 않음, v1 범위 밖 | 채택됨(v1.1) — 별칭 Phase 10, 래퍼 Phase 11 출하 |
+| 게이트 ① 판정과 그 이유 | 미지수, "누적되면 폐기" | 통과 — 사고는 구조적으로 재첨부되지만(누적) 이 스택에서 토큰 비용이 0이라 무해. 통과 이유는 "안 붙여서"가 아니라 "붙여도 0 토큰이라서" |
+| 게이트 ② 판정 | 미지수, "개선 없으면 중단" | 개선 없음(arm A 25/30 = arm C 25/30, p=0.563) — 그러나 `keep`. 사람이 사전 등록 규칙의 `revert` 출력을 override 했다. 이유는 개선 증명이 아니라 `providers.json` 오염 부작용의 격리(격리됨, 하루 미만) |
+| §L3 셸 함수 스케치 | 현재 설계로 제시 | 폐기(superseded) — `phase-11/cline-plan`/`cline-act` deny-by-default 파서로 대체, 원문은 §11 부록에 보존 |
+| `--thinking` 실패 모드 | "전부 400" (단일 수치) | 접두사별로 다르다: `openai/`(`flashnext`)=litellm 400, `hosted_vllm/`(`flashnext-plan` 등)=모델 서버 500, 맨손 `cline --thinking high`=exit 1. 래퍼는 파싱 단계에서 거부해 셋 다 만나지 않는다 |
+
+## 10. 미해결
+
+- **CFG-05 — 자동 업데이트를 막을 수 없다.** `CLINE_NO_AUTO_UPDATE=1` 이 듣지 않는다. 이
+  마일스톤 동안 바이너리가 `3.0.53 → 3.0.60 → 3.0.61` 로 드리프트했고, 한 번은 `npm` 패키지
+  자체가 실행 도중 디스크에서 완전히 사라진 채로 발견됐다(`phase-11/OPEN-ITEMS.md`
+  "Unplanned finding").
+- **실제 에이전트 워크로드에서 압축이 여전히 프루닝하지 않는다.** cline-bench 통과 0/4
+  (`docs/32k-compaction-policy.md` §4a). 이 문서가 다루는 사고 주입과는 별개의 결함이지만,
+  사고 트레이스가 실제로 누적되는 워크로드가 나타나면 같은 결함과 상호작용할 수 있다.
+- **`--compaction basic` 은 미검증이다.** 근본 결함을 직접 겨냥할 유일한 후보였지만 올바른
+  최상위 `contextWindow` 설정 위에서 한 번도 테스트된 적이 없다 — 별도의 라이브 실행 승인이
+  필요하다.
+- **`providers.json` 격리(containment)는 하루가 안 됐다.** commit `017c65e`, 검증은 오늘
+  했지만 실사용 이력이 없다 — "고쳐졌다"가 아니라 **"2026-09-10 기준 격리됐다, 더 긴 노출을
+  기다리는 중"**이다.
+
+## 11. 부록 — 정정 전 기록
+
+아래는 2026-09-01 작성 당시 이 문서가 실제로 적고 있던 원문이다. 삭제하지 않고 그대로
+보존한다 — 결론(상태 배지, §L3 셸 함수 스케치)만 위 본문으로 대체됐다.
+
+<details>
+<summary>원문 펼치기</summary>
+
+원래 상태 배지 (2026-09-01):
+
+> **상태: 제안. 아직 구현되지 않았다.** v1 마일스톤 범위 밖이며, 채택 전에 §5 의 두 게이트를
+> 반드시 통과해야 한다. `~/local-llm-settings/config/litellm-config.yaml` 수정이 필요하다.
+>
+> 작성 2026-09-01 · 근거는 이 문서 안에 실측 출처를 명시한다.
+
+원래 §L3 셸 함수 스케치:
+
+```bash
+cline-plan() { CLINE_NO_AUTO_UPDATE=1 cline -p -m flashnext-plan "$@"; }
+cline-act()  { CLINE_NO_AUTO_UPDATE=1 cline    -m flashnext-act  "$@"; }
+```
+
+</details>
