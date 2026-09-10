@@ -479,3 +479,135 @@ network): **it is still present** (`model_name: flashnext-reach-xhigh`, alongsid
 `flashnext-codex`, `flashnext-plan`, `flashnext-act`). Per `phase-10/PHASE-10-FINDINGS.md`, that
 decision is handed to **Phase 12** — recorded here again so it is not silently dropped a second
 time.
+
+---
+
+## §11 The ratified decision (plan 11-07, human review)
+
+```
+DECISION: keep cline-plan -> flashnext-plan
+```
+
+**Human's reply, verbatim (2026-09-10):**
+
+> 응, 반영해서 keep 으로 진행해줘
+
+**Classification: `override-with-reason`, not `ratify-rule-output`.** This distinction is recorded
+deliberately, not blurred. §8's pre-registered rule mechanically outputs:
+
+```
+RULE OUTPUT: revert
+```
+
+(arm C's raw correct-count, 26, does not exceed arm A's, 30, by the required ≥7-cell margin at the
+authorised 8-tasks×N=5 size — it is 4 cells *lower*.) **The shipped decision does not follow that
+output.** The human reviewing this checkpoint chose `keep`, overriding `revert` with a stated
+reason. Presenting this as anything other than an override — e.g. as if the rule had somehow
+produced `keep`, or as if the override were unexplained — would defeat the entire purpose of
+pre-registering the rule in `AB-PROTOCOL.md` §5 before the data existed. It did not produce `keep`.
+The human overrode it, and said why.
+
+**The stated override reason**, as given by the orchestrator that carried this checkpoint to the
+human, resting on two grounds `AB-PROTOCOL.md`'s `revert` output was itself resting on:
+
+1. **No accuracy improvement — this ground is unchanged, and it remains true.** On every task both
+   arms attempted at equal replication (tasks 01–06, N=5 each), the two arms are identical: arm A
+   25/30 correct, arm C 25/30 correct (§4's own figures for 01–05 plus the shared 06 floor,
+   restricted to the equal-N slice; see §4/§8 above for the full accounting including task 07's
+   imbalance). The headline −4 raw gap is entirely produced by task 07's unequal replication (arm A
+   ran all 5 reps, arm C ran only 1, both scoring 100% on the reps that ran) after the request cap
+   stopped the run at 66/88 cells — not by any measured accuracy difference. The permutation test
+   over per-cell correctness returns p=0.563 (§6) — indistinguishable from chance. Never measured at
+   all: task 08 (both bug-localisation tasks), arm B (the prefix control) in its entirety, and 4 of
+   arm C's 5 reps on task 07. **This ground still supports `revert` on its own** — the override does
+   not rest on any claim that thinking helped. It did not, at the resolution this run achieved.
+2. **"The side effect is 100% certain" — this ground is no longer true, as of today (2026-09-10),
+   after §1c above was written.** §1c measured `providers.json`'s `model` field drifting on 31/31
+   (100%) of this A/B's arm-C invocations, repaired only after the fact by a mitigation inside
+   `run_ab.sh`, not by the wrapper itself. That was the state `revert`'s second ground rested on:
+   the side effect was certain and, at the time §1c was written, only detectable-and-repaired, never
+   prevented. **It is now prevented, not merely detected.** Commit `017c65e` (`phase-11/wrapper_common.sh`)
+   added containment: the wrapper copies the real `providers.json` to a per-invocation `mktemp`,
+   points `CLINE_PROVIDER_SETTINGS_PATH` at the copy for the duration of the call, and traps
+   `EXIT`/`INT`/`TERM` to remove it — so the mutation lands on the scratch copy, never the shared
+   file Kanban and Telegram also read. If the scratch copy cannot be created, the wrapper refuses
+   with exit 3 rather than running uncontained. This was verified today (this document, immediately
+   below) rather than assumed from the commit message.
+
+**Why this is an override and not a re-run of the rule:** the rule in §5/§8 is an answer-quality
+rule; it does not, and by its own design cannot, take a side-effect-containment fact as an input.
+Ground 1 alone would still select `revert`. The human's decision to `keep` rests entirely on ground
+2 changing, which is new information created after the rule was written and after §8's arithmetic
+was applied — exactly the kind of thing `AB-PROTOCOL.md`'s own override option (plan 11-07's Task 1,
+option `override-with-reason`) exists for: "a large latency penalty alongside a marginal accuracy
+gain, or a truncation rate that makes the thinking arm unusable in practice regardless of accuracy"
+was the option's own example shape; a newly-closed safety hazard that removes the strongest reason
+to revert is the same shape of thing, argued in the opposite direction.
+
+**Requirement and criterion mapping.** This decision, together with its evidence chain
+(`AB-PROTOCOL.md` §5's rule, `AB-RESULTS.md` §1–§10's measured table, this §11's override), is the
+disposition of **USE-03** (`.planning/REQUIREMENTS.md`: "`medium` vs 기본 A/B 결과가 기록된다.
+개선이 없으면 래퍼 기본값을 `flashnext` 로 되돌리고 그 판단을 남긴다") and of **ROADMAP Phase 11
+criterion 3** ("동일 ... 과제 세트로 `flashnext` 와 `flashnext-plan` 을 각각 실행한 결과가 표로
+기록되고, 개선 유무와 무관하게 래퍼 기본값 유지/되돌림 판단이 문서에 남는다"). Both are satisfied
+by the existence of this recorded, evidenced judgement — not by which direction it went.
+
+**A no-improvement result is a valid, complete answer, stated explicitly:** USE-03's own text and
+ROADMAP criterion 3's own wording both frame "개선 유무와 무관하게" ("regardless of whether there
+is improvement") — the decision recorded here, that no accuracy improvement was found and the
+default is nonetheless kept for an unrelated, newly-resolved safety reason, is a complete and valid
+disposition of USE-03, not an unfinished experiment awaiting a future A/B that finds a positive
+result. A reader must not come away from this document thinking the A/B favoured `flashnext-plan`
+on answer quality — it did not measurably favour either arm. `keep` is justified here by the side
+effect becoming avoidable, not by any evidence that thinking helps.
+
+**The litellm aliases are unchanged either way.** This decision governs only what `cline-plan`
+defaults to. `flashnext-plan`, `flashnext-act`, `flashnext`, `flashnext-codex`, and
+`flashnext-reach-xhigh` all remain live and reachable by an explicit `-m` override for anyone who
+wants any of them — nothing in this section, or in plan 11-07, touches
+`/Users/ohama/agent-stack/litellm/config.yaml` or its mirror.
+
+**A caveat on the containment's maturity, stated plainly rather than left implicit:** the
+containment this override rests on is new code, committed today (`017c65e`), verified today by the
+argv/mutant suites below and by `qanda/004-does-cline-always-write-providers-json.md`. It has not
+run in production for any length of time. It is a structural mitigation against a mechanism that
+was measured at 100% frequency across 31 real invocations, verified against the actual installed
+binary's source rather than inferred — but it is hours old, not battle-tested, and a future finding
+that it has a gap (a code path that does not honour `CLINE_PROVIDER_SETTINGS_PATH`, for instance)
+would reopen ground 2 exactly as measured here.
+
+### Part B — `phase-11/wrapper.env`, applied
+
+**No change to the alias value.** `WRAPPER_PLAN_ALIAS` remains `"flashnext-plan"`. Per the decision
+above, this is a deliberate no-op, made visible in the file's own history (a comment line added,
+committed) rather than left to be inferred from the absence of a commit — see the file itself and
+`git log -- phase-11/wrapper.env` for the audit trail.
+
+### Part C — re-verification against the final wrapper state (2026-09-10, 0 live model requests)
+
+Run against the shipped state exactly as it now stands (no alias change to re-verify, since the
+decision is `keep` — this re-confirms nothing regressed, not that a revert took effect):
+
+- `bash phase-01/config/verify_config.sh` → **exit 0.** `OK[WRAPPER]: WRAPPER_PLAN_ALIAS
+  ('flashnext-plan') and WRAPPER_ACT_ALIAS ('flashnext-act') are non-empty and distinct` and
+  `OK[WRAPPER]: WRAPPER_PLAN_ALIAS='flashnext-plan' is a known-good plan alias` — the alias named
+  matches `wrapper.env`'s actual value.
+- `bash phase-11/wrapper_argv_test.sh` → **exit 0.** Real-wrapper suite ALL PASS (13/13 cases);
+  `MUTANT-LEAKY: CAUGHT`, `MUTANT-SWAP: CAUGHT`. The P1 case's captured argv:
+  `cline-plan hello` → `has -p; -m flashnext-plan once; -P openai-compatible; --compaction agentic;
+  last=hello; thinking=0` — `flashnext-plan`, matching the alias `wrapper.env` still holds.
+- `bash phase-11/verify_wrappers.sh` → **exit 0.** `OK[WRAPPER]: all wrapper assertions passed`.
+
+**M8 note.** Plan 11-03's mutant `M8-alias-reverted-POSITIVE-CONTROL` (`WRAPPER_PLAN_ALIAS` forced
+to `flashnext`) exists to prove the guard accepts a legitimately reverted alias without confusing it
+for a defect. Because the decision here is `keep`, no real revert occurred and M8's prediction is
+not exercised by this document's own change — `phase-11/selftest_verify_wrappers.sh`'s full 9-mutant
+ladder (M1–M9, including M8) was nonetheless re-run today as part of this task's verification and
+returned `M8-alias-reverted-POSITIVE-CONTROL: exit=0 verdict=PASS` against a synthetic mutant copy,
+confirming the guard is still correctly permissive of a revert state, in reserve, should a future
+phase revisit this decision.
+
+**Zero live model requests in this task.** `~/llm-system/services/logs/flashnext.err` line count:
+28398 before, 28398 after, across `verify_config.sh`, `wrapper_argv_test.sh`, `verify_wrappers.sh`,
+and the `selftest_verify_wrappers.sh` mutant-ladder re-run — all four exercise only the stub binary
+(`phase-11/testing/stub-cline`) or static file inspection.
