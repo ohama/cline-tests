@@ -1,0 +1,2 @@
+REFUSED: cline-plan does not accept '--thinking'. Reasoning effort is injected server-side by the litellm alias. litellm merges client kwargs AFTER the alias's litellm_params (phase-10/ALIAS-DESIGN.md §3), so a client-sent reasoning_effort OVERRIDES the alias — using --thinking silently bypasses this wrapper's guarantee. See .planning/REQUIREMENTS.md CFG-11, 2026-09-02 correction.
+usage: cline-plan [-t|--timeout <secs>] [-c|--cwd <path>] [--json] [--] <prompt...>

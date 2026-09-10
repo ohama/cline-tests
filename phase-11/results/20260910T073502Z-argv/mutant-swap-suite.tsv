@@ -1,0 +1,14 @@
+case	wrapper	args	exit_code	stub_invoked	assertion	verdict
+P1	cline-plan	cline-plan hello	0	yes	has -p; -m flashnext-plan once; -P openai-compatible; --compaction agentic; last=hello; thinking=0; env recorded [FAIL: no-m-planalias]	FAIL
+P2	cline-act	cline-act hello	0	yes	has -m flashnext-act once; no -p; no --plan; thinking=0	PASS
+P3	cline-plan	cline-plan --timeout 90 --json hello	0	yes	has -t 90; has --json	PASS
+P4	cline-plan	cline-plan -- '-weird prompt'	2	no	documented limitation: prompt beginning with '-' refused, exit 2, stub not invoked, argv file byte-unchanged	PASS
+R1	cline-plan	cline-plan --thinking high x	2	no	exit 2; stub not invoked; argv file byte-unchanged; stderr names --thinking	PASS
+R2	cline-plan	cline-plan --thinking=high x	2	no	the '=' form; exit 2; stub not invoked; argv file byte-unchanged; stderr names --thinking	PASS
+R3	cline-plan	cline-plan --thinking x	2	no	bare form (cline's own bare --thinking means medium); exit 2; stub not invoked; argv file byte-unchanged	PASS
+R4	cline-act	cline-act --thinking high x	2	no	exit 2; stub not invoked; argv file byte-unchanged; stderr names --thinking	PASS
+R5	cline-plan	cline-plan -m flashnext x	2	no	exit 2; stub not invoked; argv file byte-unchanged; stderr names -m	PASS
+R6	cline-act	cline-act -m flashnext-codex x	2	no	exit 2; stub not invoked; argv file byte-unchanged. NOTE: flashnext-codex has been measured to kill the model server for 29s (11-RESEARCH.md) — deny-by-default closes this path too, for free, without needing a codex-specific rule	PASS
+R7	cline-plan	cline-plan -P openai x	2	no	exit 2; stub not invoked; argv file byte-unchanged	PASS
+R8	cline-act	cline-act -p x	2	no	exit 2; stub not invoked; argv file byte-unchanged	PASS
+R9	cline-plan	cline-plan --auto-approve false x	2	no	generic deny-by-default refusal (not one of the four named flags), proving the parser is a whitelist, not a blocklist; exit 2; stub not invoked; argv file byte-unchanged	PASS

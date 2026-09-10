@@ -1,0 +1,16 @@
+SENTINEL-R5-UNTOUCHED
+---RUN---
+-P
+openai-compatible
+-p
+-m
+flashnext-plan
+--compaction
+agentic
+-t
+600
+-m
+flashnext
+x
+---ENV---
+CLINE_NO_AUTO_UPDATE=1

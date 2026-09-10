@@ -1,0 +1,2 @@
+REFUSED: cline-plan does not accept '-P/--provider'. The provider is fixed to openai-compatible by phase-11/wrapper.env.
+usage: cline-plan [-t|--timeout <secs>] [-c|--cwd <path>] [--json] [--] <prompt...>

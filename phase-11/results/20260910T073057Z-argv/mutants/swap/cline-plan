@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# phase-11/cline-plan — Plan-mode wrapper. Always -p, always the plan alias.
+#
+# Exit-code contract: 0..N = real cline's own exit code; 2 = refused argument, nothing
+# invoked; 3 = pre-run config guard failed, nothing invoked; 4 = post-run config guard failed.
+#
+# See phase-11/WRAPPER-DESIGN.md for the full contract, the deny-by-default rationale, and
+# why this is a script and not the shell function docs/plan-act-reasoning-design.md sketches.
+set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. "$HERE/wrapper.env"
+WRAPPER_SELF="cline-plan"
+WRAPPER_MODE_FLAG="-p"          # ROADMAP Phase 11 criterion 1: always -p -m <plan alias>
+WRAPPER_ALIAS="$WRAPPER_ACT_ALIAS"
+. "$HERE/wrapper_common.sh"

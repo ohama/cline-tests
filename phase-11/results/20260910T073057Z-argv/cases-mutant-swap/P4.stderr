@@ -1,0 +1,2 @@
+REFUSED: the prompt '-weird prompt' begins with '-' and would be re-parsed as a flag by the real binary
+usage: cline-plan [-t|--timeout <secs>] [-c|--cwd <path>] [--json] [--] <prompt...>
