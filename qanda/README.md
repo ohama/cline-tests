@@ -25,6 +25,7 @@
 |---|---|---|
 | 001 | [cline CLI 로 plan/act 모드 테스트하기](001-testing-plan-act-with-cline-cli.md) | 2026-09-10 |
 | 002 | [`ask.sh` 는 어떻게 동작하나](002-how-ask-sh-works.md) | 2026-09-10 |
+| 003 | [래퍼(`cline-plan`/`cline-act`)는 어떻게 동작하나](003-how-the-wrappers-work.md) | 2026-09-10 |
 
 ## 관련
 
