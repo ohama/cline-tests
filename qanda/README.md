@@ -23,7 +23,7 @@
 
 | # | 질문 | 날짜 |
 |---|---|---|
-| — | (아직 없음) | |
+| 001 | [cline CLI 로 plan/act 모드 테스트하기](001-testing-plan-act-with-cline-cli.md) | 2026-09-10 |
 
 ## 관련
 
