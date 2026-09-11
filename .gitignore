@@ -16,3 +16,6 @@ bench/cline-bench/
 # scan (~90-150MB ELF binaries each, ~400MB unpacked total per RESULTS dir). Evidence lives in
 # the sibling *.txt scan/verdict files, which ARE tracked; the raw binaries are not vendored.
 phase-07/results/*/scratch-cline-*/
+
+# 플랜 실행 중 요청 수를 세는 런타임 워터마크 — 커밋 대상 아님
+phase-*/results/.budget-watermark-*
