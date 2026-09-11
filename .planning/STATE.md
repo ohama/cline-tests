@@ -11,8 +11,9 @@ See: .planning/PROJECT.md (updated 2026-09-01)
 ## Current Position
 
 Milestone: v1.1 Plan/Act ↔ reasoning_effort
-Phase: 12 of 12 — ✅ **완료** (2026-09-10), 스윕 GREEN 134/134, 문장 인용 감사 9/9 PASS.
-  **마일스톤 자체는 사람 체크포인트(12-08 마지막 태스크) 확인 전까지 미완료로 남는다.**
+Phase: 12 of 12 — ✅ **완료**. 스윕 GREEN 134/134, 문장 인용 감사 9/9 PASS,
+  **사람 승인 완료(2026-09-11)**, 페이즈 검증 15/15 (`12-VERIFICATION.md`).
+  **v1.1 의 네 페이즈가 모두 끝났다. 남은 것은 마일스톤 아카이브뿐이다.**
 Plan: 8 of 8 완료 (12-01 ~ 12-08)
 Status: Phase 12 문서 갱신 종료 — USE-04/USE-05 충족, ROADMAP 기준 3건 모두 충족,
   요구사항·로드맵의 부정확한 "400" 문구는 정정 각주로 남기고 재서술하지 않음
@@ -211,16 +212,14 @@ Phase 10(3.0.60)은 `model` 불변·`updatedAt` 만 변경을 기록했다. 그�
 
 ## Session Continuity
 
-Last session: 2026-09-10
-Stopped at: Phase 12 전체 완료(12-01 ~ 12-08), Phase 12 자동 태스크 종료. **12-08 의 사람
-  체크포인트("approved" 또는 수정 요청)가 아직 응답 대기 중이다** — 이것이 v1.1 마일스톤의
-  마지막 남은 항목이다.
-  다음: 체크포인트가 "approved" 로 응답되면 **`/gsd:audit-milestone`** 또는
-  **`/gsd:complete-milestone`** 을 실행해 v1.1 을 아카이브한다. 응답이 수정 요청이면 그
-  파일·문장을 고치고 `phase-12/verify_docs.sh`/`phase-12/anti-overclaim.md` 를 재확인한 뒤
-  다시 확인을 요청한다.
-  ※ Phase 12 최종 상태: `phase-12/verify_docs.sh` GREEN 134/134(exit 0),
-  `phase-12/anti-overclaim.md` 9/9 PASS, `phase-12/PHASE-12-FINDINGS.md` 작성 완료,
-  `.planning/REQUIREMENTS.md`(USE-04/USE-05 완료 + "400" 각주) ·
-  `.planning/ROADMAP.md`(Phase 12 완료 + 기준 3건 충족 + 기준 2 각주) 갱신 완료.
+Last session: 2026-09-11
+Stopped at: Phase 12 완료·승인·검증(15/15). **v1.1 의 네 페이즈가 모두 끝났다.**
+  다음: /gsd:audit-milestone (요구사항 커버리지·페이즈 간 통합·E2E) 또는
+        /gsd:complete-milestone (감사 생략하고 바로 아카이브). 사용자 결정 대기.
+  ※ 감사를 권하는 이유 — 이 마일스톤의 실제 결함은 **페이즈 사이**에 있었다.
+    Phase 9 의 잘못된 전제("`-m` 은 영속화하지 않는다")가 Phase 10 설계에 들어갔고,
+    Phase 11 이 31/31 로 반증할 때까지 **각 페이즈 검증은 전부 통과**했다.
+    페이즈 단위 검증이 구조적으로 못 보는 종류다.
+  ※ 미해결 모순 — Phase 10 VRF-04(3.0.60 에서 `model` 불변) 대 Phase 11 31/31.
+    소스는 세 태그에서 동일하다. 기전 미규명, 지어내지 않고 남긴다.
 Resume file: None
