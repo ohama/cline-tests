@@ -1,0 +1,9 @@
+mutant	defect	expected	observed_exit	verdict
+M1-forbidden-in-live-body	implementation.md: inserted the forbidden sentence '누적의 증거가 아니다' above the appendix marker	FORBIDDEN check on docs/plan-act-reasoning-implementation.md	5	CAUGHT
+M2-required-anchor-missing	implementation.md: 'shouldIncludeReasoningHistory' replaced with REDACTED_ANCHOR	REQUIRED check on docs/plan-act-reasoning-implementation.md	5	CAUGHT
+M3-ab-disclosure-incomplete	qanda/001: 'p=0.563' deleted from the A/B-mentioning sentence	AB_DISCLOSURE check on qanda/001-testing-plan-act-with-cline-cli.md	5	CAUGHT
+M4-dead-citation	cline-config-pins.md: appended a citation of `phase-99/NOPE.md` (does not exist)	CITED_PATHS_EXIST check on docs/cline-config-pins.md	5	CAUGHT
+M5-appendix-content-deleted	diagrams.md: preserved original text removed from inside the appendix, marker/heading left intact	APPENDIX_INTEGRITY check on docs/plan-act-reasoning-diagrams.md	5	CAUGHT
+M6-tag-citation-missing-git-show	cline-config-pins.md: appended a bare 'cli-v3.0.53' mention with no 'git show cli-v3.0.53:' form	TAG_CITATION check on docs/cline-config-pins.md	5	CAUGHT
+M7-escape-hatch-must-be-audited	implementation.md: forbidden sentence + verify_docs:allow on the same line	exit 0 for that assertion AND an ESCAPE[DOCS] line naming file:line in the transcript	0	CAUGHT
+M8-clean-control	none — unmutated copy of the synthetic fixture set	must exit 0 with escape hatch count 0 — a checker that fails everything cannot masquerade as a strict one	0	PASS

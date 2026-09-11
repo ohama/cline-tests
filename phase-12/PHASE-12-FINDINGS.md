@@ -241,5 +241,81 @@ written; none needed revisiting.
 
 ---
 
+## §7 Human checkpoint sign-off
+
+Plan 12-08's Task 3 (`type="checkpoint:human-verify"`, gate `blocking`) was reached after Tasks 1, 1a
+and 2 completed and were committed (`1cff349`, `7fdafc2`, `f5b437c`, `79abb79`). It is recorded here
+because it is the last gate before the milestone is archived, and because its scope needs stating as
+precisely as everything else in this document.
+
+**Who:** ohama100@gmail.com (this project's sole operator).
+**When:** 2026-09-11.
+**Verbatim reply:** `승인` ("approved").
+
+**What was shown before the reply, in full:**
+
+- The GREEN sweep, re-run independently by the orchestrator: `exit 0`, `CASES 134/134`, against the
+  RED baseline's `50/134`, exit 5 — the same total both times, so the task 1 verify step ("a GREEN
+  run with a *smaller* total than RED means assertions disappeared") was itself re-checked, not just
+  trusted from the original commit.
+- `phase-12/selftest_verify_docs.sh` re-run the same day: exit 0, all eight mutants (`M1`–`M8`)
+  judged `CAUGHT`/`PASS` — the checker demonstrated able to fail *today*, not only in wave 1.
+- The cumulative `Prefill started` count in `~/llm-system/services/logs/flashnext.err`: **1054
+  before and after** the entire phase — zero model requests attributable to this plan's own
+  activity, checked again below in §7's own re-verification.
+- `phase-12/anti-overclaim.md`'s 9/9 hand audit, with specific attention drawn to claim 6: it reached
+  `PASS` only because the audit itself found a real bug the mechanical sweep passed over —
+  `howto/fast-and-deep-mode.md` asserted `-m` does not touch `providers.json` and is therefore safe,
+  the exact opposite of this milestone's own measured fact (31/31, 100%, Phase 11). No `FORBIDDEN`
+  literal existed to catch this sentence; wave 1's assertion table covered only the eleven documents'
+  *known* debt, and this sentence was not among it. Fixed in `1cff349`, re-verified in the same
+  commit's own re-run (`CASES 134/134`, exit 0).
+- Both escape-hatch uses (`qanda/001-testing-plan-act-with-cline-cli.md:165`,
+  `qanda/003-how-the-wrappers-work.md:132`), each a dated, self-correction blockquote where the false
+  sentence legitimately belongs in the live body as a quoted historical artifact, not a live claim.
+- The three recorded grader defects (§5.8: marker collision, `A/B` substring false-positive, glob
+  citations flagged as dead paths) and the standing `AB_DISCLOSURE` literal-paraphrase gap (§5.8,
+  closing paragraph) — disclosed as open, not closed by this approval.
+
+**Scope of this approval, stated explicitly so it is not read wider than it was given:** this is
+approval of **this document set, at this commit** — that the eleven corrected documents (§1) no
+longer state what they used to state, that the sweep and hand audit both back that up, and that the
+documentation is fit to stand as the milestone's closing record. **It is not a blanket approval of
+the milestone's technical conclusions.** Several of those conclusions carry disclosed weaknesses this
+same document records in §5: the A/B's own limited power (66/88 cells, §5.3), the `providers.json`
+containment's one day of history (§5.4), CFG-05's unresolved auto-update (§5.6), and the unexplained
+VRF-04-vs-31/31 contradiction left deliberately without a proposed mechanism (§5.7). Approving the
+documentation as an accurate account of those weaknesses is a different act from approving the
+weaknesses away, and this record keeps the two separate.
+
+**Re-verified independently, in this same closing pass, before this sign-off was written down** (not
+merely repeating what the checkpoint already showed):
+
+- `bash phase-12/verify_docs.sh`: exit `0`, `CASES 134/134` (`phase-12/results/20260911T002402Z-final-green/green.txt`, `green-exit.txt`).
+- `bash phase-12/selftest_verify_docs.sh`, same session: exit `0`, all eight mutants `CAUGHT`/`PASS`
+  (`phase-12/results/20260911T002402Z-final-green/selftest.txt`).
+- `bash phase-01/config/verify_config.sh`: exit `0`, `providers.json` unchanged
+  (`model=flashnext`, `contextWindow=29000`).
+- `grep -c 'Prefill started' ~/llm-system/services/logs/flashnext.err`: **1054**, unchanged from
+  before the checkpoint was presented and from before this plan began — zero model requests issued
+  by anything done between the checkpoint's presentation and this record being written.
+
+### The phase's most transferable lesson
+
+The mechanical sweep reported `134/134` — every assertion it was told to check, passing — at the
+exact moment a live document (`howto/fast-and-deep-mode.md`, pre-fix) stated the direct opposite of a
+measured fact (`-m` does not write `providers.json`, when it unconditionally does, 31/31). A clean
+sweep and a false sentence coexisted in the same repository at the same time, because the sweep can
+only fail an assertion someone thought to write, and no one had written this one. The hand audit —
+reading the prose as a user would, not grepping it — is what caught it, precisely because it has no
+assertion table to exhaust. **The sweep is necessary and not sufficient; the hand audit is what
+mechanical checking structurally cannot replace, and that is why this phase ran both rather than
+treating either as sufficient on its own.** This lesson is recorded here, not only inside
+`phase-12/anti-overclaim.md`'s claim 6, because it outlives this specific claim and this specific
+document — it is a property of any documentation-correctness process built on a literal-matching
+grader, in this project or any other.
+
+---
+
 **Closing line, as both prior phases' findings documents do:** this document reports the phase's
 results. It does not adjudicate the milestone.

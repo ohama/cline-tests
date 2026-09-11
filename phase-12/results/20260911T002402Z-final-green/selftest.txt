@@ -1,0 +1,21 @@
+M1-forbidden-in-live-body: exit=5 verdict=CAUGHT — FAIL[DOCS]: FORBIDDEN docs/plan-act-reasoning-implementation.md: forbidden literal still present in live body (uncorrected): '누적의 증거가 아니다' — 15:누적의 증거가 아니다
+M2-required-anchor-missing: exit=5 verdict=CAUGHT — FAIL[DOCS]: REQUIRED docs/plan-act-reasoning-implementation.md: required anchor missing: 'shouldIncludeReasoningHistory'
+M3-ab-disclosure-incomplete: exit=5 verdict=CAUGHT — FAIL[DOCS]: AB_DISCLOSURE qanda/001-testing-plan-act-with-cline-cli.md: mentions the A/B but is missing: p=0.563
+M4-dead-citation: exit=5 verdict=CAUGHT — FAIL[DOCS]: CITED_PATHS_EXIST docs/cline-config-pins.md: cited path(s) do not exist under /Users/ohama/projs/cline-tests: phase-99/NOPE.md
+M5-appendix-content-deleted: exit=5 verdict=CAUGHT — FAIL[DOCS]: APPENDIX_INTEGRITY docs/plan-act-reasoning-diagrams.md: appendix is missing preserved original text for: 상태: 계획, 미착수.|소스 조사는 "누적되지 않는다" 쪽을 가리킨다 — this is a deletion, not a correction
+M6-tag-citation-missing-git-show: exit=5 verdict=CAUGHT — FAIL[DOCS]: TAG_CITATION docs/cline-config-pins.md: cites cli-v3.0.53 without the required 'git show cli-v3.0.53:' form
+M7-escape-hatch-must-be-audited: exit=0 verdict=CAUGHT — escape line: ESCAPE[DOCS]: docs/plan-act-reasoning-implementation.md:15
+M8-clean-control: exit=0 verdict=PASS — escape count observed: 0
+
+docs-selftest.tsv written to: /Users/ohama/projs/cline-tests/phase-12/results/20260911T002408Z-mutants/docs-selftest.tsv
+mutant                            defect                                                                                               expected                                                                                                   observed_exit  verdict
+M1-forbidden-in-live-body         implementation.md: inserted the forbidden sentence '누적의 증거가 아니다' above the appendix marker  FORBIDDEN check on docs/plan-act-reasoning-implementation.md                                               5              CAUGHT
+M2-required-anchor-missing        implementation.md: 'shouldIncludeReasoningHistory' replaced with REDACTED_ANCHOR                     REQUIRED check on docs/plan-act-reasoning-implementation.md                                                5              CAUGHT
+M3-ab-disclosure-incomplete       qanda/001: 'p=0.563' deleted from the A/B-mentioning sentence                                        AB_DISCLOSURE check on qanda/001-testing-plan-act-with-cline-cli.md                                        5              CAUGHT
+M4-dead-citation                  cline-config-pins.md: appended a citation of `phase-99/NOPE.md` (does not exist)                     CITED_PATHS_EXIST check on docs/cline-config-pins.md                                                       5              CAUGHT
+M5-appendix-content-deleted       diagrams.md: preserved original text removed from inside the appendix, marker/heading left intact    APPENDIX_INTEGRITY check on docs/plan-act-reasoning-diagrams.md                                            5              CAUGHT
+M6-tag-citation-missing-git-show  cline-config-pins.md: appended a bare 'cli-v3.0.53' mention with no 'git show cli-v3.0.53:' form     TAG_CITATION check on docs/cline-config-pins.md                                                            5              CAUGHT
+M7-escape-hatch-must-be-audited   implementation.md: forbidden sentence + verify_docs:allow on the same line                           exit 0 for that assertion AND an ESCAPE[DOCS] line naming file:line in the transcript                      0              CAUGHT
+M8-clean-control                  none — unmutated copy of the synthetic fixture set                                                   must exit 0 with escape hatch count 0 — a checker that fails everything cannot masquerade as a strict one  0              PASS
+
+=== overall selftest verdict: PASS ===
