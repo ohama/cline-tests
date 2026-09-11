@@ -29,7 +29,7 @@ Last activity: 2026-09-10 — Phase 12 전체 완료(12-08). `phase-12/verify_do
   **없다** — 그 절은 이 태스크에서 그대로 이월했다(문구 변경 없음).
 
 Progress: [██████████] v1.1 (20/20 requirements mapped, 20/20 complete: PRB-01..04,
-  CFG-11..17, VRF-01..04, USE-01..05; Phase 9–12 완료. 마일스톤 완료 선언은 사람 확인 대기)
+  CFG-11..17, VRF-01..04, USE-01..05; Phase 9–12 완료. 사람 확인 완료 2026-09-11 — 아카이브 대기)
 
 ## Performance Metrics
 
